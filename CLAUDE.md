@@ -96,10 +96,6 @@ docs/design/設計図表集.md        docs/proposals/〇〇図_20251130.md
 | `PlantUML_Studio_コンテキスト図_20251130.md` | システム境界、外部アクター |
 | `PlantUML_Studio_ユースケース図_20251130.md` | 機能一覧、アクター定義 |
 | `PlantUML_Studio_シーケンス図_ログイン_20251130.md` | 認証フロー |
-| `PlantUML_Studio_シーケンス図_編集プレビュー_20251130.md` | 編集・検証フロー |
-| `PlantUML_Studio_シーケンス図_エクスポート_20251130.md` | エクスポートフロー |
-| `PlantUML_Studio_シーケンス図_保存読込_20251130.md` | 保存・読込フロー |
-| `PlantUML_Studio_シーケンス図_共有_20251130.md` | 共有フロー |
 
 **確認すべき整合性:**
 - アクター名・システム名の統一
@@ -171,10 +167,10 @@ Phase 6: 品質・権限定義
 | ⑦ | **CRUD表** | 未作成 | §9.1 | 🔴 要作成 |
 | ⑧ | **シーケンス図** | | §10.1-10.5 | |
 |    |  └ ログイン | `docs/proposals/PlantUML_Studio_シーケンス図_ログイン_20251130.md` | - | ✅ 完了 |
-|    |  └ 編集プレビュー | `docs/proposals/PlantUML_Studio_シーケンス図_編集プレビュー_20251130.md` | - | ✅ 完了 |
-|    |  └ エクスポート | `docs/proposals/PlantUML_Studio_シーケンス図_エクスポート_20251130.md` | - | ✅ 完了 |
-|    |  └ 保存読込 | `docs/proposals/PlantUML_Studio_シーケンス図_保存読込_20251130.md` | - | ✅ 完了 |
-|    |  └ 共有 | `docs/proposals/PlantUML_Studio_シーケンス図_共有_20251130.md` | - | ✅ 完了 |
+|    |  └ 編集プレビュー | 未作成 | - | 🔴 要作成 |
+|    |  └ エクスポート | 未作成 | - | 🔴 要作成 |
+|    |  └ 保存読込 | 未作成 | - | 🔴 要作成 |
+|    |  └ 共有 | 未作成 | - | 🔴 要作成 |
 | ⑨ | **画面遷移図** | 未作成 | §6 | 🔴 要作成 |
 | ⑩ | **ワイヤーフレーム** | 未作成 | §5.1-5.4 | 🔴 要作成 |
 | ⑪ | **コンポーネント図** | 未作成 | §1 | 🔴 要作成 |
@@ -182,7 +178,7 @@ Phase 6: 品質・権限定義
 | ⑬ | **非機能要件一覧表** | 未作成 | なし | 🔴 要作成 |
 | ⑭ | **アクター権限マトリクス** | 未作成 | §9.2 | 🔴 要作成 |
 
-**進捗: 7/14 完了（50%）**
+**進捗: 3/14 完了（21%）**
 
 ※ 正式版 = `docs/proposals/`内のレビュー済みファイル
 ※ 下書き参照 = `docs/design/PlantUML_Studio_設計図表_20251130.md`のセクション（未レビュー、参考程度）
@@ -226,18 +222,16 @@ Phase 6: 品質・権限定義
 
 ---
 
-## 作成済み補助資料（詳細版）
+## 作成済み正式版ドキュメント
 
-設計図表集のシーケンス図を詳細化した補助資料：
+`docs/proposals/`内のレビュー済み正式版：
 
-| ファイル | 対象ユースケース | 内容 |
-|---------|-----------------|------|
-| `docs/proposals/PlantUML_Studio_ユースケース図_20251130.md` | 全体 | ユースケース図（概要図＋詳細図） |
-| `docs/proposals/PlantUML_Studio_シーケンス図_ログイン_20251130.md` | UC1-1, UC1-2 | OAuth(PKCE)、セッション検証、ログアウト |
-| `docs/proposals/PlantUML_Studio_シーケンス図_編集プレビュー_20251130.md` | UC2-1〜2-3 | PlantUML編集、検証、Excalidraw、エディタ切替 |
-| `docs/proposals/PlantUML_Studio_シーケンス図_エクスポート_20251130.md` | UC3-1〜3-3 | PNG/SVG/PDF出力、クリップボードコピー |
-| `docs/proposals/PlantUML_Studio_シーケンス図_保存読込_20251130.md` | UC4-1, UC4-2 | 保存、自動保存、バージョン履歴、復元 |
-| `docs/proposals/PlantUML_Studio_シーケンス図_共有_20251130.md` | UC4-3 | 共有リンク、埋め込み、コラボレーション |
+| ファイル | 内容 |
+|---------|------|
+| `PlantUML_Studio_コンテキスト図_20251130.md` | システム境界、外部アクター定義 |
+| `PlantUML_Studio_ユースケース図_20251130.md` | ユースケース図（概要図＋詳細図） |
+| `PlantUML_Studio_シーケンス図_ログイン_20251130.md` | UC1-1, UC1-2: OAuth(PKCE)、セッション検証、ログアウト |
+| `PlantUML_Studio_開発ステップ詳細化計画_20251130.md` | 開発フェーズ計画 |
 
 ---
 
@@ -253,16 +247,22 @@ Phase 6: 品質・権限定義
 
 ---
 
-## 次のアクション（2025-11-30時点）
+## 次のアクション（2025-12-01更新）
 
-1. [x] ~~非機能要件一覧表の有無を設計図表集で確認~~ → 未作成と判明
-2. [ ] **非機能要件一覧表を作成**（IPA非機能要求グレード準拠）
-3. [ ] 全図表・一覧表の整合性最終確認
-4. [ ] PRDドキュメント本体の作成
+### 優先度順タスク
+
+1. [ ] **残り11図表の正式版作成**（Phase順に依存関係を考慮）
+   - Phase 2: 業務フロー図、DFD、業務フロー・DFD対比表
+   - Phase 3: クラス図、CRUD表
+   - Phase 4: シーケンス図（編集プレビュー/エクスポート/保存読込/共有）、画面遷移図、ワイヤーフレーム
+   - Phase 5: コンポーネント図、外部インターフェース一覧
+   - Phase 6: 非機能要件一覧表、アクター権限マトリクス
+2. [ ] 全図表・一覧表の整合性最終確認
+3. [ ] PRDドキュメント本体の作成
 
 ### 残タスク詳細
 
-**非機能要件一覧表の作成**
+**非機能要件一覧表の作成（IPA非機能要求グレード準拠）**
 - 可用性（稼働率、RTO/RPO）
 - 性能・拡張性（レスポンス時間、同時接続数）
 - 運用・保守性（バックアップ、監視）
@@ -307,7 +307,6 @@ const Excalidraw = dynamic(
 - **Serena**: コードベース理解、シンボル検索、プロジェクトメモリ管理
 
 ### 設定済み
-- **PlantUML Validator**: PlantUML構文検証（`mcp__plantuml-validator__generate_plantuml_diagram`）
 - **Playwright**: ブラウザ自動操作
 - **GitHub**: GitHub API操作
 - **Claude Ops**: 操作履歴・ファイル変更追跡
@@ -316,9 +315,6 @@ const Excalidraw = dynamic(
 
 `.claude/agents/`配下にPlantUML専用エージェントを定義：
 
-- **plantuml-validator**: PlantUMLコード検証専門家。PlantUMLコード発見時に積極的に使用（`use PROACTIVELY`）。検証ループで100%成功保証
-- **plantuml-explorer**: プロジェクト内の.pumlファイル一括検証・レポート生成
-- **diagram-type-analyzer**: 図表タイプ分類とUI最適化提案
 
 ## PlantUML Code Rules
 
@@ -334,25 +330,40 @@ PlantUML2_Opus4.5/
 ├── .claude/
 │   ├── agents/              # カスタムエージェント定義
 │   └── settings.local.json  # MCP設定・権限
+├── .obsidian/               # Obsidian設定
+│   └── plugins/             # PlantUML、Excalidrawプラグイン
 ├── .serena/
 │   ├── memories/            # プロジェクト知識永続化
 │   ├── project.yml          # Serena設定
 │   └── QUICK_REFERENCE.md   # Serenaクイックリファレンス
+├── .vscode/
+│   └── settings.json        # VSCode設定
+├── doc/
+│   └── AI_DRIVEN_DEV_ENVIRONMENT_SETUP_GUIDE.md  # AI駆動開発ガイド
 ├── docs/
 │   ├── context/             # Memory Bank（Layer 1）
 │   │   ├── project_brief.md
+│   │   ├── active_context.md
 │   │   ├── technical_decisions.md
-│   │   ├── coding_standards.md
-│   │   └── active_context.md
+│   │   └── coding_standards.md
+│   ├── design/              # 下書き・たたき台（未レビュー）
+│   │   └── PlantUML_Studio_設計図表_20251130.md
+│   ├── evidence/            # 作業証跡
+│   │   ├── 20251130_claude_md_update/
+│   │   └── 20251130_sequence_diagrams/
+│   ├── proposals/           # 正式版（レビュー済み）
+│   │   ├── PlantUML_Studio_コンテキスト図_20251130.md
+│   │   ├── PlantUML_Studio_ユースケース図_20251130.md
+│   │   ├── PlantUML_Studio_シーケンス図_ログイン_20251130.md
+│   │   └── PlantUML_Studio_開発ステップ詳細化計画_20251130.md
 │   ├── session_handovers/   # セッション引継ぎ資料
-│   ├── poc/evidence/        # PoC証跡（Layer 3）
 │   ├── templates/           # ドキュメントテンプレート
-│   └── guides/              # ガイドドキュメント
+│   ├── guides/              # ガイドドキュメント
+│   └── poc/evidence/        # PoC証跡（Layer 3）
 ├── scripts/
 │   ├── create_evidence.ps1  # Evidence自動作成（Windows）
 │   └── create_evidence.sh   # Evidence自動作成（Linux/macOS）
-└── doc/
-    └── AI_DRIVEN_DEV_ENVIRONMENT_SETUP_GUIDE.md
+└── CLAUDE.md                # プロジェクトガイド
 ```
 
 ## Tech Stack (Planned)
@@ -388,3 +399,116 @@ Serenaは積極的に活用する：
 - 重要なマイルストーン達成時
 - 長期作業の中断時
 - トークン使用率90%到達時
+
+---
+
+## 作業開始時の確認フロー
+
+### 0. セッション引継ぎ資料を確認（最優先）
+
+**次セッション開始時**:
+- `docs/session_handovers/<latest>.md`: 前セッションからの引継ぎ資料
+  - 最新の引継ぎ資料を確認（ファイル名でソート: `YYYYMMDD-HHMM_*.md`）
+  - 次の作業ステップ、優先度、必読ドキュメントを把握
+
+### 1. Memory Bankを読む
+
+**初回セッション時**:
+- `docs/context/project_brief.md`: プロジェクト目標、技術スタック、ロードマップ
+- `docs/context/active_context.md`: 現在の状況、進行中の作業、次のタスク
+
+**技術決定が必要な時**:
+- `docs/context/technical_decisions.md`: 既存決定（TD-001〜）を確認
+- 新しい決定をした場合: technical_decisions.mdに追記
+
+### 2. 作業開始チェックリスト実行
+
+**所要時間**: 約5分
+
+1. **Memory Bank確認**（3分）
+   - `CLAUDE.md`, `docs/context/active_context.md`, `docs/context/technical_decisions.md`
+
+2. **Evidenceディレクトリとテンプレート作成**（1分）
+   ```powershell
+   pwsh scripts/create_evidence.ps1 <work_type>
+   ```
+
+3. **instructions.md編集**（4分）
+   - 目標、コンテキスト、実施内容、完了条件を明記
+
+4. **Todoリスト作成**
+   - `TodoWrite`ツールでタスクをリストアップ
+
+---
+
+## Memory Bank活用方法
+
+### 初回セッション時
+
+1. **project_brief.md を必ず読む**
+   - プロジェクト目標、技術スタック、制約を理解
+
+2. **active_context.md で現在地を把握**
+   - 進行中の作業
+   - 次のタスク
+   - ブロッカー
+
+3. **関連ドキュメントへ深掘り**
+   - technical_decisions.md: 技術判断の背景
+   - coding_standards.md: コーディング規約
+
+### Memory Bank構成
+
+| ファイル | 内容 | 更新タイミング |
+|---------|------|---------------|
+| `project_brief.md` | プロジェクト目標、スコープ、ロードマップ | Phase変更時 |
+| `active_context.md` | 現在の状況、進行中の作業 | 毎セッション |
+| `technical_decisions.md` | 技術決定記録（TD-001〜） | 決定時 |
+| `coding_standards.md` | コーディング規約 | 規約変更時 |
+
+---
+
+## Serena活用パターン
+
+### 作業開始時（必須4ステップ）
+
+```
+1. mcp__serena__activate_project  → プロジェクトをアクティベート
+2. mcp__serena__get_current_config → 設定確認
+3. mcp__serena__list_dir          → ディレクトリ構造把握
+4. mcp__serena__list_memories     → 利用可能なメモリ一覧
+```
+
+### パターン別活用
+
+| パターン | 用途 | 使用ツール |
+|---------|------|-----------|
+| パターン1 | instructions.md作成 | `list_dir`, `find_file`, `read_memory` |
+| パターン2 | 00_raw_notes.md更新 | `get_symbols_overview`, `find_symbol` |
+| パターン3 | work_sheet.md作成 | `find_referencing_symbols`, `search_for_pattern` |
+| パターン4 | セッション終了 | `write_memory` |
+
+---
+
+## 重要な制約（憲法級ルール）
+
+以下のルールは**絶対に守ること**：
+
+| ルール | 説明 |
+|--------|------|
+| Evidence 3点セット必須 | すべての作業で`instructions.md`, `00_raw_notes.md`, `work_sheet.md`を完備 |
+| トークン90%ルール | トークン使用率90%到達時に引継ぎ資料を自動作成 |
+| Serena Memories保存 | セッション終了時に`write_memory`で知識を永続化 |
+| 正式版はproposals/ | PRDに採用するのは`docs/proposals/`内のレビュー済みファイルのみ |
+| 技術仕様厳守 | node-plantuml（内部）、Monaco Editor、API Routes経由 |
+
+---
+
+## 関連ドキュメント
+
+| ドキュメント | パス | 内容 |
+|-------------|------|------|
+| AI駆動開発ガイド | `doc/AI_DRIVEN_DEV_ENVIRONMENT_SETUP_GUIDE.md` | 環境構築・運用の完全ガイド |
+| Memory Bank | `docs/context/` | プロジェクト全体の知識ベース |
+| テンプレート集 | `docs/templates/` | Evidence・引継ぎ資料テンプレート |
+| セッション引継ぎ | `docs/session_handovers/` | 過去のセッション引継ぎ資料 |
