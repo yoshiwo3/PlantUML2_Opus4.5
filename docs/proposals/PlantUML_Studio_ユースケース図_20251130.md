@@ -5,24 +5,36 @@
 
 ---
 
-## ユースケース図
+## 図表構成
+
+| 図 | 内容 | 用途 |
+|----|------|------|
+| 1. 概要図 | 5パッケージ、主要フローのみ | 全体俯瞰 |
+| 2. 詳細図: 認証・プロジェクト | 1.認証 + 2.プロジェクト管理 | 基盤機能 |
+| 3. 詳細図: 図表操作 | 3.図表操作（11ユースケース） | コア機能 |
+| 4. 詳細図: AI機能 | 4.AI機能 + 関連 | 差別化機能 |
+| 5. 詳細図: 管理機能 | 5.管理機能（開発者専用） | 運用機能 |
+
+---
+
+## 0. 全体俯瞰（レイアウト調整版）
 
 ```plantuml
-@startuml PlantUML_Studio_UseCase
+@startuml PlantUML_Studio_UseCase_Full_Overview
 '==================================================
-' レイアウト設定（視認性向上）
+' 全体俯瞰図（レイアウト調整版）
+' 調整: A.横方向 / D.線の長さ / E.together横グループ
+' 情報量: 23ユースケース全件 + 全関連 + 全外部システム
 '==================================================
 left to right direction
-scale 1.0
+scale 0.9
 
 skinparam actorStyle awesome
 skinparam packageStyle rectangle
-skinparam defaultFontSize 11
-skinparam usecaseFontSize 10
-skinparam packageFontSize 12
-skinparam noteFontSize 9
+skinparam defaultFontSize 9
+skinparam usecaseFontSize 8
+skinparam packageFontSize 10
 
-' パッケージ色分け
 skinparam package {
     BackgroundColor<<認証>> #E8F5E9
     BackgroundColor<<プロジェクト>> #E3F2FD
@@ -39,126 +51,125 @@ skinparam usecase {
 skinparam note {
     BackgroundColor #FFFDE7
     BorderColor #FBC02D
+    FontSize 7
 }
 
-'--------------------------------------------------
-' 主アクター定義（左側）
-'--------------------------------------------------
+'==================================================
+' アクター定義
+'==================================================
 actor "エンドユーザー" as user
 actor "開発者" as developer
 
-'--------------------------------------------------
-' システム境界: PlantUML Studio
-' カテゴリ順・作業フロー順に配置
-'--------------------------------------------------
+'==================================================
+' システム境界
+'==================================================
 rectangle "PlantUML Studio" {
 
-    '==============================================
-    ' 1. 認証（最初に行う操作）
-    '==============================================
-    package "1. 認証" <<認証>> {
-        usecase "1-1 ログインする" as UC_LOGIN
-        usecase "1-2 ログアウトする" as UC_LOGOUT
+    '----------------------------------------------
+    ' 第1層: 認証（入口）
+    '----------------------------------------------
+    together {
+        package "1. 認証" <<認証>> {
+            usecase "1-1 ログインする" as UC_LOGIN
+            usecase "1-2 ログアウトする" as UC_LOGOUT
+        }
     }
 
-    '==============================================
-    ' 2. プロジェクト管理（図表作成の前提）
-    '==============================================
-    package "2. プロジェクト管理" <<プロジェクト>> {
-        usecase "2-1 プロジェクトを作成する" as UC_PRJ_CREATE
-        usecase "2-2 プロジェクトを選択する" as UC_PRJ_SELECT
-        usecase "2-3 プロジェクトを削除する" as UC_PRJ_DELETE
+    '----------------------------------------------
+    ' 第2層: プロジェクト管理
+    '----------------------------------------------
+    together {
+        package "2. プロジェクト管理" <<プロジェクト>> {
+            usecase "2-1 プロジェクトを作成する" as UC_PRJ_CREATE
+            usecase "2-2 プロジェクトを選択する" as UC_PRJ_SELECT
+            usecase "2-3 プロジェクトを削除する" as UC_PRJ_DELETE
+        }
     }
 
-    '==============================================
-    ' 3. 図表操作（PlantUML・Excalidraw）
-    ' - 共通操作: 作成、テンプレート選択、編集、保存、エクスポート、削除
-    ' - PlantUML専用: プレビュー、バージョン管理
-    ' - 学習支援: 学習コンテンツ検索・確認
-    ' ※検証はシステム自動処理（プレビュー時に実行）
-    '==============================================
-    package "3. 図表操作（PlantUML・Excalidraw）" <<図表操作>> {
-        usecase "3-1 図表を作成する" as UC_CREATE
-        usecase "3-2 テンプレートを選択する" as UC_TEMPLATE
-        usecase "3-3 図表を編集する" as UC_EDIT
-        usecase "3-4 図表をプレビューする" as UC_PREVIEW
-        usecase "3-5 図表を保存する" as UC_SAVE
-        usecase "3-6 図表をエクスポートする" as UC_EXPORT
-        usecase "3-7 バージョン履歴を確認する" as UC_HISTORY
-        usecase "3-8 過去バージョンを復元する" as UC_RESTORE
-        usecase "3-9 図表を削除する" as UC_DELETE
-        usecase "3-10 学習コンテンツを検索する" as UC_LEARN_SEARCH
-        usecase "3-11 学習コンテンツを確認する" as UC_LEARN_VIEW
+    '----------------------------------------------
+    ' 第3層: メイン機能（図表操作 + AI機能）
+    '----------------------------------------------
+    together {
+        package "3. 図表操作（PlantUML・Excalidraw）" <<図表操作>> {
+            usecase "3-1 図表を作成する" as UC_CREATE
+            usecase "3-2 テンプレートを選択する" as UC_TEMPLATE
+            usecase "3-3 図表を編集する" as UC_EDIT
+            usecase "3-4 図表をプレビューする" as UC_PREVIEW
+            usecase "3-5 図表を保存する" as UC_SAVE
+            usecase "3-6 図表をエクスポートする" as UC_EXPORT
+            usecase "3-7 バージョン履歴を確認する" as UC_HISTORY
+            usecase "3-8 過去バージョンを復元する" as UC_RESTORE
+            usecase "3-9 図表を削除する" as UC_DELETE
+            usecase "3-10 学習コンテンツを検索する" as UC_LEARN_SEARCH
+            usecase "3-11 学習コンテンツを確認する" as UC_LEARN_VIEW
+        }
+
+        package "4. AI機能" <<AI機能>> {
+            usecase "4-1 AI Question-Startで\n図表を生成する" as UC_AI_QS
+            usecase "4-2 目的別AIチャットを\n利用する" as UC_AI_CHAT
+        }
     }
 
-    '==============================================
-    ' 4. AI機能 - 利用フロー順
-    ' ※用語一貫性チェックは保存時にシステムが自動実行
-    '==============================================
-    package "4. AI機能" <<AI機能>> {
-        usecase "4-1 AI Question-Startで\n図表を生成する" as UC_AI_QS
-        usecase "4-2 目的別AIチャットを\n利用する" as UC_AI_CHAT
+    '----------------------------------------------
+    ' 第4層: 管理機能（開発者専用）
+    '----------------------------------------------
+    together {
+        package "5. 管理機能" <<管理機能>> {
+            usecase "5-1 ユーザーを管理する" as UC_ADMIN_USER
+            usecase "5-2 学習コンテンツを登録する" as UC_ADMIN_CONTENT_REG
+            usecase "5-3 学習コンテンツを管理する" as UC_ADMIN_CONTENT_MGT
+            usecase "5-4 LLMモデルを切り替える" as UC_ADMIN_LLM
+            usecase "5-5 システム設定を変更する" as UC_ADMIN_CONFIG
+        }
     }
-
-    '==============================================
-    ' 5. 管理機能（開発者専用）
-    '==============================================
-    package "5. 管理機能" <<管理機能>> {
-        usecase "5-1 ユーザーを管理する" as UC_ADMIN_USER
-        usecase "5-2 学習コンテンツを登録する" as UC_ADMIN_CONTENT_REG
-        usecase "5-3 学習コンテンツを管理する" as UC_ADMIN_CONTENT_MGT
-        usecase "5-4 LLMモデルを切り替える" as UC_ADMIN_LLM
-        usecase "5-5 システム設定を変更する" as UC_ADMIN_CONFIG
-    }
-
 }
 
-'--------------------------------------------------
-' 二次アクター定義（右側：外部システム）
-'--------------------------------------------------
+'==================================================
+' 外部システム（右側に配置）
+'==================================================
 actor "Supabase" as supabase <<外部システム>>
 actor "OpenRouter API" as openrouter <<外部システム>>
 actor "OpenAI API" as openai <<外部システム>>
 
-'--------------------------------------------------
-' 主アクター - ユースケース関連
-'--------------------------------------------------
+'==================================================
+' 主アクター関連（線の長さで階層別調整）
+'==================================================
 
-' エンドユーザー: 認証
+' エンドユーザー → 認証（短い線）
 user --> UC_LOGIN
 user --> UC_LOGOUT
 
-' エンドユーザー: プロジェクト管理
-user --> UC_PRJ_CREATE
-user --> UC_PRJ_SELECT
-user --> UC_PRJ_DELETE
+' エンドユーザー → プロジェクト（中程度の線）
+user ---> UC_PRJ_CREATE
+user ---> UC_PRJ_SELECT
+user ---> UC_PRJ_DELETE
 
-' エンドユーザー: 図表操作
-user --> UC_CREATE
-user --> UC_EDIT
-user --> UC_PREVIEW
-user --> UC_SAVE
-user --> UC_EXPORT
-user --> UC_HISTORY
-user --> UC_RESTORE
-user --> UC_DELETE
-user --> UC_LEARN_SEARCH
-user --> UC_LEARN_VIEW
+' エンドユーザー → 図表操作（長い線）
+user ----> UC_CREATE
+user ----> UC_EDIT
+user ----> UC_PREVIEW
+user ----> UC_SAVE
+user ----> UC_EXPORT
+user ----> UC_HISTORY
+user ----> UC_RESTORE
+user ----> UC_DELETE
+user ----> UC_LEARN_SEARCH
+user ----> UC_LEARN_VIEW
 
-' エンドユーザー: AI機能
-user --> UC_AI_QS
-user --> UC_AI_CHAT
+' エンドユーザー → AI機能（長い線）
+user ----> UC_AI_QS
+user ----> UC_AI_CHAT
 
-' 開発者: 管理機能
-developer --> UC_ADMIN_USER
-developer --> UC_ADMIN_CONTENT_REG
-developer --> UC_ADMIN_CONTENT_MGT
-developer --> UC_ADMIN_LLM
-developer --> UC_ADMIN_CONFIG
+' 開発者 → 管理機能（最長の線）
+developer -----> UC_ADMIN_USER
+developer -----> UC_ADMIN_CONTENT_REG
+developer -----> UC_ADMIN_CONTENT_MGT
+developer -----> UC_ADMIN_LLM
+developer -----> UC_ADMIN_CONFIG
 
-'--------------------------------------------------
-' 二次アクター（外部システム）- ユースケース関連
-'--------------------------------------------------
+'==================================================
+' 外部システム関連（ラベル付き）
+'==================================================
 
 ' Supabase: 認証・データ保存
 UC_LOGIN --> supabase : OAuth認証
@@ -168,49 +179,520 @@ UC_ADMIN_CONTENT_REG --> supabase : コンテンツ・ベクトル保存
 UC_ADMIN_CONTENT_MGT --> supabase : コンテンツCRUD
 
 ' OpenRouter API: LLM呼び出し
+UC_PREVIEW --> openrouter : AI自動修正(エラー時)
+UC_SAVE --> openrouter : 用語一貫性チェック(自動)
+UC_LEARN_SEARCH --> openrouter : RAG応答生成
 UC_AI_QS --> openrouter : 図表生成
 UC_AI_CHAT --> openrouter : チャット応答
-UC_PREVIEW --> openrouter : AI自動修正(エラー時)
-UC_LEARN_SEARCH --> openrouter : RAG応答生成
-UC_SAVE --> openrouter : 用語一貫性チェック(自動)
 
-' OpenAI API: Embedding（コンテンツ登録時）
+' OpenAI API: Embedding
 UC_ADMIN_CONTENT_REG --> openai : Embedding生成
 
-'--------------------------------------------------
-' ユースケース間の関連
-'--------------------------------------------------
-
-' 作成時はテンプレート選択を含む
+'==================================================
+' ユースケース間関連（7件全て）
+'==================================================
 UC_CREATE ..> UC_TEMPLATE : <<include>>
-
-' 作成・編集の結果としてプレビュー（PlantUML専用）
 UC_CREATE ..> UC_PREVIEW : <<extends>>
 UC_EDIT ..> UC_PREVIEW : <<extends>>
-
-' 復元は履歴確認を前提とする
 UC_RESTORE ..> UC_HISTORY : <<include>>
-
-' AI機能と図表操作の関連
+UC_LEARN_VIEW ..> UC_LEARN_SEARCH : <<include>>
 UC_AI_QS ..> UC_CREATE : <<extends>>
-
-' AIチャットから学習コンテンツ検索
 UC_AI_CHAT ..> UC_LEARN_SEARCH : <<extends>>
 
-' 学習コンテンツの関連
+'==================================================
+' ノート（補足説明）
+'==================================================
+note right of UC_TEMPLATE : PlantUML/ワイヤーフレーム両方に適用
+note right of UC_PREVIEW : PlantUML専用\nシステムが自動検証\n(構文エラー時はAI修正提案)
+note right of UC_HISTORY : PlantUML専用\nバージョン管理機能
+note right of UC_LEARN_SEARCH : 編集中にPlantUML構文や\n書き方を検索（RAG）
+note right of UC_AI_CHAT : 用語一貫性チェックは\n保存時にシステムが自動実行
+note right of UC_ADMIN_CONTENT_REG : 登録時にEmbedding生成\n(OpenAI API)
+
+@enduml
+```
+
+**レイアウト調整の適用:**
+
+| 調整 | 適用内容 |
+|------|----------|
+| A. 方向変更 | `left to right direction`（横方向に展開） |
+| D. 線の長さ | `-->` / `--->` / `---->` / `----->` で階層別に調整 |
+| E. together | 4つの層（認証→プロジェクト→メイン機能→管理）で横グループ化 |
+
+**情報量（全件維持）:**
+
+| 項目 | 件数 |
+|------|------|
+| ユースケース | 23件 |
+| 主アクター関連 | 18件（user）+ 5件（developer） |
+| 外部システム関連 | 11件（ラベル付き） |
+| ユースケース間関連 | 7件 |
+| ノート | 6件 |
+
+---
+
+## 1. 概要図（全体俯瞰）
+
+```plantuml
+@startuml PlantUML_Studio_UseCase_Overview
+'==================================================
+' 概要図: 5パッケージの全体像
+'==================================================
+top to bottom direction
+scale 1.0
+
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam defaultFontSize 11
+skinparam packageFontSize 12
+skinparam usecaseFontSize 10
+
+skinparam package {
+    BackgroundColor<<認証>> #E8F5E9
+    BackgroundColor<<プロジェクト>> #E3F2FD
+    BackgroundColor<<図表操作>> #FFF3E0
+    BackgroundColor<<AI機能>> #FCE4EC
+    BackgroundColor<<管理機能>> #F3E5F5
+}
+
+'-- 主アクター（上部） --
+actor "エンドユーザー" as user
+actor "開発者" as developer
+
+'-- システム境界 --
+rectangle "PlantUML Studio" {
+
+    '-- 上段: 認証・プロジェクト --
+    together {
+        package "1. 認証" <<認証>> {
+            usecase "ログイン\nログアウト" as UC1
+        }
+
+        package "2. プロジェクト" <<プロジェクト>> {
+            usecase "プロジェクト\nCRUD" as UC2
+        }
+    }
+
+    '-- 中段: メイン機能 --
+    together {
+        package "3. 図表操作" <<図表操作>> {
+            usecase "図表CRUD\nプレビュー\nエクスポート" as UC3
+        }
+
+        package "4. AI機能" <<AI機能>> {
+            usecase "Question-Start\nAIチャット" as UC4
+        }
+    }
+
+    '-- 下段: 管理機能 --
+    package "5. 管理機能" <<管理機能>> {
+        usecase "ユーザー管理\nコンテンツ管理" as UC5
+    }
+}
+
+'-- 外部システム（右側） --
+actor "Supabase" as supabase <<外部>>
+actor "OpenRouter" as openrouter <<外部>>
+actor "OpenAI" as openai <<外部>>
+
+'-- 主アクター関連 --
+user --> UC1
+user --> UC2
+user --> UC3
+user --> UC4
+developer --> UC5
+
+'-- 外部システム関連 --
+UC1 --> supabase
+UC3 --> openrouter
+UC4 --> openrouter
+UC5 --> supabase
+UC5 --> openai
+
+'-- フロー説明（図の外にノートで表示） --
+note bottom of UC1
+  認証後 → プロジェクト選択
+end note
+
+note bottom of UC4
+  AI生成 → 図表作成
+end note
+
+@enduml
+```
+
+---
+
+## 2. 詳細図: 認証・プロジェクト管理
+
+```plantuml
+@startuml PlantUML_Studio_UseCase_Auth_Project
+'==================================================
+' 詳細図: 1.認証 + 2.プロジェクト管理
+'==================================================
+left to right direction
+
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam defaultFontSize 11
+
+skinparam package {
+    BackgroundColor<<認証>> #E8F5E9
+    BackgroundColor<<プロジェクト>> #E3F2FD
+}
+
+skinparam usecase {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+'-- アクター --
+actor "エンドユーザー" as user
+actor "Supabase" as supabase <<外部システム>>
+
+'-- システム境界 --
+rectangle "PlantUML Studio" {
+
+    package "1. 認証" <<認証>> {
+        usecase "1-1 ログインする" as UC_LOGIN
+        usecase "1-2 ログアウトする" as UC_LOGOUT
+    }
+
+    package "2. プロジェクト管理" <<プロジェクト>> {
+        usecase "2-1 プロジェクトを作成する" as UC_PRJ_CREATE
+        usecase "2-2 プロジェクトを選択する" as UC_PRJ_SELECT
+        usecase "2-3 プロジェクトを削除する" as UC_PRJ_DELETE
+    }
+}
+
+'-- 主アクター関連 --
+user --> UC_LOGIN
+user --> UC_LOGOUT
+user --> UC_PRJ_CREATE
+user --> UC_PRJ_SELECT
+user --> UC_PRJ_DELETE
+
+'-- 外部システム関連 --
+UC_LOGIN --> supabase : OAuth認証\n(GitHub/Google)
+UC_LOGOUT --> supabase : セッション終了
+
+'-- ノート --
+note right of UC_LOGIN
+  認証方式:
+  - Email/Password
+  - OAuth (GitHub/Google)
+end note
+
+note right of UC_PRJ_CREATE
+  プロジェクト = 図表のグループ
+  目的・フェーズを設定可能
+end note
+
+@enduml
+```
+
+---
+
+## 3. 詳細図: 図表操作
+
+```plantuml
+@startuml PlantUML_Studio_UseCase_Diagram_Operations
+'==================================================
+' 詳細図: 3.図表操作（PlantUML・Excalidraw）
+' レイアウト: 縦スタック（カテゴリ別）
+'==================================================
+left to right direction
+
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam defaultFontSize 10
+skinparam usecaseFontSize 9
+
+skinparam package {
+    BackgroundColor #FFF3E0
+    BackgroundColor<<基本操作>> #E3F2FD
+    BackgroundColor<<出力操作>> #E8F5E9
+    BackgroundColor<<PlantUML専用>> #FCE4EC
+    BackgroundColor<<学習支援>> #F3E5F5
+}
+
+skinparam usecase {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+    FontSize 8
+}
+
+'-- アクター --
+actor "エンドユーザー" as user
+
+'-- システム境界 --
+rectangle "PlantUML Studio" {
+
+    package "3. 図表操作（PlantUML・Excalidraw）" {
+
+        '========================================
+        ' 3-A. 基本操作（共通）
+        '========================================
+        package "3-A. 基本操作（共通）" <<基本操作>> {
+            usecase "3-1 図表を作成する" as UC_CREATE
+            usecase "3-2 テンプレートを選択する" as UC_TEMPLATE
+            usecase "3-3 図表を編集する" as UC_EDIT
+        }
+
+        '========================================
+        ' 3-B. 出力操作（共通）
+        '========================================
+        package "3-B. 出力操作（共通）" <<出力操作>> {
+            usecase "3-5 図表を保存する" as UC_SAVE
+            usecase "3-6 図表をエクスポートする" as UC_EXPORT
+            usecase "3-9 図表を削除する" as UC_DELETE
+        }
+
+        '========================================
+        ' 3-C. PlantUML専用機能
+        '========================================
+        package "3-C. PlantUML専用" <<PlantUML専用>> {
+            usecase "3-4 図表をプレビューする" as UC_PREVIEW
+            usecase "3-7 バージョン履歴を確認する" as UC_HISTORY
+            usecase "3-8 過去バージョンを復元する" as UC_RESTORE
+        }
+
+        '========================================
+        ' 3-D. 学習支援機能
+        '========================================
+        package "3-D. 学習支援" <<学習支援>> {
+            usecase "3-10 学習コンテンツを検索する" as UC_LEARN_SEARCH
+            usecase "3-11 学習コンテンツを確認する" as UC_LEARN_VIEW
+        }
+    }
+}
+
+'-- 外部システム --
+actor "OpenRouter API" as openrouter <<外部システム>>
+
+'-- 主アクター関連（基本操作） --
+user --> UC_CREATE
+user --> UC_EDIT
+
+'-- 主アクター関連（出力操作） --
+user --> UC_SAVE
+user --> UC_EXPORT
+user --> UC_DELETE
+
+'-- 主アクター関連（PlantUML専用） --
+user --> UC_PREVIEW
+user --> UC_HISTORY
+user --> UC_RESTORE
+
+'-- 主アクター関連（学習支援） --
+user --> UC_LEARN_SEARCH
+user --> UC_LEARN_VIEW
+
+'-- 外部システム関連 --
+UC_PREVIEW --> openrouter : AI自動修正\n(エラー時)
+UC_SAVE --> openrouter : 用語一貫性\nチェック(自動)
+UC_LEARN_SEARCH --> openrouter : RAG応答生成
+
+'-- ユースケース間関連 --
+UC_CREATE ..> UC_TEMPLATE : <<include>>
+UC_CREATE ..> UC_PREVIEW : <<extends>>
+UC_EDIT ..> UC_PREVIEW : <<extends>>
+UC_RESTORE ..> UC_HISTORY : <<include>>
 UC_LEARN_VIEW ..> UC_LEARN_SEARCH : <<include>>
 
-'--------------------------------------------------
-' ノート（補足説明）
-'--------------------------------------------------
-note bottom of UC_TEMPLATE : PlantUML/ワイヤーフレーム\n両方に適用
-note bottom of UC_PREVIEW : PlantUML専用\nシステムが自動検証\n(構文エラー時はAI修正提案)
-note bottom of UC_HISTORY : PlantUML専用\nバージョン管理機能
-note bottom of UC_LEARN_SEARCH : 編集中にPlantUML構文や\n書き方を検索（RAG）
-note bottom of UC_AI_CHAT : 用語一貫性チェックは\n保存時にシステムが自動実行\n(結果をユーザーに通知)\n\n会話中にユーザーの質問に応じて\n学習コンテンツを検索・提案
-note bottom of UC_EDIT : PlantUMLの場合\n編集結果を即時プレビュー
-note bottom of UC_AI_QS : AIで生成した図表は\nPlantUML/ワイヤーフレームとして作成
-note bottom of UC_ADMIN_CONTENT_REG : 登録時にEmbedding生成\n(OpenAI API)
+'-- ノート --
+note right of UC_TEMPLATE
+  PlantUML/ワイヤーフレーム
+  両方に適用
+end note
+
+note right of UC_PREVIEW
+  PlantUML専用
+  構文自動検証
+  エラー時はAI修正提案
+end note
+
+note right of UC_HISTORY
+  PlantUML専用
+  SHA-256ハッシュで
+  バージョン管理
+end note
+
+note right of UC_LEARN_SEARCH
+  RAG検索
+  編集中のヘルプ機能
+  pgvectorでベクトル検索
+end note
+
+note right of UC_SAVE
+  手動: Ctrl+S
+  自動: 30秒間隔
+  保存時に用語一貫性チェック
+end note
+
+@enduml
+```
+
+---
+
+## 4. 詳細図: AI機能
+
+```plantuml
+@startuml PlantUML_Studio_UseCase_AI
+'==================================================
+' 詳細図: 4.AI機能
+'==================================================
+left to right direction
+
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam defaultFontSize 11
+
+skinparam package {
+    BackgroundColor<<AI機能>> #FCE4EC
+    BackgroundColor<<図表操作>> #FFF3E0
+}
+
+skinparam usecase {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+'-- アクター --
+actor "エンドユーザー" as user
+actor "OpenRouter API" as openrouter <<外部システム>>
+
+'-- システム境界 --
+rectangle "PlantUML Studio" {
+
+    package "4. AI機能" <<AI機能>> {
+        usecase "4-1 AI Question-Startで\n図表を生成する" as UC_AI_QS
+        usecase "4-2 目的別AIチャットを\n利用する" as UC_AI_CHAT
+    }
+
+    package "3. 図表操作（参照）" <<図表操作>> {
+        usecase "3-1 図表を作成する" as UC_CREATE
+        usecase "3-10 学習コンテンツを検索する" as UC_LEARN_SEARCH
+    }
+}
+
+'-- 主アクター関連 --
+user --> UC_AI_QS
+user --> UC_AI_CHAT
+
+'-- 外部システム関連 --
+UC_AI_QS --> openrouter : 図表生成
+UC_AI_CHAT --> openrouter : チャット応答
+
+'-- ユースケース間関連 --
+UC_AI_QS ..> UC_CREATE : <<extends>>\nAI生成後に図表作成
+UC_AI_CHAT ..> UC_LEARN_SEARCH : <<extends>>\n学習コンテンツを提案
+
+'-- ノート --
+note right of UC_AI_QS
+  **AI Question-Start フロー**
+  1. ユーザーが目的を入力
+  2. AIが質問で要件を引き出す
+  3. テンプレート提案
+  4. PlantUMLコード生成
+end note
+
+note right of UC_AI_CHAT
+  **目的別AIチャット**
+  - フェーズ認識（要件定義→設計→実装）
+  - 図表セット提案
+  - 用語一貫性チェック（保存時自動）
+end note
+
+@enduml
+```
+
+---
+
+## 5. 詳細図: 管理機能
+
+```plantuml
+@startuml PlantUML_Studio_UseCase_Admin
+'==================================================
+' 詳細図: 5.管理機能（開発者専用）
+'==================================================
+left to right direction
+
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam defaultFontSize 11
+
+skinparam package {
+    BackgroundColor #F3E5F5
+}
+
+skinparam usecase {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+'-- アクター --
+actor "開発者" as developer
+actor "Supabase" as supabase <<外部システム>>
+actor "OpenAI API" as openai <<外部システム>>
+
+'-- システム境界 --
+rectangle "PlantUML Studio" {
+
+    package "5. 管理機能" {
+        usecase "5-1 ユーザーを管理する" as UC_ADMIN_USER
+        usecase "5-2 学習コンテンツを登録する" as UC_ADMIN_CONTENT_REG
+        usecase "5-3 学習コンテンツを管理する" as UC_ADMIN_CONTENT_MGT
+        usecase "5-4 LLMモデルを切り替える" as UC_ADMIN_LLM
+        usecase "5-5 システム設定を変更する" as UC_ADMIN_CONFIG
+    }
+}
+
+'-- 主アクター関連 --
+developer --> UC_ADMIN_USER
+developer --> UC_ADMIN_CONTENT_REG
+developer --> UC_ADMIN_CONTENT_MGT
+developer --> UC_ADMIN_LLM
+developer --> UC_ADMIN_CONFIG
+
+'-- 外部システム関連 --
+UC_ADMIN_USER --> supabase : ユーザーCRUD
+UC_ADMIN_CONTENT_REG --> supabase : コンテンツ・ベクトル保存
+UC_ADMIN_CONTENT_REG --> openai : Embedding生成
+UC_ADMIN_CONTENT_MGT --> supabase : コンテンツCRUD
+
+'-- ノート --
+note right of UC_ADMIN_CONTENT_REG
+  **学習コンテンツ登録フロー**
+  1. コンテンツ（Markdown/PDF）アップロード
+  2. OpenAI APIでEmbedding生成
+  3. Supabase pgvectorに保存
+  4. RAG検索で利用可能に
+end note
+
+note right of UC_ADMIN_LLM
+  **対象モデル**
+  - GPT-4o-mini
+  - Claude
+  - Gemini
+  (OpenRouter経由で切替)
+end note
 
 @enduml
 ```
@@ -406,6 +888,15 @@ note bottom of UC_ADMIN_CONTENT_REG : 登録時にEmbedding生成\n(OpenAI API)
 - 検出結果はユーザーに通知し、修正は任意
 - 構文検証（プレビュー時自動）と同様のパターン
 
+### 8. 階層化（概要図＋詳細図）
+
+**判断**: 1つの大きな図から、概要図＋4つの詳細図に分割
+
+**理由**:
+- 23ユースケースを1図に収めると視認性が低下
+- 概要図で全体像を把握、詳細図で個別機能を確認
+- レビューや説明時に適切な粒度で提示可能
+
 ---
 
 ## レビュー観点
@@ -416,3 +907,4 @@ note bottom of UC_ADMIN_CONTENT_REG : 登録時にEmbedding生成\n(OpenAI API)
 4. **図表操作の統合は適切か？**
 5. **外部システムの表現は適切か？**
 6. **MVP vs Phase 2の優先度判断は妥当か？**
+7. **階層化（概要図＋詳細図）は適切か？**
