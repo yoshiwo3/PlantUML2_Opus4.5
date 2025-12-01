@@ -625,6 +625,7 @@ case (新規作成)
   :作成完了メッセージ表示;
 
 case (選択)
+  |エンドユーザー|
   :プロジェクトをクリック;
 
   |Frontend Service|
@@ -633,6 +634,7 @@ case (選択)
   stop
 
 case (削除)
+  |エンドユーザー|
   :削除ボタンをクリック;
 
   |Frontend Service|
@@ -665,6 +667,7 @@ case (削除)
   endif
 
 case (戻る)
+  |エンドユーザー|
   :「戻る」ボタンをクリック;
 
   |Frontend Service|
