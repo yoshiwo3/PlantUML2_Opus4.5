@@ -596,157 +596,73 @@ start
 :ダッシュボードから\nプロジェクト管理画面へ遷移;
 
 |Frontend Service|
-:ローディング表示;
-:プロジェクト一覧取得リクエスト;
+:プロジェクト一覧取得（RLS適用）;
 
-|Supabase|
-:プロジェクト一覧取得;
-note right
-  RLS（Row Level Security）により
-  ユーザー自身のプロジェクトのみ取得
-end note
-
-|Frontend Service|
 if (取得成功？) then (はい)
-  if (プロジェクト数 > 0?) then (はい)
-    :プロジェクト一覧表示;
-  else (0件)
-    :空状態UI表示;
-    note right
-      「プロジェクトがありません。
-      新規作成してください。」
-    end note
-  endif
+  :プロジェクト一覧 or 空状態UI表示;
 else (エラー)
   :エラーメッセージ表示;
-  note right
-    「データの取得に失敗しました。
-    再読み込みしてください。」
-  end note
-  |エンドユーザー|
-  :再読み込み or 戻る;
   stop
 endif
 
 repeat
   |エンドユーザー|
   switch (操作を選択)
+
   case (新規作成)
     |エンドユーザー|
-    :「新規作成」ボタンをクリック;
-
-    |Frontend Service|
-    :プロジェクト名入力ダイアログ表示;
-
-    |エンドユーザー|
+    :「新規作成」をクリック;
     :プロジェクト名を入力;
 
     |Frontend Service|
-    :入力バリデーション;
-    note right
-      - 空文字チェック
-      - 文字数制限（1-100文字）
-      - 禁止文字チェック
-    end note
-
-    if (バリデーションOK？) then (はい)
-      |エンドユーザー|
-      :「作成」ボタンをクリック;
-
-      |Frontend Service|
-      :ローディング表示;
-      :プロジェクト作成リクエスト;
-
+    if (バリデーション\n& 重複チェックOK？) then (はい)
       |Supabase|
-      :同名チェック;
-      if (同名プロジェクト存在？) then (はい)
-        :エラー返却;
-
-        |Frontend Service|
-        :「同名のプロジェクトが存在します」表示;
-      else (なし)
-        :プロジェクト作成;
-        :作成結果を返却;
-
-        |Frontend Service|
-        :一覧を更新;
-        :作成完了メッセージ表示;
-      endif
+      :プロジェクト作成;
+      |Frontend Service|
+      :一覧更新・完了メッセージ;
     else (エラー)
-      :バリデーションエラー表示;
-      note right
-        リアルタイムで
-        エラー内容を表示
-      end note
+      :エラーメッセージ表示;
     endif
 
   case (選択)
     |エンドユーザー|
     :プロジェクトをクリック;
-
     |Frontend Service|
-    :現在のプロジェクトを切替;
-    :エディタ画面（図表一覧）へ遷移;
-    stop
+    :エディタ画面へ遷移;
+    detach
 
   case (削除)
     |エンドユーザー|
     :削除ボタンをクリック;
 
     |Frontend Service|
-    :配下の図表数を取得;
     :削除確認ダイアログ表示;
     note right
-      「このプロジェクトには○件の図表が
-      含まれています。
-      この操作は取り消せません。
-      削除しますか？」
+      配下図表数の警告
+      「この操作は取り消せません」
     end note
 
     |エンドユーザー|
-    if (削除を確認？) then (はい)
-      |Frontend Service|
-      :ローディング表示;
-      :削除リクエスト送信;
-
+    if (削除確認？) then (はい)
       |Supabase|
-      :プロジェクト削除;
-      note right
-        カスケード削除により
-        配下の図表も削除
-      end note
-
-      if (削除成功？) then (はい)
-        :削除結果を返却;
-
-        |Frontend Service|
-        :一覧を更新;
-        :削除完了メッセージ表示;
-      else (エラー)
-        :エラー返却;
-
-        |Frontend Service|
-        :「削除に失敗しました」表示;
-      endif
+      :プロジェクト削除\n（カスケード削除）;
+      |Frontend Service|
+      :一覧更新・完了メッセージ;
     else (キャンセル)
       |Frontend Service|
       :ダイアログを閉じる;
-      :一覧画面に戻る;
     endif
 
   case (戻る)
     |エンドユーザー|
-    :「戻る」ボタンをクリック;
-
+    :「戻る」をクリック;
     |Frontend Service|
     :ダッシュボードへ遷移;
-    stop
+    detach
 
   endswitch
 repeat while (操作を継続？) is (はい)
 
-|Frontend Service|
-:画面を閉じる;
 stop
 
 @enduml
