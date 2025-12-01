@@ -589,79 +589,65 @@ end fork
 
 ```plantuml
 @startuml business_flow_project_management
+skinparam linetype ortho
+skinparam ConditionEndStyle hline
+skinparam ActivityFontSize 12
+skinparam ArrowFontSize 10
+
 title 業務フロー図 - プロジェクト管理
 
 |エンドユーザー|
 start
-:ダッシュボードから\nプロジェクト管理画面へ遷移;
+:プロジェクト管理画面へ遷移;
 
 |Frontend Service|
-:プロジェクト一覧取得（RLS適用）;
+:一覧取得 <<Supabase RLS>>;
 
-if (取得成功？) then (はい)
-  :プロジェクト一覧 or 空状態UI表示;
+if (成功？) then (はい)
+  :一覧表示;
 else (エラー)
-  :エラーメッセージ表示;
+  :エラー表示;
   stop
 endif
 
 repeat
+|エンドユーザー|
+switch (操作)
+case (作成)
+  :「新規作成」→名前入力;
+  |Frontend Service|
+  :バリデーション;
+  if (OK？) then (はい)
+    :作成 <<Supabase>>;
+  else (NG)
+  endif
+  :結果表示;
+case (選択)
+  :プロジェクトをクリック;
+  |Frontend Service|
+  :エディタへ遷移;
+  detach
+case (削除)
+  :削除をクリック;
+  |Frontend Service|
+  :確認ダイアログ;
+  floating note right: 配下図表数警告
   |エンドユーザー|
-  switch (操作を選択)
-
-  case (新規作成)
-    |エンドユーザー|
-    :「新規作成」をクリック;
-    :プロジェクト名を入力;
-
+  if (確認？) then (はい)
     |Frontend Service|
-    if (バリデーション\n& 重複チェックOK？) then (はい)
-      |Supabase|
-      :プロジェクト作成;
-      |Frontend Service|
-      :一覧更新・完了メッセージ;
-    else (エラー)
-      :エラーメッセージ表示;
-    endif
-
-  case (選択)
-    |エンドユーザー|
-    :プロジェクトをクリック;
-    |Frontend Service|
-    :エディタ画面へ遷移;
-    detach
-
-  case (削除)
-    |エンドユーザー|
-    :削除ボタンをクリック;
-
-    |Frontend Service|
-    :削除確認ダイアログ表示;
-    note right
-      配下図表数の警告
-      「この操作は取り消せません」
-    end note
-
-    |エンドユーザー|
-    if (削除確認？) then (はい)
-      |Supabase|
-      :プロジェクト削除\n（カスケード削除）;
-      |Frontend Service|
-      :一覧更新・完了メッセージ;
-    else (キャンセル)
-      |Frontend Service|
-      :ダイアログを閉じる;
-    endif
-
-  case (戻る)
-    |エンドユーザー|
-    :「戻る」をクリック;
-    |Frontend Service|
-    :ダッシュボードへ遷移;
-    detach
-
-  endswitch
-repeat while (操作を継続？) is (はい)
+    :削除 <<Supabase カスケード>>;
+  else (いいえ)
+  endif
+  |Frontend Service|
+  :結果表示;
+case (戻る)
+  :「戻る」をクリック;
+  |Frontend Service|
+  :ダッシュボードへ;
+  detach
+endswitch
+|エンドユーザー|
+repeat while (継続？) is (はい)
 
 stop
 
