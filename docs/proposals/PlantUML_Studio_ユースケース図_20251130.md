@@ -380,7 +380,6 @@ UC_LOGOUT --> supabase : セッション終了
 '-- ノート --
 note right of UC_LOGIN
   認証方式:
-  - Email/Password
   - OAuth (GitHub/Google)
 end note
 
@@ -705,7 +704,7 @@ end note
 
 | ID | ユースケース | 説明 | 主アクター | 二次アクター |
 |----|-------------|------|-----------|-------------|
-| 1-1 | ログインする | Email/Password または OAuth（GitHub/Google） | エンドユーザー | Supabase Auth |
+| 1-1 | ログインする | OAuth（GitHub/Google）による認証 | エンドユーザー | Supabase Auth |
 | 1-2 | ログアウトする | セッション終了 | エンドユーザー | Supabase Auth |
 
 ### 2. プロジェクト管理

@@ -15,6 +15,7 @@
 | 3.1 | PlantUML 図表作成フロー | UC 3-1〜3-5 |
 | 3.2 | PlantUML AI支援フロー | UC 4-1, 4-2 |
 | 3.3 | Excalidraw ワイヤーフレーム作成フロー | UC 3-1〜3-3（Excalidraw） |
+| 3.4 | 認証フロー | UC 1-1, 1-2 |
 
 ---
 
@@ -448,11 +449,137 @@ const Excalidraw = dynamic(
 
 ---
 
+## 3.4 認証フロー
+
+**関連ユースケース**: UC 1-1 ログインする, UC 1-2 ログアウトする
+
+```plantuml
+@startuml business_flow_auth
+title 業務フロー図 - 認証
+
+|エンドユーザー|
+start
+:アプリケーションにアクセス;
+
+|Frontend Service|
+if (セッション有効?) then (はい)
+  :ダッシュボード表示;
+  stop
+else (いいえ)
+  :ログイン画面表示;
+endif
+
+|エンドユーザー|
+:OAuthプロバイダーを選択;
+note right
+  **対応プロバイダー**
+  - GitHub
+  - Google
+  ※Email/Password認証は不使用
+end note
+
+|Frontend Service|
+:OAuthプロバイダーにリダイレクト;
+
+|OAuthプロバイダー|
+:認証画面表示;
+
+|エンドユーザー|
+:認証情報入力・許可;
+
+|OAuthプロバイダー|
+:認証コード発行;
+:コールバックURLにリダイレクト;
+
+|Frontend Service|
+:認証コード受信;
+
+|Supabase Auth|
+:認証コード検証;
+:アクセストークン発行;
+:セッション作成;
+
+|Frontend Service|
+if (認証成功?) then (はい)
+  :ダッシュボード表示;
+else (いいえ)
+  :エラーメッセージ表示;
+  :ログイン画面に戻る;
+  stop
+endif
+
+|エンドユーザー|
+:アプリケーションを使用;
+
+fork
+  :セッション期限切れ;
+
+  |Frontend Service|
+  :自動ログアウト;
+  :ログイン画面にリダイレクト;
+  stop
+fork again
+  :ログアウトボタンをクリック;
+
+  |Frontend Service|
+  :ログアウトリクエスト送信;
+
+  |Supabase Auth|
+  :セッション終了;
+
+  |Frontend Service|
+  :ログイン画面にリダイレクト;
+  stop
+end fork
+
+@enduml
+```
+
+### 認証方式
+
+| 方式 | 説明 | 対応状況 |
+|------|------|:--------:|
+| **GitHub OAuth** | GitHubアカウントで認証 | ✅ |
+| **Google OAuth** | Googleアカウントで認証 | ✅ |
+| Email/Password | メールアドレスとパスワードで認証 | ❌ 不使用 |
+
+### ログインフロー
+
+| ステップ | 処理内容 | 担当 |
+|---------|---------|------|
+| 1 | アプリアクセス | エンドユーザー |
+| 2 | セッション確認 | Frontend Service |
+| 3 | OAuthプロバイダー選択 | エンドユーザー |
+| 4 | OAuthリダイレクト | Frontend Service |
+| 5 | 認証・許可 | OAuthプロバイダー |
+| 6 | コールバック処理 | Frontend Service |
+| 7 | トークン検証・セッション作成 | Supabase Auth |
+| 8 | ダッシュボード表示 | Frontend Service |
+
+### ログアウトフロー
+
+| ステップ | 処理内容 | 担当 |
+|---------|---------|------|
+| 1 | ログアウトボタンクリック | エンドユーザー |
+| 2 | ログアウトリクエスト | Frontend Service |
+| 3 | セッション終了 | Supabase Auth |
+| 4 | ログイン画面リダイレクト | Frontend Service |
+
+### セッション管理
+
+| 項目 | 仕様 |
+|------|------|
+| セッション保持 | Supabase Auth（JWT） |
+| 自動更新 | アクセストークン自動リフレッシュ |
+| 期限切れ | 自動ログアウト → ログイン画面 |
+
+---
+
 ## アクター一覧（整合性確認）
 
 | アクター | 役割 | 関連フロー |
 |---------|------|-----------|
-| **エンドユーザー** | 図表作成・編集、AI機能利用 | 3.1〜3.3 全て |
+| **エンドユーザー** | 図表作成・編集、AI機能利用、認証 | 3.1〜3.4 全て |
 | **開発者** | システム管理（本フローには未登場） | - |
 
 ---
@@ -461,9 +588,9 @@ const Excalidraw = dynamic(
 
 | サービス | 役割 | 関連フロー |
 |---------|------|-----------|
-| **Frontend Service** | UI、Monaco Editor、Excalidraw、入力待機処理、プレビュー更新 | 3.1〜3.3 全て |
+| **Frontend Service** | UI、Monaco Editor、Excalidraw、入力待機処理、プレビュー更新、認証画面 | 3.1〜3.4 全て |
 | **PlantUML Service** | node-plantuml実行、検証、SVG/PNG/PDF生成、バージョン管理 | 3.1, 3.2 |
-| **AI Service** | AI自動修正（Context7 + OpenRouter）、AIチャット、JSON生成 | 3.1〜3.3 全て |
+| **AI Service** | AI自動修正（Context7 + OpenRouter）、AIチャット、JSON生成 | 3.1〜3.3 |
 | **Excalidraw Service** | JSON保存、SVG/PNG/PDF変換 | 3.3 |
 | **API Gateway** | ルーティング、認証検証（図では省略） | - |
 
@@ -473,7 +600,9 @@ const Excalidraw = dynamic(
 
 | システム | 役割 | 関連フロー |
 |---------|------|-----------|
-| **Supabase** | 認証、データ永続化、Storage | 3.1, 3.3 |
+| **Supabase Auth** | OAuth認証、セッション管理、JWT発行 | 3.4 |
+| **Supabase** | データ永続化、Storage | 3.1, 3.3 |
+| **OAuthプロバイダー** | GitHub OAuth, Google OAuth | 3.4 |
 | **OpenRouter API** | LLM呼び出し（GPT-4o-mini, Claude等） | 3.1, 3.2, 3.3 |
 | **OpenAI API** | Embedding生成（本フローには未登場） | - |
 | **Context7 MCP** | PlantUML構文情報取得 | 3.1, 3.2 |
@@ -497,3 +626,4 @@ const Excalidraw = dynamic(
 5. **PlantUML記法の妥当性**: 図表は正しくレンダリングされるか？
 6. **エラー修正ループの整合性**: 3.1と3.2で同じAI自動修正ロジック（最大5回リトライ）が適用されているか？
 7. **AIチャット連携**: 3.3でGUI編集とAIチャットの組み合わせによるイテレーティブ修正が可能か？
+8. **認証仕様の整合性**: 3.4でOAuth認証のみ（GitHub, Google）、Email/Password不使用が明記されているか？
