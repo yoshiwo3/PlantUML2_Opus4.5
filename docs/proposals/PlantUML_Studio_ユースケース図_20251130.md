@@ -385,7 +385,7 @@ end note
 
 note right of UC_PRJ_CREATE
   プロジェクト = 図表のグループ
-  目的・フェーズを設定可能
+  作成時は名前のみ設定
 end note
 
 @enduml
