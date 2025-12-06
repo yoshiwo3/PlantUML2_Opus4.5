@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/proposals/PlantUML_Studio_コンテキスト図_20251130.md",
+                "file": "docs/proposals/PlantUML_Studio_業務フロー図_20251201.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "PlantUML_Studio_コンテキスト図_20251130"
+              "title": "PlantUML_Studio_業務フロー図_20251201"
             }
           }
         ]
@@ -78,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 364.5
   },
   "right": {
     "id": "e33ef8a30c5ccd6d",
@@ -183,18 +183,45 @@
   },
   "active": "88974f2201a26049",
   "lastOpenFiles": [
-    "docs/proposals/PlantUML_Studio_コンテキスト図_20251130 copy.md",
+    "CLAUDE.md.tmp.3028.1765001256215",
+    "CLAUDE.md.tmp.3028.1765001249309",
+    "CLAUDE.md.tmp.3028.1765001136524",
+    "docs/context/active_context.md.tmp.3028.1765001088671",
+    "docs/context/technical_decisions.md.tmp.3028.1765000634250",
+    "CLAUDE.md.tmp.3028.1765000628236",
+    "CLAUDE.md.tmp.3028.1765000604388",
+    "CLAUDE.md.tmp.3028.1765000592480",
+    "CLAUDE.md.tmp.3028.1765000582010",
+    "CLAUDE.md.tmp.3028.1765000561692",
+    "CLAUDE.md.tmp.3028.1765000556089",
+    "docs/evidence/20251206_project_management/work_sheet.md",
+    "docs/evidence/20251206_project_management/00_raw_notes.md",
+    "docs/evidence/20251206_project_management/instructions.md",
+    "docs/proposals/PlantUML_Studio_業務フロー図_20251201 copy 2.md",
+    "docs/proposals/画像2.png",
+    "docs/proposals/画像1.png",
+    "docs/evidence/20251202_auth_flow/work_sheet.md",
+    "docs/evidence/20251202_auth_flow/00_raw_notes.md",
+    "docs/evidence/20251202_auth_flow/instructions.md",
+    "doc/画像2.png",
+    "doc/画像1.png",
+    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md",
+    "docs/proposals/PlantUML_Studio_業務フロー図_20251201.md",
+    "docs/proposals/PlantUML_Studio_シーケンス図_編集プレビュー_20251130.md",
+    "CLAUDE copy.md",
+    "docs/evidence/20251130_claude_md_update/work_sheet.md",
+    "docs/evidence/20251130_claude_md_update/00_raw_notes.md",
+    "docs/evidence/20251130_claude_md_update/instructions.md",
+    "docs/proposals/PlantUML_Studio_シーケンス図_共有_20251130.md",
+    "docs/proposals/PlantUML_Studio_シーケンス図_保存読込_20251130.md",
+    "docs/proposals/PlantUML_Studio_シーケンス図_エクスポート_20251130.md",
+    "docs/evidence/20251130_sequence_diagrams/work_sheet.md",
+    "docs/evidence/20251130_sequence_diagrams/00_raw_notes.md",
+    "docs/evidence/20251130_sequence_diagrams/instructions.md",
+    "docs/proposals/PlantUML_Studio_コンテキスト図_20251130.md",
+    "docs/proposals/PlantUML_Studio_開発ステップ詳細化計画_20251130.md",
+    "docs/proposals/PlantUML_Studio_ユースケース図_20251130 copy 2.md",
     "docs/proposals/PlantUML_Studio_ユースケース図_20251130 copy.md",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md.tmp.69252.1764499999525",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md.tmp.69252.1764499836173",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md.tmp.69252.1764499673397",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md.tmp.69252.1764499315349",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md.tmp.69252.1764499133081",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md.tmp.69252.1764499120194",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md.tmp.69252.1764499113616",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md.tmp.69252.1764499056888",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md.tmp.69252.1764499044027",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md.tmp.69252.1764499032837",
-    "docs/proposals/PlantUML_Studio_ユースケース図_20251130.md"
+    "docs/proposals/PlantUML_Studio_シーケンス図_ログイン_20251130.md"
   ]
 }
