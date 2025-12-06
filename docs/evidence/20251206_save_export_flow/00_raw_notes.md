@@ -420,6 +420,13 @@ Frontend Service → Supabaseへ保存リクエスト
 2. API Gatewayが暗黙的に介在することを明記
 3. サービス一覧テーブルの記述を更新
 
+## Gitコミット
+
+- **コミット**: `46ae4f7`
+- **メッセージ**: `docs: 3.6保存・エクスポートフロー完成、整合性チェック実施`
+- **変更ファイル**: 8件（1299行追加、32行削除）
+- **プッシュ**: `a14c2be..46ae4f7 master -> master`
+
 ## 参考リンク
 
 - [PlantUML Activity Diagram Beta](https://plantuml.com/activity-diagram-beta)

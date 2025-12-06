@@ -59,6 +59,12 @@ Frontend Service → Supabaseへ保存リクエスト
 - 3.6 保存・エクスポートフロー: ✅ 完了
 - 業務フロー図 進捗: 6/10 完了（60%）
 
+## Git コミット
+
+- コミット: `46ae4f7`
+- 内容: docs: 3.6保存・エクスポートフロー完成、整合性チェック実施
+- プッシュ: master → origin/master
+
 ## 参照ドキュメント
 - `docs/proposals/PlantUML_Studio_業務フロー図_20251201.md` セクション3.6
 - `docs/proposals/PlantUML_Studio_ユースケース図_20251130.md` UC 3-5, 3-6
