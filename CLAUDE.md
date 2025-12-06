@@ -142,7 +142,7 @@ Phase 6: 品質・権限定義
   ⑭ アクター権限マトリクス → アクセス制御
 ```
 
-### 図表一覧と現在の状況（2025-12-02 更新）
+### 図表一覧と現在の状況（2025-12-06 更新）
 
 **設計図表集の実際の構成（セクション1-11）:**
 - セクション1: コンポーネント図
@@ -265,8 +265,18 @@ Phase 6: 品質・権限定義
 | `PlantUML_Studio_コンテキスト図_20251130.md` | システム境界、外部アクター定義 |
 | `PlantUML_Studio_ユースケース図_20251130.md` | ユースケース図（概要図＋詳細図） |
 | `PlantUML_Studio_シーケンス図_ログイン_20251130.md` | UC1-1, UC1-2: OAuth(PKCE)、セッション検証、ログアウト |
-| `PlantUML_Studio_業務フロー図_20251201.md` | PlantUML図表作成、AI支援、Excalidrawワイヤーフレーム作成フロー |
+| `PlantUML_Studio_業務フロー図_20251201.md` | 業務フロー5/10完了（図表作成・AI支援・Excalidraw・認証・プロジェクト管理）+ UX設計思想 |
 | `PlantUML_Studio_開発ステップ詳細化計画_20251130.md` | 開発フェーズ計画 |
+
+### UX設計思想（重要）
+
+業務フロー図（`PlantUML_Studio_業務フロー図_20251201.md`）に**UX設計思想**セクションを追加済み。
+新機能設計時は必ず参照すること：
+
+- **プロジェクトの定義**: 階層構造（プロジェクト1:N図表）、データモデル
+- **想定ユーザーペルソナ**: 個人開発者、学習者、チームリーダー、フリーランス、技術文書担当
+- **想定利用ケース**: ソフトウェア開発、学習・教育、技術文書作成、システム移行、ナレッジ管理
+- **UX設計のポイント**: シンプルなCRUD、即時フィードバック、安全な削除、一覧性、アクセシビリティ
 
 ---
 
@@ -282,7 +292,7 @@ Phase 6: 品質・権限定義
 
 ---
 
-## 次のアクション（2025-12-01更新）
+## 次のアクション（2025-12-06更新）
 
 ### 優先度順タスク
 
@@ -333,6 +343,14 @@ const Excalidraw = dynamic(
 ### PlantUML構文注意
 - シーケンス図で`note bottom of`は使用不可 → `note over`を使用
 
+### TD-005: プロジェクト選択状態のSupabase保存
+```typescript
+// users.last_selected_project_id で最後に選択したプロジェクトを保存
+// リロード・デバイス切り替え後も前回の作業を即座に再開可能
+```
+- ローカルストレージ/React State不採用（リロード時消失、デバイス固有）
+- Supabase中心アーキテクチャとの一貫性を維持
+
 ## MCP Servers
 
 このプロジェクトでは以下のMCPサーバーを使用：
@@ -348,8 +366,7 @@ const Excalidraw = dynamic(
 
 ## Custom Agents
 
-`.claude/agents/`配下にPlantUML専用エージェントを定義：
-
+現在未使用（削除済み）。必要に応じて`.claude/agents/`配下に再定義可能。
 
 ## PlantUML Code Rules
 
@@ -437,11 +454,15 @@ PlantUML2_Opus4.5/
 │   │   └── PlantUML_Studio_設計図表_20251130.md
 │   ├── evidence/            # 作業証跡
 │   │   ├── 20251130_claude_md_update/
-│   │   └── 20251130_sequence_diagrams/
+│   │   ├── 20251130_sequence_diagrams/
+│   │   ├── 20251201_business_flow_diagram/
+│   │   ├── 20251202_auth_flow/
+│   │   └── 20251206_project_management/
 │   ├── proposals/           # 正式版（レビュー済み）
 │   │   ├── PlantUML_Studio_コンテキスト図_20251130.md
 │   │   ├── PlantUML_Studio_ユースケース図_20251130.md
 │   │   ├── PlantUML_Studio_シーケンス図_ログイン_20251130.md
+│   │   ├── PlantUML_Studio_業務フロー図_20251201.md
 │   │   └── PlantUML_Studio_開発ステップ詳細化計画_20251130.md
 │   ├── session_handovers/   # セッション引継ぎ資料
 │   ├── templates/           # ドキュメントテンプレート
