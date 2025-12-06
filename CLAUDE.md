@@ -22,7 +22,7 @@ PlantUML Studio - 次世代PlantUML図表作成Webアプリケーションの企
 | 技術決定一覧 | TD-001〜最新 |
 | 最近の変更履歴 | 日付別の作業記録 |
 
-⚠️ **作業開始時は必ず確認すること**
+⚠️ **作業開始時は必ず確認し、作業完了時は必ず更新すること**
 
 ---
 
@@ -622,6 +622,7 @@ Serenaは積極的に活用する：
 | トークン90%ルール | トークン使用率90%到達時に引継ぎ資料を自動作成 |
 | Serena Memories保存 | セッション終了時に`write_memory`で知識を永続化 |
 | 正式版はproposals/ | PRDに採用するのは`docs/proposals/`内のレビュー済みファイルのみ |
+| **進捗管理表の更新** | 作業完了時に`docs/context/active_context.md`を更新（図表進捗、UCカバレッジ、変更履歴） |
 | 技術仕様厳守 | node-plantuml（内部）、Monaco Editor、API Routes経由 |
 
 ---
