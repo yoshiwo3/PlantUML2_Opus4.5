@@ -206,7 +206,7 @@ UC_AI_CHAT ..> UC_LEARN_SEARCH : <<extends>>
 '==================================================
 note right of UC_TEMPLATE : PlantUML/ワイヤーフレーム両方に適用
 note right of UC_PREVIEW : PlantUML専用\nシステムが自動検証\n(構文エラー時はAI修正提案)
-note right of UC_HISTORY : PlantUML専用\nバージョン管理機能
+note right of UC_HISTORY : PlantUML/Excalidraw共通\nバージョン管理機能
 note right of UC_LEARN_SEARCH : 編集中にPlantUML構文や\n書き方を検索（RAG）
 note right of UC_AI_CHAT : 用語一貫性チェックは\n保存時にシステムが自動実行
 note right of UC_ADMIN_CONTENT_REG : 登録時にEmbedding生成\n(OpenAI API)
@@ -449,11 +449,13 @@ rectangle "PlantUML Studio" {
         }
 
         '========================================
-        ' 3-B. 出力操作（共通）
+        ' 3-B. 出力・管理操作（共通）
         '========================================
-        package "3-B. 出力操作（共通）" <<出力操作>> {
+        package "3-B. 出力・管理（共通）" <<出力操作>> {
             usecase "3-5 図表を保存する" as UC_SAVE
             usecase "3-6 図表をエクスポートする" as UC_EXPORT
+            usecase "3-7 バージョン履歴を確認する" as UC_HISTORY
+            usecase "3-8 過去バージョンを復元する" as UC_RESTORE
             usecase "3-9 図表を削除する" as UC_DELETE
         }
 
@@ -462,8 +464,6 @@ rectangle "PlantUML Studio" {
         '========================================
         package "3-C. PlantUML専用" <<PlantUML専用>> {
             usecase "3-4 図表をプレビューする" as UC_PREVIEW
-            usecase "3-7 バージョン履歴を確認する" as UC_HISTORY
-            usecase "3-8 過去バージョンを復元する" as UC_RESTORE
         }
 
         '========================================
@@ -483,15 +483,15 @@ actor "OpenRouter API" as openrouter <<外部システム>>
 user --> UC_CREATE
 user --> UC_EDIT
 
-'-- 主アクター関連（出力操作） --
+'-- 主アクター関連（出力・管理操作） --
 user --> UC_SAVE
 user --> UC_EXPORT
+user --> UC_HISTORY
+user --> UC_RESTORE
 user --> UC_DELETE
 
 '-- 主アクター関連（PlantUML専用） --
 user --> UC_PREVIEW
-user --> UC_HISTORY
-user --> UC_RESTORE
 
 '-- 主アクター関連（学習支援） --
 user --> UC_LEARN_SEARCH
@@ -522,7 +522,7 @@ note right of UC_PREVIEW
 end note
 
 note right of UC_HISTORY
-  PlantUML専用
+  PlantUML/Excalidraw共通
   SHA-256ハッシュで
   バージョン管理
 end note
@@ -732,8 +732,8 @@ end note
 | 3-4 | 図表をプレビューする | SVG/PNGでリアルタイム表示（自動検証含む） | PlantUML専用 | エンドユーザー | OpenRouter API |
 | 3-5 | 図表を保存する | 手動保存（Ctrl+S）/ 自動保存（30秒）※用語一貫性チェック自動実行 | 共通 | エンドユーザー | OpenRouter API |
 | 3-6 | 図表をエクスポートする | PDF/PNG/SVG出力 | 共通 | エンドユーザー | - |
-| 3-7 | バージョン履歴を確認する | 過去バージョン一覧表示 | PlantUML専用 | エンドユーザー | - |
-| 3-8 | 過去バージョンを復元する | 指定バージョンに戻す | PlantUML専用 | エンドユーザー | - |
+| 3-7 | バージョン履歴を確認する | 過去バージョン一覧表示 | 共通 | エンドユーザー | - |
+| 3-8 | 過去バージョンを復元する | 指定バージョンに戻す | 共通 | エンドユーザー | - |
 | 3-9 | 図表を削除する | 図表の削除 | 共通 | エンドユーザー | - |
 | 3-10 | 学習コンテンツを検索する | PlantUML構文・書き方のRAG検索 | 共通 | エンドユーザー | OpenRouter API |
 | 3-11 | 学習コンテンツを確認する | 検索結果の学習コンテンツを表示 | 共通 | エンドユーザー | - |
@@ -836,7 +836,8 @@ end note
 - ユースケース図はユーザーの「目的」を表現するもの
 - 「図表を作成したい」「テンプレートから始めたい」という目的は共通
 - 実装の違い（Monaco vs Excalidraw）はユースケースレベルでは表現すべきではない
-- PlantUML専用機能（プレビュー、バージョン管理）はノートで明示
+- PlantUML専用機能（プレビュー自動検証）はノートで明示
+- バージョン管理はPlantUML/Excalidraw共通機能
 
 ### 2. テンプレート選択の追加
 

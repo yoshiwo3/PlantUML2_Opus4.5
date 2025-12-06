@@ -47,12 +47,14 @@ System_Boundary(studio, "PlantUML Studio") {
 
     '--------------------------------------------------
     ' Excalidraw Service
-    ' - ワイヤーフレーム生成
+    ' - ワイヤーフレーム生成・管理
+    ' - CRUD操作（作成・読取・更新・削除）
+    ' - バージョン管理（SHA-256ハッシュ）
     ' - 自然言語 → Excalidraw JSON（LLM経由）
     ' - JSON → SVG/PNG変換
     ' - テンプレート管理
     '--------------------------------------------------
-    System(excalidraw, "Excalidraw Service", "Cloud Run\nワイヤーフレーム\nLLM→JSON生成")
+    System(excalidraw, "Excalidraw Service", "Cloud Run\nワイヤーフレーム\nCRUD・バージョン管理")
 
     '--------------------------------------------------
     ' AI Service
@@ -172,7 +174,7 @@ Rel(excalidraw, openrouter, "JSON生成", "HTTPS")
 | **API Gateway** | API入口・ルーティング | 認証検証、レート制限、サービス振り分け | - |
 | **PlantUML Service** | 図表管理 | CRUD、バージョン管理、**node-plantuml（ローカルJAR）**、レンダリング、AI自動修正 | OpenRouter |
 | **AI Service** | AI機能全般 | Question-Start、生成、チャット、用語一貫性、**RAG(Embedding+pgvector)** | OpenRouter, **OpenAI** |
-| **Excalidraw Service** | ワイヤーフレーム | **LLM→JSON生成**、レンダリング、テンプレート | OpenRouter |
+| **Excalidraw Service** | ワイヤーフレーム | CRUD、**バージョン管理**、**LLM→JSON生成**、レンダリング、テンプレート | OpenRouter |
 
 ### 外部システム
 

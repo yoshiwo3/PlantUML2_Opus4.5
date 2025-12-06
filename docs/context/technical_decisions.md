@@ -111,4 +111,60 @@ PlantUML Validator MCPサーバーをGoogle Cloud Runでホスティング
 
 ---
 
+### TD-006: MVPデータ保存設計（Storage Only）
+
+**日付**: 2025-12-06
+**ステータス**: Accepted
+
+**決定内容**:
+MVPはSupabase Storageのみで構成し、DBテーブルは作成しない（auth.usersのみ使用）
+
+**Storage構造**:
+```
+/{user_id}/
+  └── {project_name}/
+      ├── {diagram_name}.puml
+      ├── {diagram_name}.excalidraw.json
+      └── {diagram_name}.preview.svg
+```
+
+**ファイル形式**: B案（.puml + コメント内Markdown）
+```plantuml
+/'
+# 図表タイトル
+説明文（Markdown形式）
+'/
+
+@startuml
+...PlantUMLコード...
+@enduml
+```
+
+**理由**:
+- MVPはシンプルに：DBテーブル設計・RLS設定の複雑さを回避
+- Storage Policyで十分なアクセス制御が可能
+- 実際に必要になってから対応（YAGNI原則）
+
+**機能ロードマップ**:
+| Phase | 機能 | 実装方法 |
+|-------|------|---------|
+| **MVP** | 図表一覧、プロジェクト管理、CRUD | Storage API のみ |
+| **v3** | ファイル名検索、全文検索、バージョン管理 | DB追加 + 取込み機能 |
+
+**代替案（不採用）**:
+- DB中心（コンテンツDB保存）：複雑すぎる
+- DB + Storage（メタデータDB、ファイルStorage）：過剰設計
+- MVPでUUID/マニフェスト：v3で取込み機能として対応すれば十分
+
+**v3移行戦略**:
+- 「ファイル取込み機能」をv3で実装
+- 取込み時にUUID付与・DBインデックス作成
+- 既存ファイルは取込み機能で移行
+
+**影響**:
+- 業務フロー図3.6, 3.7の一部を修正が必要（Storage構造変更）
+- バージョン管理（UC 3-7, 3-8）はv3に延期
+
+---
+
 **次のレビュー予定**: 2025-12-07
