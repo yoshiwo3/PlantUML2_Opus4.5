@@ -589,161 +589,151 @@ end fork
 
 ```plantuml
 @startuml business_flow_project_management
+skinparam ConditionEndStyle hline
+skinparam PartitionBackgroundColor #f8f8f8
+skinparam PartitionBorderColor #cccccc
+
 title 業務フロー図 - プロジェクト管理
 
-|エンドユーザー|
-start
-:ダッシュボードから\nプロジェクト管理画面へ遷移;
-
-|Frontend Service|
-:ローディング表示;
-:プロジェクト一覧取得リクエスト;
-
-|Supabase|
-:プロジェクト一覧取得;
-note right
-  RLS（Row Level Security）により
-  ユーザー自身のプロジェクトのみ取得
-end note
-
-|Frontend Service|
-if (取得成功？) then (はい)
-  if (プロジェクト数 > 0?) then (はい)
-    :プロジェクト一覧表示;
-  else (0件)
-    :空状態UI表示;
-    note right
-      「プロジェクトがありません。
-      新規作成してください。」
-    end note
-  endif
-else (エラー)
-  :エラーメッセージ表示;
+partition "初期化フェーズ" {
+  |エンドユーザー|
+  start
+  :ダッシュボードから\nプロジェクト管理画面へ遷移;
+  |Frontend Service|
+  :ローディング表示;
+  :プロジェクト一覧取得リクエスト;
+  |Supabase|
+  :プロジェクト一覧取得;
   note right
-    「データの取得に失敗しました。
-    再読み込みしてください。」
+    RLS（Row Level Security）により
+    ユーザー自身のプロジェクトのみ取得
   end note
-  |エンドユーザー|
-  :再読み込み or 戻る;
-  stop
-endif
-
-repeat
-  |エンドユーザー|
-  switch (操作を選択)
-  case (新規作成)
-    |エンドユーザー|
-    :「新規作成」ボタンをクリック;
-
-    |Frontend Service|
-    :プロジェクト名入力ダイアログ表示;
-
-    |エンドユーザー|
-    :プロジェクト名を入力;
-
-    |Frontend Service|
-    :入力バリデーション;
+  |Frontend Service|
+  if (取得成功？) then (はい)
+    if (プロジェクト数 > 0?) then (はい)
+      :プロジェクト一覧表示;
+    else (0件)
+      :空状態UI表示;
+      note right
+        「プロジェクトがありません。
+        新規作成してください。」
+      end note
+    endif
+  else (エラー)
+    #mistyrose:エラーメッセージ表示;
     note right
-      - 空文字チェック
-      - 文字数制限（1-100文字）
-      - 禁止文字チェック
+      「データの取得に失敗しました。
+      再読み込みしてください。」
     end note
+    |エンドユーザー|
+    :再読み込み or 戻る;
+    kill
+  endif
+}
 
-    if (バリデーションOK？) then (はい)
+partition "メインループ" {
+  repeat
+    |エンドユーザー|
+    switch (操作を選択)
+
+    case (新規作成)
       |エンドユーザー|
-      :「作成」ボタンをクリック;
-
+      :「新規作成」ボタンをクリック;
       |Frontend Service|
-      :ローディング表示;
-      :プロジェクト作成リクエスト;
-
-      |Supabase|
-      :同名チェック;
-      if (同名プロジェクト存在？) then (はい)
-        :エラー返却;
-
-        |Frontend Service|
-        :「同名のプロジェクトが存在します」表示;
-      else (なし)
-        :プロジェクト作成;
-        :作成結果を返却;
-
-        |Frontend Service|
-        :一覧を更新;
-        :作成完了メッセージ表示;
-      endif
-    else (エラー)
-      :バリデーションエラー表示;
-      note right
-        リアルタイムで
-        エラー内容を表示
-      end note
-    endif
-
-  case (選択)
-    |エンドユーザー|
-    :プロジェクトをクリック;
-
-    |Frontend Service|
-    :現在のプロジェクトを切替;
-    :エディタ画面（図表一覧）へ遷移;
-    stop
-
-  case (削除)
-    |エンドユーザー|
-    :削除ボタンをクリック;
-
-    |Frontend Service|
-    :配下の図表数を取得;
-    :削除確認ダイアログ表示;
-    note right
-      「このプロジェクトには○件の図表が
-      含まれています。
-      この操作は取り消せません。
-      削除しますか？」
-    end note
-
-    |エンドユーザー|
-    if (削除を確認？) then (はい)
+      :プロジェクト名入力ダイアログ表示;
+      |エンドユーザー|
+      :プロジェクト名を入力;
       |Frontend Service|
-      :ローディング表示;
-      :削除リクエスト送信;
-
-      |Supabase|
-      :プロジェクト削除;
+      :入力バリデーション;
       note right
-        カスケード削除により
-        配下の図表も削除
+        - 空文字チェック
+        - 文字数制限（1-100文字）
+        - 禁止文字チェック
       end note
-
-      if (削除成功？) then (はい)
-        :削除結果を返却;
-
+      if (バリデーションOK？) then (はい)
+        |エンドユーザー|
+        :「作成」ボタンをクリック;
         |Frontend Service|
-        :一覧を更新;
-        :削除完了メッセージ表示;
+        :ローディング表示;
+        :プロジェクト作成リクエスト;
+        |Supabase|
+        :同名チェック;
+        if (同名プロジェクト存在？) then (はい)
+          #mistyrose:エラー返却;
+          |Frontend Service|
+          #mistyrose:「同名のプロジェクトが存在します」表示;
+        else (なし)
+          #palegreen:プロジェクト作成;
+          :作成結果を返却;
+          |Frontend Service|
+          #palegreen:一覧を更新;
+          :作成完了メッセージ表示;
+        endif
       else (エラー)
-        :エラー返却;
-
-        |Frontend Service|
-        :「削除に失敗しました」表示;
+        #mistyrose:バリデーションエラー表示;
+        note right
+          リアルタイムで
+          エラー内容を表示
+        end note
       endif
-    else (キャンセル)
+
+    case (選択)
+      |エンドユーザー|
+      :プロジェクトをクリック;
       |Frontend Service|
-      :ダイアログを閉じる;
-      :一覧画面に戻る;
-    endif
+      :現在のプロジェクトを切替;
+      #palegreen:エディタ画面（図表一覧）へ遷移;
+      kill
 
-  case (戻る)
-    |エンドユーザー|
-    :「戻る」ボタンをクリック;
+    case (削除)
+      |エンドユーザー|
+      :削除ボタンをクリック;
+      |Frontend Service|
+      :配下の図表数を取得;
+      #lightyellow:削除確認ダイアログ表示;
+      note right
+        「このプロジェクトには○件の図表が
+        含まれています。
+        この操作は取り消せません。
+        削除しますか？」
+      end note
+      |エンドユーザー|
+      if (削除を確認？) then (はい)
+        |Frontend Service|
+        :ローディング表示;
+        :削除リクエスト送信;
+        |Supabase|
+        :プロジェクト削除;
+        note right
+          カスケード削除により
+          配下の図表も削除
+        end note
+        if (削除成功？) then (はい)
+          :削除結果を返却;
+          |Frontend Service|
+          #palegreen:一覧を更新;
+          :削除完了メッセージ表示;
+        else (エラー)
+          #mistyrose:エラー返却;
+          |Frontend Service|
+          #mistyrose:「削除に失敗しました」表示;
+        endif
+      else (キャンセル)
+        |Frontend Service|
+        :ダイアログを閉じる;
+        :一覧画面に戻る;
+      endif
 
-    |Frontend Service|
-    :ダッシュボードへ遷移;
-    stop
+    case (戻る)
+      |エンドユーザー|
+      :「戻る」ボタンをクリック;
+      |Frontend Service|
+      :ダッシュボードへ遷移;
+      kill
 
-  endswitch
-repeat while (操作を継続？) is (はい)
+    endswitch
+  repeat while (操作を継続？) is (はい)
+}
 
 |Frontend Service|
 :画面を閉じる;
