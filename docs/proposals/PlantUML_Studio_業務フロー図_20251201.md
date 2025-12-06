@@ -603,28 +603,20 @@ start
 :一覧表示;
 
 |エンドユーザー|
-switch (操作を選択)
-
-case (新規作成)
-  |エンドユーザー|
+if (操作？) then (新規作成)
   :「新規作成」をクリック;
   :プロジェクト名を入力;
   |Frontend Service|
   :バリデーション＆作成;
   :結果表示;
-  |エンドユーザー|
-  :一覧画面に戻る;
-
-case (選択)
-  |エンドユーザー|
+  stop
+elseif (選択) then
   :プロジェクトをクリック;
   |Frontend Service|
   :現在のプロジェクトを切替;
   #palegreen:エディタ画面へ遷移;
   stop
-
-case (削除)
-  |エンドユーザー|
+elseif (削除) then
   :削除をクリック;
   |Frontend Service|
   #lightyellow:確認ダイアログ表示;
@@ -635,19 +627,13 @@ case (削除)
     :一覧更新;
   else (キャンセル)
   endif
-  |エンドユーザー|
-  :一覧画面に戻る;
-
-case (戻る)
-  |エンドユーザー|
+  stop
+else (戻る)
   :「戻る」をクリック;
   |Frontend Service|
   :ダッシュボードへ遷移;
   stop
-
-endswitch
-
-stop
+endif
 
 @enduml
 ```
