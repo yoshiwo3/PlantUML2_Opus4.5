@@ -161,9 +161,44 @@ MVPはSupabase Storageのみで構成し、DBテーブルは作成しない（au
 - 取込み時にUUID付与・DBインデックス作成
 - 既存ファイルは取込み機能で移行
 
+**アーキテクチャ: Repository Pattern**
+
+v3移行を容易にするため、ストレージ層を抽象化する。
+
+```
+┌─────────────────────────────────────────────┐
+│           Application Layer                  │
+│  (図表CRUD、プロジェクト管理、一覧取得)        │
+└─────────────────┬───────────────────────────┘
+                  │ 依存（Interface経由）
+                  ▼
+┌─────────────────────────────────────────────┐
+│      IDiagramRepository (Interface)          │
+│  - list(projectName): Diagram[]              │
+│  - get(projectName, diagramName): Diagram    │
+│  - save(diagram): void                       │
+│  - delete(projectName, diagramName): void    │
+└─────────────────┬───────────────────────────┘
+                  │ 実装
+        ┌─────────┴─────────┐
+        ▼                   ▼
+┌───────────────┐   ┌─────────────────┐
+│ MVP: Storage  │   │ v3: DB+Storage  │
+│ Repository    │   │ Repository      │
+│ (Storage API) │   │ (Supabase DB)   │
+└───────────────┘   └─────────────────┘
+```
+
+**Repository Pattern採用理由**:
+- MVP→v3移行時、Repository実装の差し替えのみでOK
+- アプリケーション層のコード変更不要（依存性逆転）
+- テスト時にMock Repositoryで置換可能
+- SOLID原則（特にDIP: 依存性逆転の原則）に準拠
+
 **影響**:
 - 業務フロー図3.6, 3.7の一部を修正が必要（Storage構造変更）
 - バージョン管理（UC 3-7, 3-8）はv3に延期
+- MVPでIDiagramRepository interfaceを定義し、StorageRepositoryを実装
 
 ---
 

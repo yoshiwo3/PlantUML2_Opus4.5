@@ -404,6 +404,27 @@ Supabase Storage:
 - DB + Storage（メタデータDB、ファイルStorage）: 過剰設計
 - MVPでUUID/マニフェスト: v3で取込み機能として対応
 
+**アーキテクチャ: Repository Pattern**
+```
+Application Layer (図表CRUD、一覧取得)
+        │
+        ▼
+IDiagramRepository (Interface)
+  - list(projectName): Diagram[]
+  - get(projectName, diagramName): Diagram
+  - save(diagram): void
+  - delete(projectName, diagramName): void
+        │
+   ┌────┴────┐
+   ▼         ▼
+MVP:      v3:
+Storage   DB+Storage
+Repository Repository
+```
+- MVP→v3移行時、Repository実装の差し替えのみ
+- アプリケーション層のコード変更不要
+- テスト時にMock Repositoryで置換可能
+
 ## MCP Servers
 
 このプロジェクトでは以下のMCPサーバーを使用：

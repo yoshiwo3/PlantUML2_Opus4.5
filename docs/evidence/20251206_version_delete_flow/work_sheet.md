@@ -138,10 +138,41 @@ DBテーブル: なし（auth.usersのみ）
 | バージョン管理 | MVP | v3 |
 | ファイル形式 | 未定義 | B案（コメント内Markdown） |
 
+### アーキテクチャ決定（追記）
+
+**Repository Pattern採用**
+
+v3移行を容易にするため、ストレージ層を抽象化する。
+
+```
+Application Layer (図表CRUD、一覧取得)
+        │
+        ▼
+IDiagramRepository (Interface)
+  - list(projectName): Diagram[]
+  - get(projectName, diagramName): Diagram
+  - save(diagram): void
+  - delete(projectName, diagramName): void
+        │
+   ┌────┴────┐
+   ▼         ▼
+MVP:      v3:
+Storage   DB+Storage
+Repository Repository
+```
+
+**採用理由**:
+- MVP→v3移行時、Repository実装の差し替えのみ
+- アプリケーション層のコード変更不要
+- テスト時にMock Repositoryで置換可能
+- SOLID原則（DIP）に準拠
+
+---
+
 ### 次のアクション
 
 1. [ ] 業務フロー図をMVP構成に修正
-2. [ ] active_context.mdにデータ保存設計決定を追記
+2. [x] active_context.mdにデータ保存設計決定を追記
 3. [ ] データフロー図（DFD）作成（MVP構成ベース）
 
 ---

@@ -85,6 +85,49 @@ Storage Policiesのみで実現
 
 ---
 
+## アーキテクチャ: Repository Pattern
+
+v3移行を容易にするため、ストレージ層を抽象化する。
+
+```
+┌─────────────────────────────────────────────┐
+│           Application Layer                  │
+│  (図表CRUD、プロジェクト管理、一覧取得)        │
+└─────────────────┬───────────────────────────┘
+                  │ 依存（Interface経由）
+                  ▼
+┌─────────────────────────────────────────────┐
+│      IDiagramRepository (Interface)          │
+│  - list(projectName): Diagram[]              │
+│  - get(projectName, diagramName): Diagram    │
+│  - save(diagram): void                       │
+│  - delete(projectName, diagramName): void    │
+└─────────────────┬───────────────────────────┘
+                  │ 実装
+        ┌─────────┴─────────┐
+        ▼                   ▼
+┌───────────────┐   ┌─────────────────┐
+│ MVP: Storage  │   │ v3: DB+Storage  │
+│ Repository    │   │ Repository      │
+│ (Storage API) │   │ (Supabase DB)   │
+└───────────────┘   └─────────────────┘
+```
+
+### 採用理由
+
+- MVP→v3移行時、Repository実装の差し替えのみでOK
+- アプリケーション層のコード変更不要（依存性逆転）
+- テスト時にMock Repositoryで置換可能
+- SOLID原則（特にDIP: 依存性逆転の原則）に準拠
+
+### 影響
+
+- MVPでIDiagramRepository interfaceを定義
+- StorageRepositoryを実装
+- v3でDBRepositoryに差し替え可能
+
+---
+
 ## 決定の経緯
 
 ### 不採用とした方式

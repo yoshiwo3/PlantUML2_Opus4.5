@@ -197,6 +197,37 @@ DBテーブル: なし（auth.usersのみ）
 
 ---
 
+### Phase 6: アーキテクチャ決定（Repository Pattern）
+
+**きっかけ**: ユーザー提案「V3に備えてファイル保存を独立したモジュールにして、DB化した際に差し替えられるようにすべき」
+
+**採用決定**: Repository Pattern
+
+```
+Application Layer (図表CRUD、一覧取得)
+        │
+        ▼
+IDiagramRepository (Interface)
+  - list(projectName): Diagram[]
+  - get(projectName, diagramName): Diagram
+  - save(diagram): void
+  - delete(projectName, diagramName): void
+        │
+   ┌────┴────┐
+   ▼         ▼
+MVP:      v3:
+Storage   DB+Storage
+Repository Repository
+```
+
+**採用理由**:
+- MVP→v3移行時、Repository実装の差し替えのみでOK
+- アプリケーション層のコード変更不要（依存性逆転）
+- テスト時にMock Repositoryで置換可能
+- SOLID原則（特にDIP: 依存性逆転の原則）に準拠
+
+---
+
 ## 更新ファイル一覧
 
 | ファイル | 更新内容 |
@@ -205,3 +236,5 @@ DBテーブル: なし（auth.usersのみ）
 | `docs/proposals/PlantUML_Studio_ユースケース図_20251130.md` | UC 3-7, 3-8を「共通」に変更 |
 | `docs/proposals/PlantUML_Studio_コンテキスト図_20251130.md` | Excalidraw Serviceにバージョン管理追加 |
 | `docs/context/active_context.md` | 進捗更新、設計変更記録 |
+| `docs/context/technical_decisions.md` | TD-006追加（Repository Pattern含む） |
+| `CLAUDE.md` | TD-006追加 |
