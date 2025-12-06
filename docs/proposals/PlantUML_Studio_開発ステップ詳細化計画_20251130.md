@@ -78,7 +78,7 @@
 | Day 1 | Supabase Storage設定 + RLS | 6h | `diagrams`バケット |
 | Day 2 | バージョン保存API（SHA-256ハッシュ） | 6h | `POST /api/diagrams/[id]/versions` |
 | Day 3 | バージョン履歴UI | 6h | `VersionHistory.tsx` |
-| Day 4 | Diff表示 + ドラフト自動保存（30秒） | 6h | `DiffViewer.tsx`, `useAutoSave.ts` |
+| Day 4 | Diff表示 + 未保存警告（ページ離脱時） | 6h | `DiffViewer.tsx`, `useUnsavedWarning.ts` |
 | Day 5 | 手動保存（Ctrl+S）+ テスト | 6h | テスト合格 |
 
 ### 主要インターフェース

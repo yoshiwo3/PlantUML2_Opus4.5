@@ -141,11 +141,15 @@ end note
 |エンドユーザー|
 :"「保存」をクリック";
 
-|PlantUML Service|
-:バージョン保存\n(SHA-256ハッシュ);
+|Frontend Service|
+:Storageへ保存リクエスト;
 
 |Supabase|
-:メタデータ保存 (Postgres);
+:ファイル保存 (Storage);
+note right
+  {project_name}/{diagram_name}.puml
+  Storage Policyで所有権検証
+end note
 
 stop
 
@@ -393,11 +397,15 @@ endif
 :"「保存」をクリック";
 
 |Excalidraw Service|
-:Excalidraw JSON保存;
-:SVG/PNG/PDF変換;
+:Excalidraw JSON生成;
+:プレビューSVG生成;
 
 |Supabase|
-:Storage保存\n(JSON/画像);
+:Storage保存;
+note right
+  {project_name}/{diagram_name}.excalidraw.json
+  {project_name}/{diagram_name}.preview.svg
+end note
 
 stop
 
@@ -760,7 +768,10 @@ start
 :プロジェクト管理画面へ遷移;
 
 |Frontend Service|
-:プロジェクト一覧取得\n（Supabase RLS適用）;
+:プロジェクト一覧取得\n（Storage API + Policy適用）;
+note right
+  /{user_id}/ 配下のフォルダ一覧
+end note
 :一覧表示;
 
 |エンドユーザー|
@@ -822,10 +833,11 @@ start
 
 |Frontend Service|
 if (バリデーション?) then (OK)
-  :Supabaseに作成リクエスト;
+  :Storageにフォルダ作成;
   note right
-    RLS適用
-    同名チェック
+    Storage Policy適用
+    /{user_id}/{project_name}/
+    同名チェック（フォルダ存在確認）
   end note
   if (作成成功?) then (はい)
     :一覧更新;
@@ -892,14 +904,18 @@ if (入力バリデーション) then (NG)
   #pink:エラー: 入力値が不正;
   stop
 else (OK)
-  :Supabaseに更新リクエスト;
+  :Storageフォルダ名変更リクエスト;
   |Supabase|
   if (同名チェック) then (重複)
     |Frontend Service|
     #pink:エラー: 同名プロジェクトが存在;
     stop
   else (OK)
-    :プロジェクト名更新\n（RLS適用）;
+    :フォルダ名変更\n（Storage Policy適用）;
+    note right
+      /{user_id}/{old_name}/ → /{user_id}/{new_name}/
+      配下ファイルも移動
+    end note
     |Frontend Service|
     #palegreen:一覧更新・完了表示;
     stop
@@ -933,7 +949,10 @@ end note
 |エンドユーザー|
 if (確認?) then (はい)
   |Frontend Service|
-  :削除実行\n（カスケード削除）;
+  :フォルダ削除実行\n（配下ファイル含む）;
+  note right
+    /{user_id}/{project_name}/ を再帰削除
+  end note
   :一覧更新;
   #palegreen:完了メッセージ表示;
   stop
@@ -1058,24 +1077,24 @@ stop
 
 | 項目 | 仕様 |
 |------|------|
-| **手動保存** | Ctrl+S または保存ボタン |
-| **自動保存** | 30秒間隔（編集中のみ） |
+| **保存方法** | Ctrl+S または保存ボタン（手動保存のみ） |
 | **バージョン管理** | SHA-256ハッシュでバージョン識別（PlantUMLのみ） |
 | **用語一貫性チェック** | 保存時に自動実行（PlantUMLのみ、OpenRouter API経由） |
 
-#### Storage構成（統一設計）
+#### Storage構成（MVP：TD-006準拠）
 
-両図表タイプで**ソースファイル + プレビューSVG**の構成を採用:
+MVPはSupabase Storageのみで構成（DBテーブルなし）:
 
 ```
 Supabase Storage:
-/{user_id}/{project_id}/{diagram_id}/
-  ├── source.puml          # PlantUMLソース（複数@startuml可）
-  │   または source.json   # Excalidraw JSON
-  ├── preview_0.svg        # 1つ目の図のプレビュー（サムネイル用）
-  ├── preview_1.svg        # 2つ目の図のプレビュー（PlantUMLで複数図の場合）
-  └── ...
+/{user_id}/
+  └── {project_name}/
+      ├── {diagram_name}.puml           # PlantUMLソース
+      ├── {diagram_name}.excalidraw.json # Excalidraw JSON
+      └── {diagram_name}.preview.svg     # プレビュー（サムネイル用）
 ```
+
+> **Note**: v3でDB追加時、UUIDベースの構造に移行予定（取込み機能で対応）
 
 | 図表タイプ | ソースファイル | プレビューファイル | 備考 |
 |-----------|--------------|-------------------|------|
@@ -1107,17 +1126,9 @@ start
 
 |Frontend Service|
 switch (操作を選択)
-case (手動保存\nUC 3-5)
+case (保存\nUC 3-5)
   :Ctrl+S または保存ボタン;
   #palegreen:保存処理実行;
-  note right
-    PlantUML: 3.6.1.1参照
-    Excalidraw: 3.6.1.2参照
-  end note
-  detach
-case (自動保存\nUC 3-5)
-  :30秒経過（編集中）;
-  #palegreen:自動保存処理;
   note right
     PlantUML: 3.6.1.1参照
     Excalidraw: 3.6.1.2参照
@@ -1154,39 +1165,20 @@ title 業務フロー図 - PlantUML保存（詳細）
 
 |エンドユーザー|
 start
-if (保存トリガー?) then (手動)
-  :Ctrl+S または保存ボタン;
-else (自動)
-  :30秒間隔で自動実行;
-  note right
-    編集中のみ
-    未編集時はスキップ
-  end note
-endif
+:Ctrl+S または保存ボタン;
 
 |Frontend Service|
 :現在のPlantUMLコードを取得;
 :PlantUML Serviceへ処理依頼;
 
 |PlantUML Service|
-:SHA-256ハッシュ生成;
-:バージョン情報作成;
-note right
-  コンテンツハッシュで
-  バージョンを一意に識別
-end note
 :プレビューSVG生成;
 note right
-  図ごとに preview_N.svg を生成
-  （複数の図がある場合は複数SVG）
+  node-plantuml実行
 end note
 
 |Frontend Service|
 :処理結果を受信;
-note right
-  ハッシュ、バージョン情報、
-  プレビューSVG（複数可）
-end note
 :AI Serviceへ用語チェック依頼;
 
 |AI Service|
@@ -1210,11 +1202,11 @@ endif
 :Supabaseへ保存リクエスト;
 
 |Supabase|
-:メタデータ保存（Postgres）;
-:ソース・プレビュー保存（Storage）;
+:ファイル保存（Storage）;
 note right
-  source.puml + preview_N.svg
-  RLS適用・所有権検証
+  {diagram_name}.puml
+  {diagram_name}.preview.svg
+  Storage Policy適用
 end note
 
 |Frontend Service|
@@ -1233,23 +1225,20 @@ stop
 @enduml
 ```
 
-#### PlantUML保存フローテーブル
+#### PlantUML保存フローテーブル（MVP）
 
 | ステップ | 処理内容 | 担当 | エラー処理 |
 |:-------:|---------|------|-----------|
-| 1 | 保存トリガー（手動/自動） | エンドユーザー/システム | - |
-| 2 | 現在のPlantUMLコードを取得 | Frontend Service | - |
-| 3 | PlantUML Serviceへ処理依頼 | Frontend Service | - |
-| 4 | SHA-256ハッシュ生成 | PlantUML Service | - |
-| 5 | バージョン情報作成 | PlantUML Service | - |
-| 6 | **プレビューSVG生成**（図の数だけ） | PlantUML Service | - |
-| 7 | 処理結果を受信（ハッシュ、バージョン、プレビュー） | Frontend Service | - |
-| 8 | AI Serviceへ用語チェック依頼 | Frontend Service | - |
-| 9 | **用語一貫性チェック** | AI Service | - |
-| 10 | チェック結果を受信 | Frontend Service | 不一致時: 警告通知 |
-| 11 | Supabaseへ保存リクエスト | Frontend Service | - |
-| 12 | メタデータ・ソース・プレビュー保存 | Supabase | 失敗時: エラー通知 |
-| 13 | 完了通知・最終保存時刻更新 | Frontend Service | - |
+| 1 | 「保存」クリック | エンドユーザー | - |
+| 2 | 現在のソースコード取得 | Frontend Service | - |
+| 3 | PlantUML構文検証 | PlantUML Service | 構文エラー: エラー箇所ハイライト |
+| 4 | プレビューSVG生成 | PlantUML Service | 生成失敗: エラー通知 |
+| 5 | ファイル保存（Storage） | Supabase | 保存失敗: リトライ |
+| 6 | 用語チェック（AI） | AI Service | タイムアウト: 保存は継続 |
+| 7 | 保存完了通知 | Frontend Service | - |
+
+> **削除（v3で追加）**: SHA-256ハッシュ生成、バージョン情報作成
+> **変更**: メタデータ・ソース・プレビュー保存 → ファイル保存（Storage）
 
 ---
 
@@ -1264,15 +1253,7 @@ title 業務フロー図 - Excalidraw保存（詳細）
 
 |エンドユーザー|
 start
-if (保存トリガー?) then (手動)
-  :Ctrl+S または保存ボタン;
-else (自動)
-  :30秒間隔で自動実行;
-  note right
-    編集中のみ
-    未編集時はスキップ
-  end note
-endif
+:Ctrl+S または保存ボタン;
 
 |Frontend Service|
 :現在のExcalidraw状態を取得;
@@ -1295,11 +1276,11 @@ end note
 :Supabaseへ保存リクエスト;
 
 |Supabase|
-:メタデータ保存（Postgres）;
-:ソース・プレビュー保存（Storage）;
+:ファイル保存（Storage）;
 note right
-  source.json + preview_0.svg
-  RLS適用・所有権検証
+  {diagram_name}.excalidraw.json
+  {diagram_name}.preview.svg
+  Storage Policy適用
 end note
 
 |Frontend Service|
@@ -1318,21 +1299,19 @@ stop
 @enduml
 ```
 
-#### Excalidraw保存フローテーブル
+#### Excalidraw保存フローテーブル（MVP）
 
 | ステップ | 処理内容 | 担当 | エラー処理 |
 |:-------:|---------|------|-----------|
-| 1 | 保存トリガー（手動/自動） | エンドユーザー/システム | - |
-| 2 | 現在のExcalidraw状態を取得 | Frontend Service | - |
-| 3 | Excalidraw Serviceへ処理依頼 | Frontend Service | - |
-| 4 | Excalidraw JSON生成（source.json） | Excalidraw Service | - |
-| 5 | プレビューSVG生成（preview_0.svg） | Excalidraw Service | - |
-| 6 | 処理結果を受信 | Frontend Service | - |
-| 7 | Supabaseへ保存リクエスト | Frontend Service | - |
-| 8 | メタデータ・ソース・プレビュー保存 | Supabase | 失敗時: エラー通知 |
-| 9 | 完了通知・最終保存時刻更新 | Frontend Service | - |
+| 1 | 「保存」クリック | エンドユーザー | - |
+| 2 | Excalidraw状態取得 | Frontend Service | - |
+| 3 | JSON生成 | Excalidraw Service | 生成失敗: エラー通知 |
+| 4 | プレビューSVG生成 | Excalidraw Service | - |
+| 5 | ファイル保存（Storage） | Supabase | 保存失敗: リトライ |
+| 6 | 保存完了通知 | Frontend Service | - |
 
-> **Note**: Excalidrawはビジュアル図表のため、用語一貫性チェックは適用しない。Excalidrawは常に1図=1プレビュー。
+> **変更**: メタデータ・ソース・プレビュー保存 → ファイル保存（Storage）
+> **Note**: Excalidrawはビジュアル図表のため、用語一貫性チェックは適用しない。
 
 ---
 
@@ -1483,11 +1462,11 @@ stop
 | PNG生成 | node-plantuml | Excalidraw exportToBlob |
 | SVG生成 | node-plantuml | Excalidraw exportToSvg |
 | PDF生成 | SVG→PDF変換 | SVG→PDF変換 |
-| **ソースファイル** | `source.puml`（複数@startuml可） | `source.json` |
-| **プレビューファイル** | `preview_N.svg`（図の数だけ） | `preview_0.svg`（1ファイル） |
-| バージョン管理 | SHA-256ハッシュ | なし |
+| **ソースファイル** | `{name}.puml` | `{name}.excalidraw.json` |
+| **プレビューファイル** | `{name}.preview.svg` | `{name}.preview.svg` |
+| バージョン管理 | v3で実装（SHA-256ハッシュ） | v3で実装 |
 | 用語一貫性チェック | ✅ 対応 | ❌ 非対応（ビジュアル図表のため） |
-| サムネイル | `preview_0.svg` を使用 | `preview_0.svg` を使用 |
+| サムネイル | `{name}.preview.svg` を使用 | `{name}.preview.svg` を使用 |
 
 ### エラーハンドリング
 
@@ -1505,6 +1484,10 @@ stop
 
 **関連ユースケース**: UC 3-7 バージョン履歴を確認する, UC 3-8 過去バージョンを復元する
 **対象**: PlantUML図表・Excalidraw図表の両方
+**実装フェーズ**: ⚠️ **v3で実装予定（MVP対象外）**
+
+> **Note**: 本セクションはv3の設計仕様です。MVPではStorage Onlyのためバージョン管理機能は提供しません。
+> v3で「ファイル取込み機能」と共にDB追加後、本機能を実装します（TD-006参照）。
 
 ### 設計思想
 
@@ -1516,7 +1499,7 @@ stop
 |------|------|
 | **対象** | PlantUML図表・Excalidraw図表の両方 |
 | **識別方法** | SHA-256ハッシュ（コンテンツベース） |
-| **保存タイミング** | 手動保存時・自動保存時（3.6参照） |
+| **保存タイミング** | 手動保存時（3.6参照） |
 | **保持期間** | 無期限（将来的に上限設定可能） |
 | **最大バージョン数** | 制限なし（MVP）、将来的に100件程度を想定 |
 
@@ -1594,8 +1577,9 @@ start
 :バージョン一覧取得リクエスト;
 
 |Supabase|
-:バージョン一覧取得\n（RLS適用）;
+:バージョン一覧取得\n（v3: DB + RLS適用）;
 note right
+  **v3で実装**
   図表IDに紐づく
   全バージョンを取得
   created_at DESC
@@ -1678,7 +1662,7 @@ end note
 |エンドユーザー|
 if (確認?) then (はい)
   |Frontend Service|
-  :現在の内容を自動保存;
+  :現在の内容をバージョンとして保存;
   note right
     復元前に現在の状態を
     バージョンとして保存
@@ -1687,7 +1671,7 @@ if (確認?) then (はい)
   :復元リクエスト送信;
 
   |Supabase|
-  :選択バージョンのソース取得;
+  :選択バージョンのソース取得\n（v3: DB経由）;
 
   |Frontend Service|
   :エディタ内容を更新;
@@ -1727,7 +1711,7 @@ stop
 | 2 | 「復元」ボタンをクリック | エンドユーザー | - |
 | 3 | 確認ダイアログ表示 | Frontend Service | - |
 | 4 | 確認 or キャンセル | エンドユーザー | キャンセル時: パネルに戻る |
-| 5 | **現在の内容を自動保存** | Frontend Service | - |
+| 5 | **現在の内容をバージョンとして保存** | Frontend Service | - |
 | 6 | 復元リクエスト送信 | Frontend Service | - |
 | 7 | 選択バージョンのソース取得（RLS適用） | Supabase | 失敗時: エラー通知 |
 | 8 | エディタ内容を更新 | Frontend Service | - |
@@ -1738,7 +1722,7 @@ stop
 
 | 対策 | 説明 |
 |------|------|
-| **自動保存** | 復元前に現在の内容を新しいバージョンとして自動保存 |
+| **復元前保存** | 復元前に現在の内容を新しいバージョンとして保存 |
 | **確認ダイアログ** | 意図しない復元を防止 |
 | **プレビュー確認** | 復元前に選択バージョンのプレビューを確認可能 |
 | **取り消し可能** | 復元後も履歴から元の状態に戻せる |
@@ -1764,14 +1748,17 @@ stop
 図表削除機能は、不要になった図表を安全に削除するための機能である。
 プロジェクト削除（3.5.4）と同様に、確認ダイアログで誤操作を防止する。
 
-#### 削除時の処理
+#### 削除時の処理（MVP）
 
-| 項目 | 説明 |
-|------|------|
-| **メタデータ削除** | PostgreSQLの図表レコードを削除 |
-| **ソースファイル削除** | Storageの`source.puml`/`source.json`を削除 |
-| **プレビューファイル削除** | Storageの`preview_N.svg`を全て削除 |
-| **バージョン履歴削除** | 図表に紐づく全バージョンをカスケード削除 |
+| 項目 | 説明 | MVP | v3 |
+|------|------|:---:|:---:|
+| **ソースファイル削除** | `.puml`/`.excalidraw.json`を削除 | ✅ | ✅ |
+| **プレビューファイル削除** | `.preview.svg`を削除 | ✅ | ✅ |
+| **メタデータ削除** | DBの図表レコードを削除 | - | ✅ |
+| **バージョン履歴削除** | 全バージョンをカスケード削除 | - | ✅ |
+
+> **MVP**: Storageファイルの削除のみ
+> **v3**: DB追加後、メタデータ・バージョン履歴も削除
 
 ### 3.8 図表削除フロー詳細（UC 3-9）
 
@@ -1807,16 +1794,11 @@ if (確認?) then (はい)
   :削除リクエスト送信;
 
   |Supabase|
-  :メタデータ削除（Postgres）;
-  note right
-    RLS適用
-    所有権検証
-  end note
-  :バージョン履歴削除\n（カスケード）;
   :Storageファイル削除;
   note right
-    source.puml / source.json
-    preview_N.svg（全件）
+    {diagram_name}.puml / .excalidraw.json
+    {diagram_name}.preview.svg
+    Storage Policy適用
   end note
 
   |Frontend Service|
@@ -1852,18 +1834,17 @@ stop
 | 3 | 確認ダイアログ表示 | Frontend Service | - |
 | 4 | 確認 or キャンセル | エンドユーザー | キャンセル時: 一覧に戻る |
 | 5 | 削除リクエスト送信 | Frontend Service | - |
-| 6 | メタデータ削除（RLS適用） | Supabase | 失敗時: エラー通知 |
-| 7 | バージョン履歴削除（カスケード） | Supabase | - |
-| 8 | Storageファイル削除 | Supabase | - |
-| 9 | 図表一覧を更新 | Frontend Service | - |
-| 10 | 完了通知表示 | Frontend Service | - |
+| 6 | Storageファイル削除（Policy適用） | Supabase | 失敗時: エラー通知 |
+| 7 | 図表一覧を更新 | Frontend Service | - |
+| 8 | 完了通知表示 | Frontend Service | - |
 
-### 削除確認ダイアログの内容
+### 削除確認ダイアログの内容（MVP）
 
 | 図表タイプ | 表示メッセージ |
 |-----------|---------------|
-| **PlantUML** | 「この図表を削除しますか？」<br>「削除すると復元できません」<br>「N件のバージョン履歴も削除されます」 |
-| **Excalidraw** | 「この図表を削除しますか？」<br>「削除すると復元できません」 |
+| **共通** | 「この図表を削除しますか？」<br>「削除すると復元できません」 |
+
+> **v3追加**: バージョン管理実装後、「N件のバージョン履歴も削除されます」を表示
 
 ### エラーハンドリング
 
@@ -1898,9 +1879,9 @@ stop
 | サービス | 役割 | 関連フロー |
 |---------|------|-----------|
 | **Frontend Service** | UI、Monaco Editor、Excalidraw、入力待機処理、プレビュー更新、認証画面、プロジェクト管理UI、保存・エクスポートUI、履歴パネル、削除確認UI | 3.1〜3.8 全て |
-| **PlantUML Service** | node-plantuml実行、検証、SVG/PNG/PDF生成、バージョン管理 | 3.1, 3.2, 3.6, 3.7 |
+| **PlantUML Service** | node-plantuml実行、検証、SVG/PNG/PDF生成、バージョン管理（v3） | 3.1, 3.2, 3.6, 3.7(v3) |
 | **AI Service** | AI自動修正（Context7 + OpenRouter）、AIチャット、JSON生成、用語一貫性チェック | 3.1〜3.3, 3.6 |
-| **Excalidraw Service** | JSON保存、SVG/PNG/PDF変換、バージョン管理 | 3.3, 3.6, 3.7, 3.8 |
+| **Excalidraw Service** | JSON生成、SVG/PNG/PDF変換、バージョン管理（v3） | 3.3, 3.6, 3.7(v3), 3.8 |
 | **API Gateway** | ルーティング、認証検証（暗黙的に介在、詳細は「業務フロー図の表現について」参照） | 全て |
 
 ---
@@ -1937,6 +1918,6 @@ stop
 7. **AIチャット連携**: 3.3でGUI編集とAIチャットの組み合わせによるイテレーティブ修正が可能か？
 8. **認証仕様の整合性**: 3.4でOAuth認証のみ（GitHub, Google）、Email/Password不使用が明記されているか？
 9. **プロジェクト管理の整合性**: 3.5で削除確認ダイアログ、RLS、カスケード削除が適切に実装されているか？
-10. **保存・エクスポートの整合性**: 3.6で手動/自動保存、用語一貫性チェック、PNG/SVG/PDF対応が適切か？
-11. **バージョン管理の整合性**: 3.7でPlantUML/Excalidraw両対応、SHA-256ハッシュ、復元前自動保存が適切か？
+10. **保存・エクスポートの整合性**: 3.6で手動保存、用語一貫性チェック、PNG/SVG/PDF対応が適切か？
+11. **バージョン管理の整合性**: 3.7でPlantUML/Excalidraw両対応、SHA-256ハッシュ、復元前保存が適切か？
 12. **図表削除の整合性**: 3.8で確認ダイアログ、カスケード削除、RLS適用が適切か？

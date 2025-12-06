@@ -67,6 +67,24 @@
 
 ### 2025-12-06
 
+- **project_brief.md 大幅更新**（正式版ドキュメント + Evidence反映）
+  - サービスアーキテクチャ追加（コンテキスト図から）
+  - 内部サービス構成（5サービス）・外部システム連携（5システム）
+  - データフロー概要図
+  - UX設計思想追加（業務フロー図から）
+  - 想定ユーザーペルソナ（5タイプ）・UX設計ポイント（5項目）
+  - **検証済み技術仕様**（Context7検証: Supabase SSR, Excalidraw, PlantUML構文）
+  - **PlantUML/Excalidraw機能分類**（3専用 + 8共通）
+  - **MVP Storage構成**（ファイル構造、Repository Pattern）
+  - **作業履歴（Evidence）**（7エビデンスセットから抽出）
+- **CLAUDE.mdに「作業完了時の更新ルール」追加**
+  - 必須更新ファイル（3件）、状況別更新ファイル（4件）
+  - 更新の流れ（フローチャート）、active_context.md更新チェックリスト
+- **自動保存機能を削除**（TD-006対応）
+  - Storage Only構成では30秒自動保存が実現困難（上書きでデータ損失リスク）
+  - MVPは**手動保存のみ**（Ctrl+S/保存ボタン）に変更
+  - 修正ファイル: 業務フロー図(8箇所)、ユースケース図(2箇所)、開発計画(1箇所)、active_context(2箇所)
+  - 「復元前自動保存」→「復元前保存」に表現変更（紛らわしさ解消）
 - **TD-006: MVPデータ保存設計決定**
   - **Storage Only構成**: DBテーブルなし（auth.usersのみ）
   - **構造**: `/{user_id}/{project_name}/{diagram_name}.puml`
@@ -81,7 +99,7 @@
 - **3.7 バージョン管理フロー作成完了**（UC 3-7, 3-8）
   - **PlantUML/Excalidraw両方対応**（設計修正）
   - SHA-256ハッシュでバージョン識別
-  - 復元前に現在の内容を自動保存（データ損失防止）
+  - 復元前に現在の内容をバージョンとして保存（データ損失防止）
   - 履歴確認 → プレビュー表示 → 復元のフロー
 - **バージョン管理をExcalidrawにも適用**（設計変更）
   - ユースケース図: 3-7, 3-8を「共通」に変更
@@ -93,7 +111,7 @@
   - カスケード削除（メタデータ + Storage + バージョン履歴）
 - **MVP必須業務フロー完了**: 8/10フロー完了（残りはPhase 2）
 - **3.6 保存・エクスポートフロー作成完了**（UC 3-5, 3-6）
-  - 手動保存（Ctrl+S）/自動保存（30秒）
+  - 手動保存（Ctrl+S）のみ ※自動保存はStorage Only構成では未実装（TD-006）
   - PNG/SVG/PDFエクスポート
   - 用語一貫性チェック（自動実行）
   - **Storage設計統一**: PlantUML/Excalidraw両方で source + preview_N.svg を保存
@@ -137,7 +155,7 @@
 | TD-003 | Google Cloud Run採用 | 2025-11-08 |
 | TD-004 | Serena MCP採用 | 2025-11-30 |
 | TD-005 | プロジェクト選択状態のSupabase保存 | 2025-12-06 |
-| TD-006 | MVPデータ保存設計（Storage Only） | 2025-12-06 |
+| TD-006 | MVPデータ保存設計（Storage Only）+ 自動保存削除 | 2025-12-06 |
 
 詳細: `docs/context/technical_decisions.md`
 
@@ -175,7 +193,7 @@
 | `CLAUDE.md` | プロジェクトガイド（最新） |
 | `docs/proposals/PlantUML_Studio_業務フロー図_20251201.md` | 業務フロー図 + UX設計思想 |
 | `docs/proposals/PlantUML_Studio_ユースケース図_20251130.md` | ユースケース図（24UC） |
-| `docs/context/technical_decisions.md` | 技術決定記録（TD-001〜005） |
+| `docs/context/technical_decisions.md` | 技術決定記録（TD-001〜006） |
 
 ---
 

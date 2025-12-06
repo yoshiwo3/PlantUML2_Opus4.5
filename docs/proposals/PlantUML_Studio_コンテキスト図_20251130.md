@@ -90,13 +90,14 @@ System_Boundary(studio, "PlantUML Studio") {
 '--------------------------------------------------
 ' 外部システム: Supabase
 ' - BaaS（Backend as a Service）
-' - Postgres: メタデータ、プロジェクト、用語集
-' - Storage: PlantUMLファイル、画像
-' - pgvector: RAG用ベクトル検索
+' - MVP: Storage + Auth のみ（DBテーブルなし）
+' - v3: Postgres追加（メタデータ、検索インデックス）
+' - Storage: 図表ファイル、プレビュー画像
+' - pgvector: RAG用ベクトル検索（v3）
 ' - Auth: 認証・認可（OAuth対応）
-' - RLS: Row Level Security
+' - Storage Policy: 所有権制御
 '--------------------------------------------------
-System_Ext(supabase, "Supabase", "Postgres (RLS)\nStorage\npgvector\nAuth")
+System_Ext(supabase, "Supabase", "Storage (Policy)\nAuth\n[v3: Postgres, pgvector]")
 
 '--------------------------------------------------
 ' 外部システム: OpenRouter API
@@ -180,7 +181,7 @@ Rel(excalidraw, openrouter, "JSON生成", "HTTPS")
 
 | システム | 役割 | 詳細 | 利用サービス |
 |---------|------|------|-------------|
-| **Supabase** | BaaS | Postgres(RLS)、Storage、**pgvector(RAG)**、Auth | 全サービス |
+| **Supabase** | BaaS | **MVP**: Storage(Policy)、Auth / **v3**: Postgres(RLS)、pgvector(RAG) | 全サービス |
 | **OpenRouter API** | LLM統合 | GPT-4o-mini、Claude、Gemini等 | PlantUML, AI, Excalidraw |
 | **OpenAI API** | Embedding生成 | text-embedding-3-small（RAG用ベクトル化） | AI |
 
