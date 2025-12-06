@@ -116,11 +116,28 @@ rectangle "PlantUML Studio" {
     '----------------------------------------------
     together {
         package "5. 管理機能" <<管理機能>> {
+            ' ユーザー管理
             usecase "5-1 ユーザーを管理する" as UC_ADMIN_USER
-            usecase "5-2 学習コンテンツを登録する" as UC_ADMIN_CONTENT_REG
-            usecase "5-3 学習コンテンツを管理する" as UC_ADMIN_CONTENT_MGT
-            usecase "5-4 LLMモデルを切り替える" as UC_ADMIN_LLM
-            usecase "5-5 システム設定を変更する" as UC_ADMIN_CONFIG
+
+            ' LLM管理（OpenRouter経由）
+            usecase "5-2 LLMモデルを登録する" as UC_LLM_REG
+            usecase "5-3 LLMモデルを切り替える" as UC_LLM_SWITCH
+            usecase "5-4 LLMプロンプトを管理する" as UC_LLM_PROMPT
+            usecase "5-5 LLMパラメータを設定する" as UC_LLM_PARAM
+            usecase "5-6 LLMワークフローを定義する" as UC_LLM_WORKFLOW
+            usecase "5-7 LLM使用量を監視する" as UC_LLM_USAGE
+            usecase "5-8 LLMフォールバックを設定する" as UC_LLM_FALLBACK
+
+            ' Embedding管理（OpenAI直接）
+            usecase "5-9 Embeddingモデルを設定する" as UC_EMB_CONFIG
+            usecase "5-10 Embedding使用量を監視する" as UC_EMB_USAGE
+
+            ' 学習コンテンツ管理
+            usecase "5-11 学習コンテンツを登録する" as UC_LC_REG
+            usecase "5-12 学習コンテンツを管理する" as UC_LC_MGT
+
+            ' システム設定
+            usecase "5-13 システム設定を変更する" as UC_ADMIN_CONFIG
         }
     }
 }
@@ -163,10 +180,27 @@ user ----> UC_AI_QS
 user ----> UC_AI_CHAT
 
 ' 開発者 → 管理機能（最長の線）
+' ユーザー管理
 developer -----> UC_ADMIN_USER
-developer -----> UC_ADMIN_CONTENT_REG
-developer -----> UC_ADMIN_CONTENT_MGT
-developer -----> UC_ADMIN_LLM
+
+' LLM管理
+developer -----> UC_LLM_REG
+developer -----> UC_LLM_SWITCH
+developer -----> UC_LLM_PROMPT
+developer -----> UC_LLM_PARAM
+developer -----> UC_LLM_WORKFLOW
+developer -----> UC_LLM_USAGE
+developer -----> UC_LLM_FALLBACK
+
+' Embedding管理
+developer -----> UC_EMB_CONFIG
+developer -----> UC_EMB_USAGE
+
+' 学習コンテンツ管理
+developer -----> UC_LC_REG
+developer -----> UC_LC_MGT
+
+' システム設定
 developer -----> UC_ADMIN_CONFIG
 
 '==================================================
@@ -177,18 +211,26 @@ developer -----> UC_ADMIN_CONFIG
 UC_LOGIN --> supabase : OAuth認証
 UC_LOGOUT --> supabase : セッション終了
 UC_ADMIN_USER --> supabase : ユーザーCRUD
-UC_ADMIN_CONTENT_REG --> supabase : コンテンツ・ベクトル保存
-UC_ADMIN_CONTENT_MGT --> supabase : コンテンツCRUD
+UC_LLM_REG --> supabase : モデル設定保存
+UC_LLM_PROMPT --> supabase : プロンプト保存
+UC_LLM_USAGE --> supabase : 使用量ログ
+UC_EMB_CONFIG --> supabase : Embedding設定保存
+UC_EMB_USAGE --> supabase : 使用量ログ
+UC_LC_REG --> supabase : コンテンツ・ベクトル保存
+UC_LC_MGT --> supabase : コンテンツCRUD
 
-' OpenRouter API: LLM呼び出し
+' OpenRouter API: LLM呼び出し（管理機能からも参照）
 UC_PREVIEW --> openrouter : AI自動修正(エラー時)
 UC_SAVE --> openrouter : 用語一貫性チェック(自動)
 UC_LEARN_SEARCH --> openrouter : RAG応答生成
 UC_AI_QS --> openrouter : 図表生成
 UC_AI_CHAT --> openrouter : チャット応答
+UC_LLM_REG --> openrouter : モデル一覧取得
+UC_LLM_USAGE --> openrouter : 使用量取得
 
-' OpenAI API: Embedding
-UC_ADMIN_CONTENT_REG --> openai : Embedding生成
+' OpenAI API: Embedding（直接接続）
+UC_LC_REG --> openai : Embedding生成
+UC_EMB_USAGE --> openai : 使用量取得
 
 '==================================================
 ' ユースケース間関連（7件全て）
@@ -209,7 +251,7 @@ note right of UC_PREVIEW : PlantUML専用\nシステムが自動検証\n(構文�
 note right of UC_HISTORY : PlantUML/Excalidraw共通\nバージョン管理機能
 note right of UC_LEARN_SEARCH : 編集中にPlantUML構文や\n書き方を検索（RAG）
 note right of UC_AI_CHAT : 用語一貫性チェックは\n保存時にシステムが自動実行
-note right of UC_ADMIN_CONTENT_REG : 登録時にEmbedding生成\n(OpenAI API)
+note right of UC_LC_REG : 登録時にEmbedding生成\n(OpenAI API直接接続)
 
 @enduml
 ```
@@ -652,48 +694,96 @@ skinparam note {
 '-- アクター --
 actor "開発者" as developer
 actor "Supabase" as supabase <<外部システム>>
+actor "OpenRouter API" as openrouter <<外部システム>>
 actor "OpenAI API" as openai <<外部システム>>
 
 '-- システム境界 --
 rectangle "PlantUML Studio" {
 
     package "5. 管理機能" {
+        ' ユーザー管理
         usecase "5-1 ユーザーを管理する" as UC_ADMIN_USER
-        usecase "5-2 学習コンテンツを登録する" as UC_ADMIN_CONTENT_REG
-        usecase "5-3 学習コンテンツを管理する" as UC_ADMIN_CONTENT_MGT
-        usecase "5-4 LLMモデルを切り替える" as UC_ADMIN_LLM
-        usecase "5-5 システム設定を変更する" as UC_ADMIN_CONFIG
+
+        ' LLM管理（OpenRouter経由）
+        package "5-A. LLM管理" {
+            usecase "5-2 LLMモデルを登録する" as UC_LLM_REG
+            usecase "5-3 LLMモデルを切り替える" as UC_LLM_SWITCH
+            usecase "5-4 LLMプロンプトを管理する" as UC_LLM_PROMPT
+            usecase "5-5 LLMパラメータを設定する" as UC_LLM_PARAM
+            usecase "5-6 LLMワークフローを定義する" as UC_LLM_WORKFLOW
+            usecase "5-7 LLM使用量を監視する" as UC_LLM_USAGE
+            usecase "5-8 LLMフォールバックを設定する" as UC_LLM_FALLBACK
+        }
+
+        ' Embedding管理（OpenAI直接）
+        package "5-B. Embedding管理" {
+            usecase "5-9 Embeddingモデルを設定する" as UC_EMB_CONFIG
+            usecase "5-10 Embedding使用量を監視する" as UC_EMB_USAGE
+        }
+
+        ' 学習コンテンツ管理
+        package "5-C. 学習コンテンツ管理" {
+            usecase "5-11 学習コンテンツを登録する" as UC_LC_REG
+            usecase "5-12 学習コンテンツを管理する" as UC_LC_MGT
+        }
+
+        ' システム設定
+        usecase "5-13 システム設定を変更する" as UC_ADMIN_CONFIG
     }
 }
 
 '-- 主アクター関連 --
 developer --> UC_ADMIN_USER
-developer --> UC_ADMIN_CONTENT_REG
-developer --> UC_ADMIN_CONTENT_MGT
-developer --> UC_ADMIN_LLM
+developer --> UC_LLM_REG
+developer --> UC_LLM_SWITCH
+developer --> UC_LLM_PROMPT
+developer --> UC_LLM_PARAM
+developer --> UC_LLM_WORKFLOW
+developer --> UC_LLM_USAGE
+developer --> UC_LLM_FALLBACK
+developer --> UC_EMB_CONFIG
+developer --> UC_EMB_USAGE
+developer --> UC_LC_REG
+developer --> UC_LC_MGT
 developer --> UC_ADMIN_CONFIG
 
 '-- 外部システム関連 --
 UC_ADMIN_USER --> supabase : ユーザーCRUD
-UC_ADMIN_CONTENT_REG --> supabase : コンテンツ・ベクトル保存
-UC_ADMIN_CONTENT_REG --> openai : Embedding生成
-UC_ADMIN_CONTENT_MGT --> supabase : コンテンツCRUD
+UC_LLM_REG --> supabase : モデル設定保存
+UC_LLM_REG --> openrouter : モデル一覧取得
+UC_LLM_PROMPT --> supabase : プロンプト保存
+UC_LLM_USAGE --> supabase : 使用量ログ
+UC_LLM_USAGE --> openrouter : 使用量取得
+UC_EMB_CONFIG --> supabase : Embedding設定保存
+UC_EMB_USAGE --> supabase : 使用量ログ
+UC_EMB_USAGE --> openai : 使用量取得
+UC_LC_REG --> supabase : コンテンツ・ベクトル保存
+UC_LC_REG --> openai : Embedding生成
+UC_LC_MGT --> supabase : コンテンツCRUD
 
 '-- ノート --
-note right of UC_ADMIN_CONTENT_REG
-  **学習コンテンツ登録フロー**
-  1. コンテンツ（Markdown/PDF）アップロード
-  2. OpenAI APIでEmbedding生成
-  3. Supabase pgvectorに保存
-  4. RAG検索で利用可能に
+note right of UC_LLM_REG
+  **LLM管理（OpenRouter経由）**
+  - 300+モデル対応
+  - Claude, GPT-4o, Gemini, Llama
+  - 自動フォールバック
+  - 使用量・コスト監視
 end note
 
-note right of UC_ADMIN_LLM
-  **対象モデル**
-  - GPT-4o-mini
-  - Claude
-  - Gemini
-  (OpenRouter経由で切替)
+note right of UC_EMB_CONFIG
+  **Embedding（OpenAI直接）**
+  - text-embedding-3-small
+  - 1536次元
+  - $0.02/M tokens
+end note
+
+note right of UC_LC_REG
+  **学習コンテンツ登録フロー**
+  1. Markdown/PDFアップロード
+  2. チャンキング（512tokens）
+  3. OpenAI Embedding生成
+  4. Supabase pgvectorに保存
+  5. Hybrid Searchで利用可能
 end note
 
 @enduml
@@ -748,13 +838,43 @@ end note
 
 ### 5. 管理機能（開発者専用）
 
+#### 5-A. ユーザー管理
+
 | ID | ユースケース | 説明 | 主アクター | 二次アクター |
 |----|-------------|------|-----------|-------------|
 | 5-1 | ユーザーを管理する | ユーザー登録・CRUD、権限管理 | 開発者 | Supabase |
-| 5-2 | 学習コンテンツを登録する | 学習資料をEmbedding化して登録 | 開発者 | OpenAI API, Supabase |
-| 5-3 | 学習コンテンツを管理する | 学習資料のCRUD、カテゴリ管理 | 開発者 | Supabase |
-| 5-4 | LLMモデルを切り替える | 全サービス一括でモデル変更 | 開発者 | - |
-| 5-5 | システム設定を変更する | その他システム設定 | 開発者 | - |
+
+#### 5-B. LLM管理（OpenRouter経由）
+
+| ID | ユースケース | 説明 | 主アクター | 二次アクター |
+|----|-------------|------|-----------|-------------|
+| 5-2 | LLMモデルを登録する | OpenRouterモデルを追加・設定 | 開発者 | OpenRouter API, Supabase |
+| 5-3 | LLMモデルを切り替える | 機能別にモデル割当を変更 | 開発者 | Supabase |
+| 5-4 | LLMプロンプトを管理する | プロンプトテンプレートのCRUD | 開発者 | Supabase |
+| 5-5 | LLMパラメータを設定する | temperature, max_tokens等の設定 | 開発者 | Supabase |
+| 5-6 | LLMワークフローを定義する | 処理パイプラインの定義（Phase 2） | 開発者 | Supabase |
+| 5-7 | LLM使用量を監視する | コスト・トークン数の監視 | 開発者 | OpenRouter API, Supabase |
+| 5-8 | LLMフォールバックを設定する | 障害時の代替モデル設定 | 開発者 | Supabase |
+
+#### 5-C. Embedding管理（OpenAI直接）
+
+| ID | ユースケース | 説明 | 主アクター | 二次アクター |
+|----|-------------|------|-----------|-------------|
+| 5-9 | Embeddingモデルを設定する | モデル・次元数・チャンク設定 | 開発者 | Supabase |
+| 5-10 | Embedding使用量を監視する | トークン数・コストの監視 | 開発者 | OpenAI API, Supabase |
+
+#### 5-D. 学習コンテンツ管理
+
+| ID | ユースケース | 説明 | 主アクター | 二次アクター |
+|----|-------------|------|-----------|-------------|
+| 5-11 | 学習コンテンツを登録する | Markdown/PDF→Embedding→pgvector | 開発者 | OpenAI API, Supabase |
+| 5-12 | 学習コンテンツを管理する | 学習資料のCRUD、カテゴリ管理 | 開発者 | Supabase |
+
+#### 5-E. システム設定
+
+| ID | ユースケース | 説明 | 主アクター | 二次アクター |
+|----|-------------|------|-----------|-------------|
+| 5-13 | システム設定を変更する | 機能フラグ、アプリケーション設定 | 開発者 | Supabase |
 
 ---
 
@@ -764,16 +884,16 @@ end note
 
 | アクター | 役割 | 対象ユースケース |
 |---------|------|-----------------|
-| エンドユーザー | 図表作成・編集 | 1〜4（18件） |
-| 開発者 | システム管理 | 5（5件） |
+| エンドユーザー | 図表作成・編集 | 1〜4（19件） |
+| 開発者 | システム管理 | 5（13件） |
 
 ### 二次アクター（Supporting Actors / 外部システム）
 
 | アクター | 役割 | 関連ユースケース |
 |---------|------|-----------------|
-| Supabase Auth | OAuth認証、セッション管理、ユーザーCRUD | 1-1, 1-2, 5-1 |
-| OpenRouter API | LLM呼び出し（図表生成、チャット、AI修正、RAG応答、用語一貫性チェック） | 3-4, 3-5, 3-10, 4-1, 4-2 |
-| OpenAI API | Embedding生成（コンテンツ登録時のベクトル化） | 5-2 |
+| Supabase | 認証、データ保存、設定保存、使用量ログ | 1-1, 1-2, 5-1〜5-13 |
+| OpenRouter API | LLM呼び出し、モデル一覧、使用量取得 | 3-4, 3-5, 3-10, 4-1, 4-2, 5-2, 5-7 |
+| OpenAI API | Embedding生成、使用量取得 | 5-10, 5-11 |
 
 ---
 
@@ -808,7 +928,7 @@ end note
 |---------|-------------|------|
 | 3. 図表操作（PlantUML・Excalidraw） | 3-10, 3-11 | 学習支援機能 |
 | 4. AI機能 | 4-2 | 拡張機能 |
-| 5. 管理機能 | 5-1〜5-5 | 運用機能 |
+| 5. 管理機能 | 5-1〜5-13 | 運用機能（LLM/Embedding/学習コンテンツ管理） |
 
 ### v3（DB追加後）
 
@@ -826,8 +946,8 @@ end note
 | 2. プロジェクト管理 | 4 | 4 | - | - |
 | 3. 図表操作（PlantUML・Excalidraw） | 11 | 7 | 2 | 2 |
 | 4. AI機能 | 2 | 1 | 1 | - |
-| 5. 管理機能 | 5 | - | 5 | - |
-| **合計** | **24** | **14** | **8** | **2** |
+| 5. 管理機能 | 13 | - | 13 | - |
+| **合計** | **32** | **14** | **16** | **2** |
 
 > **v3 UC**: 3-7（バージョン履歴確認）、3-8（バージョン復元）はDB追加後に実装
 

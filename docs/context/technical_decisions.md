@@ -222,4 +222,98 @@ Storage Only構成の決定により、30秒間隔の自動保存機能を削除
 
 ---
 
-**次のレビュー予定**: 2025-12-07
+### TD-007: AI機能プロバイダー構成（LLM/Embedding分離）
+
+**日付**: 2025-12-07
+**ステータス**: Accepted
+
+**決定内容**:
+AI機能のプロバイダーをLLMとEmbeddingで分離する
+
+| 機能カテゴリ | プロバイダー | 接続方式 |
+|-------------|-------------|---------|
+| **LLM（Chat/Completion）** | OpenRouter | 統一API経由 |
+| **Embedding** | OpenAI | 直接接続 |
+
+**理由**:
+- OpenRouterにはEmbedding専用APIがない（公式推奨は直接接続）
+- OpenAIのtext-embedding-3-smallは最もコスト効率が良い（$0.02/M tokens）
+- 各プロバイダーの強みを活かした構成
+
+**アーキテクチャ**:
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    PlantUML Studio                           │
+│   ┌─────────────────────┐    ┌─────────────────────────┐    │
+│   │   LLM機能           │    │   Embedding機能          │    │
+│   │   (Chat/Completion) │    │   (RAG/Learning)        │    │
+│   └──────────┬──────────┘    └────────────┬────────────┘    │
+└──────────────┼────────────────────────────┼──────────────────┘
+               │                            │
+               ▼                            ▼
+      ┌────────────────┐          ┌────────────────┐
+      │   OpenRouter   │          │   OpenAI API   │
+      │   (統一API)    │          │   (直接接続)    │
+      └────────────────┘          └────────────────┘
+```
+
+**機能一覧**:
+
+| カテゴリ | 機能ID | 機能名 | プロバイダー |
+|---------|:------:|-------|-------------|
+| LLM管理 | LM-01 | LLMモデルを登録する | OpenRouter |
+| LLM管理 | LM-02 | LLMモデルを切り替える | OpenRouter |
+| LLM管理 | LM-03 | LLMプロンプトを管理する | OpenRouter |
+| LLM管理 | LM-04 | LLMパラメータを設定する | OpenRouter |
+| LLM管理 | LM-05 | LLMワークフローを定義する | OpenRouter |
+| LLM管理 | LM-06 | LLM使用量を監視する | OpenRouter |
+| LLM管理 | LM-07 | LLMフォールバックを設定する | OpenRouter |
+| Embedding | EM-01 | Embeddingモデルを設定する | OpenAI |
+| Embedding | EM-02 | Embedding使用量を監視する | OpenAI |
+| 学習コンテンツ | LC-01 | 学習コンテンツを登録する | OpenAI Embedding |
+| 学習コンテンツ | LC-02 | 学習コンテンツを管理する | OpenAI Embedding |
+
+**API キー管理**:
+```bash
+# LLM用（OpenRouter経由）
+OPENROUTER_API_KEY=sk-or-v1-xxxxx
+
+# Embedding用（OpenAI直接）
+OPENAI_API_KEY=sk-xxxxx
+```
+
+**技術仕様**:
+
+| 項目 | LLM (OpenRouter) | Embedding (OpenAI) |
+|------|------------------|-------------------|
+| エンドポイント | `api.openrouter.ai/api/v1/chat/completions` | `api.openai.com/v1/embeddings` |
+| 認証 | Bearer Token | Bearer Token |
+| フォールバック | `models`配列 + `route: "fallback"` | 指数バックオフリトライ |
+| コスト最適化 | `:floor`バリアント、プロンプトキャッシング | Batch API（50%削減）、MRL次元削減 |
+
+**Embedding技術選定**:
+| 項目 | 選定 | 理由 |
+|------|------|------|
+| モデル | text-embedding-3-small | コスト効率最高、MTEB 62.3% |
+| 次元数 | 1536 | デフォルト精度維持 |
+| ベクトルDB | Supabase pgvector | Supabase統一アーキテクチャ |
+| インデックス | HNSW | 高速検索 |
+| チャンクサイズ | 512 tokens | 技術文書向け |
+| 検索方式 | Hybrid Search | ベクトル + 全文検索 |
+
+**代替案（不採用）**:
+- OpenRouter経由Embedding：専用APIなし
+- 単一プロバイダー統一：各プロバイダーの強みを活かせない
+
+**影響**:
+- 2つのAPIキー管理が必要
+- 使用量ログを別テーブルで管理（`llm_usage_logs`, `embedding_usage_logs`）
+- サービス層で`LLMService`と`EmbeddingService`を分離
+
+**関連ドキュメント**:
+- `docs/evidence/20251206_openrouter_research/openrouter_llm_control_specification.md`
+- `docs/evidence/20251206_openrouter_research/llm_management_feature_design.md`
+
+---
+
+**次のレビュー予定**: 2025-12-08
