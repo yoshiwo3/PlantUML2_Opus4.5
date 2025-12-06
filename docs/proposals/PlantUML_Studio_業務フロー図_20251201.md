@@ -617,6 +617,7 @@ case (新規作成)
 case (選択)
   :プロジェクトをクリック;
   |Frontend Service|
+  :現在のプロジェクトを切替;
   #palegreen:エディタ画面へ遷移;
   stop
 
@@ -628,8 +629,10 @@ case (削除)
   if (確認？) then (はい)
     |Frontend Service|
     :削除実行;
+    :一覧更新;
   else (キャンセル)
   endif
+  |エンドユーザー|
   :一覧画面に戻る;
 
 case (戻る)
