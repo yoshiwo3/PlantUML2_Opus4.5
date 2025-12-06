@@ -681,7 +681,7 @@ repeat
     |Frontend Service|
     :現在のプロジェクトを切替;
     #palegreen:エディタ画面（図表一覧）へ遷移;
-    stop
+    detach
 
   case (削除)
     |エンドユーザー|
@@ -727,7 +727,7 @@ repeat
     :「戻る」ボタンをクリック;
     |Frontend Service|
     :ダッシュボードへ遷移;
-    stop
+    detach
 
   endswitch
 repeat while (操作を継続？) is (はい)
