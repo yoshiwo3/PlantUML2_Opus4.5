@@ -82,7 +82,8 @@ rectangle "PlantUML Studio" {
         package "2. プロジェクト管理" <<プロジェクト>> {
             usecase "2-1 プロジェクトを作成する" as UC_PRJ_CREATE
             usecase "2-2 プロジェクトを選択する" as UC_PRJ_SELECT
-            usecase "2-3 プロジェクトを削除する" as UC_PRJ_DELETE
+            usecase "2-3 プロジェクトを編集する" as UC_PRJ_EDIT
+            usecase "2-4 プロジェクトを削除する" as UC_PRJ_DELETE
         }
     }
 
@@ -143,6 +144,7 @@ user --> UC_LOGOUT
 user ---> UC_PRJ_CREATE
 user ---> UC_PRJ_SELECT
 user ---> UC_PRJ_DELETE
+user ---> UC_PRJ_EDIT
 
 ' エンドユーザー → 図表操作（長い線）
 user ----> UC_CREATE
@@ -362,7 +364,8 @@ rectangle "PlantUML Studio" {
     package "2. プロジェクト管理" <<プロジェクト>> {
         usecase "2-1 プロジェクトを作成する" as UC_PRJ_CREATE
         usecase "2-2 プロジェクトを選択する" as UC_PRJ_SELECT
-        usecase "2-3 プロジェクトを削除する" as UC_PRJ_DELETE
+        usecase "2-3 プロジェクトを編集する" as UC_PRJ_EDIT
+        usecase "2-4 プロジェクトを削除する" as UC_PRJ_DELETE
     }
 }
 
@@ -372,6 +375,7 @@ user --> UC_LOGOUT
 user --> UC_PRJ_CREATE
 user --> UC_PRJ_SELECT
 user --> UC_PRJ_DELETE
+user --> UC_PRJ_EDIT
 
 '-- 外部システム関連 --
 UC_LOGIN --> supabase : OAuth認証\n(GitHub/Google)
@@ -713,7 +717,8 @@ end note
 |----|-------------|------|-----------|-------------|
 | 2-1 | プロジェクトを作成する | 図表をグループ化する単位を作成 | エンドユーザー | - |
 | 2-2 | プロジェクトを選択する | 作業対象プロジェクトの切替 | エンドユーザー | - |
-| 2-3 | プロジェクトを削除する | プロジェクトと配下図表の削除 | エンドユーザー | - |
+| 2-3 | プロジェクトを編集する | プロジェクト名の変更 | エンドユーザー | - |
+| 2-4 | プロジェクトを削除する | プロジェクトと配下図表の削除 | エンドユーザー | - |
 
 ### 3. 図表操作（PlantUML・Excalidraw）
 
@@ -794,7 +799,7 @@ end note
 | カテゴリ | ユースケース | 理由 |
 |---------|-------------|------|
 | 1. 認証 | 1-1, 1-2 | 基本機能 |
-| 2. プロジェクト | 2-1, 2-2, 2-3 | 基本機能 |
+| 2. プロジェクト | 2-1, 2-2, 2-3, 2-4 | 基本機能 |
 | 3. 図表操作（PlantUML・Excalidraw） | 3-1〜3-9 | コア機能 |
 | 4. AI機能 | 4-1 | 差別化機能 |
 
@@ -813,11 +818,11 @@ end note
 | カテゴリ | 件数 | MVP | Phase 2 |
 |---------|------|-----|---------|
 | 1. 認証 | 2 | 2 | - |
-| 2. プロジェクト管理 | 3 | 3 | - |
+| 2. プロジェクト管理 | 4 | 4 | - |
 | 3. 図表操作（PlantUML・Excalidraw） | 11 | 9 | 2 |
 | 4. AI機能 | 2 | 1 | 1 |
 | 5. 管理機能 | 5 | - | 5 |
-| **合計** | **23** | **15** | **8** |
+| **合計** | **24** | **16** | **8** |
 
 ---
 

@@ -88,4 +88,27 @@ PlantUML Validator MCPサーバーをGoogle Cloud Runでホスティング
 
 ---
 
+### TD-005: プロジェクト選択状態のSupabase保存
+
+**日付**: 2025-12-06
+**ステータス**: Accepted
+
+**決定内容**:
+ユーザーが最後に選択したプロジェクトの状態をSupabaseに保存する（`users.last_selected_project_id`）
+
+**理由**:
+- UX向上：前回の作業を即座に再開可能
+- アーキテクチャ一貫性：本プロジェクトはSupabase中心設計
+- クロスデバイス対応：どのデバイスからでも同じ状態で再開
+
+**代替案（不採用）**:
+- ローカルストレージ/React State：リロード時消失、デバイス固有
+- 実装コストは低いがUX劣化
+
+**影響**:
+- usersテーブルに`last_selected_project_id`カラム追加
+- プロジェクト選択時にSupabase更新APIコール
+
+---
+
 **次のレビュー予定**: 2025-12-07
