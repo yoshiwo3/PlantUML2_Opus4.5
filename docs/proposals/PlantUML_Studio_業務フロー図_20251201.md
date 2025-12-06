@@ -731,7 +731,7 @@ repeat
 
   endswitch
 repeat while (操作を継続？) is (はい)
-
+->いいえの場合;
 |Frontend Service|
 :画面を閉じる;
 stop
