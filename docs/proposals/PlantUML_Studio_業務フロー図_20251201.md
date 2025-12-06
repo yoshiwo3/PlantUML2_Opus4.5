@@ -622,6 +622,7 @@ case (選択)
   stop
 
 case (削除)
+  |エンドユーザー|
   :削除をクリック;
   |Frontend Service|
   #lightyellow:確認ダイアログ表示;
