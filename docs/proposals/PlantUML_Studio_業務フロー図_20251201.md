@@ -12,11 +12,39 @@
 
 | 図 | 内容 | 関連ユースケース |
 |----|------|-----------------|
-| 3.1 | PlantUML 図表作成フロー | UC 3-1〜3-5 |
+| 3.1 | PlantUML 図表作成フロー | UC 3-1〜3-4 |
 | 3.2 | PlantUML AI支援フロー | UC 4-1, 4-2 |
 | 3.3 | Excalidraw ワイヤーフレーム作成フロー | UC 3-1〜3-3（Excalidraw） |
 | 3.4 | 認証フロー | UC 1-1, 1-2 |
 | 3.5 | プロジェクト管理フロー | UC 2-1, 2-2, 2-3, 2-4 |
+| 3.6 | 保存・エクスポートフロー | UC 3-5, 3-6 |
+
+---
+
+## 業務フロー図の表現について
+
+### API Gatewayの扱い
+
+本業務フロー図では、**論理的な業務フロー**を表現するため、API Gatewayを図中に明示していません。
+
+**実際のアーキテクチャ**（コンテキスト図参照）:
+```
+Frontend Service → API Gateway → PlantUML Service / AI Service / Excalidraw Service
+```
+
+**業務フロー図での表現**:
+```
+Frontend Service → PlantUML Service / AI Service / Excalidraw Service
+（API Gatewayは暗黙的に介在）
+```
+
+| 項目 | 説明 |
+|------|------|
+| **API Gatewayの役割** | 認証検証、ルーティング、レート制限 |
+| **図中の扱い** | 暗黙的に存在（業務フローの可読性を優先） |
+| **参照** | `PlantUML_Studio_コンテキスト図_20251130.md` |
+
+> **注意**: Frontend Serviceから各バックエンドサービス（PlantUML Service、AI Service、Excalidraw Service）への通信は、すべてAPI Gatewayを経由します。
 
 ---
 
@@ -1016,11 +1044,466 @@ stop
 
 ---
 
+## 3.6 保存・エクスポートフロー
+
+**関連ユースケース**: UC 3-5 図表を保存する, UC 3-6 図表をエクスポートする
+
+### 設計思想
+
+保存・エクスポート機能は、ユーザーの作業成果を安全に保持し、外部利用を可能にする重要な機能である。
+
+#### 保存機能（UC 3-5）の要件
+
+| 項目 | 仕様 |
+|------|------|
+| **手動保存** | Ctrl+S または保存ボタン |
+| **自動保存** | 30秒間隔（編集中のみ） |
+| **バージョン管理** | SHA-256ハッシュでバージョン識別（PlantUMLのみ） |
+| **用語一貫性チェック** | 保存時に自動実行（PlantUMLのみ、OpenRouter API経由） |
+
+#### Storage構成（統一設計）
+
+両図表タイプで**ソースファイル + プレビューSVG**の構成を採用:
+
+```
+Supabase Storage:
+/{user_id}/{project_id}/{diagram_id}/
+  ├── source.puml          # PlantUMLソース（複数@startuml可）
+  │   または source.json   # Excalidraw JSON
+  ├── preview_0.svg        # 1つ目の図のプレビュー（サムネイル用）
+  ├── preview_1.svg        # 2つ目の図のプレビュー（PlantUMLで複数図の場合）
+  └── ...
+```
+
+| 図表タイプ | ソースファイル | プレビューファイル | 備考 |
+|-----------|--------------|-------------------|------|
+| **PlantUML** | `source.puml`（1ファイル） | `preview_N.svg`（図の数だけ） | 1ファイルに複数@startuml可 |
+| **Excalidraw** | `source.json`（1ファイル） | `preview_0.svg`（1ファイル） | 常に1図=1プレビュー |
+
+> **サムネイル表示**: 図表一覧では `preview_0.svg` を使用
+
+#### エクスポート機能（UC 3-6）の要件
+
+| 形式 | PlantUML | Excalidraw | 用途 |
+|------|:--------:|:----------:|------|
+| **PNG** | ✅ | ✅ | ラスター画像、ドキュメント埋め込み |
+| **SVG** | ✅ | ✅ | ベクター画像、スケーラブル |
+| **PDF** | ✅ | ✅ | ドキュメント配布、印刷 |
+
+### 3.6 概要図
+
+```plantuml
+@startuml business_flow_save_export_overview
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - 保存・エクスポート（概要）
+
+|エンドユーザー|
+start
+:図表を編集中;
+
+|Frontend Service|
+switch (操作を選択)
+case (手動保存\nUC 3-5)
+  :Ctrl+S または保存ボタン;
+  #palegreen:保存処理実行;
+  note right
+    PlantUML: 3.6.1.1参照
+    Excalidraw: 3.6.1.2参照
+  end note
+  detach
+case (自動保存\nUC 3-5)
+  :30秒経過（編集中）;
+  #palegreen:自動保存処理;
+  note right
+    PlantUML: 3.6.1.1参照
+    Excalidraw: 3.6.1.2参照
+  end note
+  detach
+case (エクスポート\nUC 3-6)
+  :エクスポートボタンクリック検知;
+  #lightblue:エクスポート処理;
+  note right
+    PlantUML: 3.6.2.1参照
+    Excalidraw: 3.6.2.2参照
+  end note
+  detach
+case (編集継続)
+  :編集継続（操作なし）;
+  detach
+endswitch
+
+@enduml
+```
+
+---
+
+### 3.6.1 保存フロー詳細（UC 3-5）
+
+#### 3.6.1.1 PlantUML保存フロー
+
+```plantuml
+@startuml business_flow_save_plantuml
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - PlantUML保存（詳細）
+
+|エンドユーザー|
+start
+if (保存トリガー?) then (手動)
+  :Ctrl+S または保存ボタン;
+else (自動)
+  :30秒間隔で自動実行;
+  note right
+    編集中のみ
+    未編集時はスキップ
+  end note
+endif
+
+|Frontend Service|
+:現在のPlantUMLコードを取得;
+:PlantUML Serviceへ処理依頼;
+
+|PlantUML Service|
+:SHA-256ハッシュ生成;
+:バージョン情報作成;
+note right
+  コンテンツハッシュで
+  バージョンを一意に識別
+end note
+:プレビューSVG生成;
+note right
+  図ごとに preview_N.svg を生成
+  （複数の図がある場合は複数SVG）
+end note
+
+|Frontend Service|
+:処理結果を受信;
+note right
+  ハッシュ、バージョン情報、
+  プレビューSVG（複数可）
+end note
+:AI Serviceへ用語チェック依頼;
+
+|AI Service|
+:用語一貫性チェック;
+note right
+  OpenRouter API経由
+  プロジェクト内の
+  用語統一を検証
+end note
+
+|Frontend Service|
+:チェック結果を受信;
+if (用語不一致?) then (あり)
+  #lightyellow:警告通知を表示;
+  note right
+    「用語の不一致を検出しました」
+    修正は任意
+  end note
+else (なし)
+endif
+:Supabaseへ保存リクエスト;
+
+|Supabase|
+:メタデータ保存（Postgres）;
+:ソース・プレビュー保存（Storage）;
+note right
+  source.puml + preview_N.svg
+  RLS適用・所有権検証
+end note
+
+|Frontend Service|
+if (保存成功?) then (はい)
+  #palegreen:完了通知を表示;
+  :最終保存時刻を更新;
+else (エラー)
+  #mistyrose:エラー通知を表示;
+  note right
+    「保存に失敗しました」
+    リトライオプション表示
+  end note
+endif
+stop
+
+@enduml
+```
+
+#### PlantUML保存フローテーブル
+
+| ステップ | 処理内容 | 担当 | エラー処理 |
+|:-------:|---------|------|-----------|
+| 1 | 保存トリガー（手動/自動） | エンドユーザー/システム | - |
+| 2 | 現在のPlantUMLコードを取得 | Frontend Service | - |
+| 3 | PlantUML Serviceへ処理依頼 | Frontend Service | - |
+| 4 | SHA-256ハッシュ生成 | PlantUML Service | - |
+| 5 | バージョン情報作成 | PlantUML Service | - |
+| 6 | **プレビューSVG生成**（図の数だけ） | PlantUML Service | - |
+| 7 | 処理結果を受信（ハッシュ、バージョン、プレビュー） | Frontend Service | - |
+| 8 | AI Serviceへ用語チェック依頼 | Frontend Service | - |
+| 9 | **用語一貫性チェック** | AI Service | - |
+| 10 | チェック結果を受信 | Frontend Service | 不一致時: 警告通知 |
+| 11 | Supabaseへ保存リクエスト | Frontend Service | - |
+| 12 | メタデータ・ソース・プレビュー保存 | Supabase | 失敗時: エラー通知 |
+| 13 | 完了通知・最終保存時刻更新 | Frontend Service | - |
+
+---
+
+#### 3.6.1.2 Excalidraw保存フロー
+
+```plantuml
+@startuml business_flow_save_excalidraw
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - Excalidraw保存（詳細）
+
+|エンドユーザー|
+start
+if (保存トリガー?) then (手動)
+  :Ctrl+S または保存ボタン;
+else (自動)
+  :30秒間隔で自動実行;
+  note right
+    編集中のみ
+    未編集時はスキップ
+  end note
+endif
+
+|Frontend Service|
+:現在のExcalidraw状態を取得;
+:Excalidraw Serviceへ処理依頼;
+
+|Excalidraw Service|
+:Excalidraw JSON生成;
+:プレビューSVG生成;
+note right
+  source.json: elements,
+  appState, files を含む
+  preview_0.svg: サムネイル用
+end note
+
+|Frontend Service|
+:処理結果を受信;
+note right
+  JSON、プレビューSVG
+end note
+:Supabaseへ保存リクエスト;
+
+|Supabase|
+:メタデータ保存（Postgres）;
+:ソース・プレビュー保存（Storage）;
+note right
+  source.json + preview_0.svg
+  RLS適用・所有権検証
+end note
+
+|Frontend Service|
+if (保存成功?) then (はい)
+  #palegreen:完了通知を表示;
+  :最終保存時刻を更新;
+else (エラー)
+  #mistyrose:エラー通知を表示;
+  note right
+    「保存に失敗しました」
+    リトライオプション表示
+  end note
+endif
+stop
+
+@enduml
+```
+
+#### Excalidraw保存フローテーブル
+
+| ステップ | 処理内容 | 担当 | エラー処理 |
+|:-------:|---------|------|-----------|
+| 1 | 保存トリガー（手動/自動） | エンドユーザー/システム | - |
+| 2 | 現在のExcalidraw状態を取得 | Frontend Service | - |
+| 3 | Excalidraw Serviceへ処理依頼 | Frontend Service | - |
+| 4 | Excalidraw JSON生成（source.json） | Excalidraw Service | - |
+| 5 | プレビューSVG生成（preview_0.svg） | Excalidraw Service | - |
+| 6 | 処理結果を受信 | Frontend Service | - |
+| 7 | Supabaseへ保存リクエスト | Frontend Service | - |
+| 8 | メタデータ・ソース・プレビュー保存 | Supabase | 失敗時: エラー通知 |
+| 9 | 完了通知・最終保存時刻更新 | Frontend Service | - |
+
+> **Note**: Excalidrawはビジュアル図表のため、用語一貫性チェックは適用しない。Excalidrawは常に1図=1プレビュー。
+
+---
+
+### 3.6.2 エクスポートフロー詳細（UC 3-6）
+
+#### 3.6.2.1 PlantUMLエクスポートフロー
+
+```plantuml
+@startuml business_flow_export_plantuml
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - PlantUMLエクスポート（詳細）
+
+|エンドユーザー|
+start
+:エクスポートボタンをクリック;
+
+|Frontend Service|
+:エクスポートダイアログ表示;
+
+|エンドユーザー|
+:形式を選択;
+note right
+  **対応形式**
+  - PNG（ラスター画像）
+  - SVG（ベクター画像）
+  - PDF（ドキュメント）
+end note
+
+|Frontend Service|
+:エクスポートリクエスト送信;
+
+|PlantUML Service|
+switch (選択形式)
+case (PNG)
+  :PNG生成\n(node-plantuml);
+case (SVG)
+  :SVG生成\n(node-plantuml);
+case (PDF)
+  :SVG生成;
+  :PDF変換;
+endswitch
+
+|Frontend Service|
+if (生成成功?) then (はい)
+  :Blobデータ受信;
+  :ダウンロード開始;
+  #palegreen:完了通知を表示;
+else (エラー)
+  #mistyrose:エラー通知を表示;
+  note right
+    「エクスポートに失敗しました」
+  end note
+endif
+stop
+
+@enduml
+```
+
+#### PlantUMLエクスポートフローテーブル
+
+| ステップ | 処理内容 | 担当 | エラー処理 |
+|:-------:|---------|------|-----------|
+| 1 | エクスポートボタンをクリック | エンドユーザー | - |
+| 2 | エクスポートダイアログ表示 | Frontend Service | - |
+| 3 | 形式を選択（PNG/SVG/PDF） | エンドユーザー | - |
+| 4 | エクスポートリクエスト送信 | Frontend Service | - |
+| 5 | 画像/PDF生成（node-plantuml） | PlantUML Service | 失敗時: エラー通知 |
+| 6 | ダウンロード開始 | Frontend Service | - |
+| 7 | 完了通知表示 | Frontend Service | - |
+
+---
+
+#### 3.6.2.2 Excalidrawエクスポートフロー
+
+```plantuml
+@startuml business_flow_export_excalidraw
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - Excalidrawエクスポート（詳細）
+
+|エンドユーザー|
+start
+:エクスポートボタンをクリック;
+
+|Frontend Service|
+:エクスポートダイアログ表示;
+
+|エンドユーザー|
+:形式を選択;
+note right
+  **対応形式**
+  - PNG（ラスター画像）
+  - SVG（ベクター画像）
+  - PDF（ドキュメント）
+end note
+
+|Frontend Service|
+:エクスポートリクエスト送信;
+
+|Excalidraw Service|
+switch (選択形式)
+case (PNG)
+  :PNG生成\n(Excalidraw exportToBlob);
+case (SVG)
+  :SVG生成\n(Excalidraw exportToSvg);
+case (PDF)
+  :SVG生成;
+  :PDF変換;
+endswitch
+
+|Frontend Service|
+if (生成成功?) then (はい)
+  :Blobデータ受信;
+  :ダウンロード開始;
+  #palegreen:完了通知を表示;
+else (エラー)
+  #mistyrose:エラー通知を表示;
+  note right
+    「エクスポートに失敗しました」
+  end note
+endif
+stop
+
+@enduml
+```
+
+#### Excalidrawエクスポートフローテーブル
+
+| ステップ | 処理内容 | 担当 | エラー処理 |
+|:-------:|---------|------|-----------|
+| 1 | エクスポートボタンをクリック | エンドユーザー | - |
+| 2 | エクスポートダイアログ表示 | Frontend Service | - |
+| 3 | 形式を選択（PNG/SVG/PDF） | エンドユーザー | - |
+| 4 | エクスポートリクエスト送信 | Frontend Service | - |
+| 5 | 画像/PDF生成（Excalidraw API） | Excalidraw Service | 失敗時: エラー通知 |
+| 6 | ダウンロード開始 | Frontend Service | - |
+| 7 | 完了通知表示 | Frontend Service | - |
+
+---
+
+### 技術仕様
+
+| 項目 | PlantUML | Excalidraw |
+|------|---------|-----------|
+| PNG生成 | node-plantuml | Excalidraw exportToBlob |
+| SVG生成 | node-plantuml | Excalidraw exportToSvg |
+| PDF生成 | SVG→PDF変換 | SVG→PDF変換 |
+| **ソースファイル** | `source.puml`（複数@startuml可） | `source.json` |
+| **プレビューファイル** | `preview_N.svg`（図の数だけ） | `preview_0.svg`（1ファイル） |
+| バージョン管理 | SHA-256ハッシュ | なし |
+| 用語一貫性チェック | ✅ 対応 | ❌ 非対応（ビジュアル図表のため） |
+| サムネイル | `preview_0.svg` を使用 | `preview_0.svg` を使用 |
+
+### エラーハンドリング
+
+| エラー種別 | 原因 | 対応 |
+|-----------|------|------|
+| ネットワークエラー | 通信障害 | 「保存に失敗しました。再試行してください。」 |
+| 認証エラー | セッション期限切れ | ログイン画面にリダイレクト |
+| ストレージエラー | 容量超過等 | 「ストレージ容量が不足しています」 |
+| 生成エラー | 内部処理失敗 | 「エクスポートに失敗しました」 |
+| 構文エラー | PlantUMLコード不正 | 「図表の構文エラーを修正してください」 |
+
+---
+
 ## アクター一覧（整合性確認）
 
 | アクター | 役割 | 関連フロー |
 |---------|------|-----------|
-| **エンドユーザー** | 図表作成・編集、AI機能利用、認証、プロジェクト管理 | 3.1〜3.5 全て |
+| **エンドユーザー** | 図表作成・編集、AI機能利用、認証、プロジェクト管理、保存・エクスポート | 3.1〜3.6 全て |
 | **開発者** | システム管理（本フローには未登場） | - |
 
 ---
@@ -1029,11 +1512,11 @@ stop
 
 | サービス | 役割 | 関連フロー |
 |---------|------|-----------|
-| **Frontend Service** | UI、Monaco Editor、Excalidraw、入力待機処理、プレビュー更新、認証画面、プロジェクト管理UI | 3.1〜3.5 全て |
-| **PlantUML Service** | node-plantuml実行、検証、SVG/PNG/PDF生成、バージョン管理 | 3.1, 3.2 |
-| **AI Service** | AI自動修正（Context7 + OpenRouter）、AIチャット、JSON生成 | 3.1〜3.3 |
-| **Excalidraw Service** | JSON保存、SVG/PNG/PDF変換 | 3.3 |
-| **API Gateway** | ルーティング、認証検証（図では省略） | - |
+| **Frontend Service** | UI、Monaco Editor、Excalidraw、入力待機処理、プレビュー更新、認証画面、プロジェクト管理UI、保存・エクスポートUI | 3.1〜3.6 全て |
+| **PlantUML Service** | node-plantuml実行、検証、SVG/PNG/PDF生成、バージョン管理 | 3.1, 3.2, 3.6 |
+| **AI Service** | AI自動修正（Context7 + OpenRouter）、AIチャット、JSON生成、用語一貫性チェック | 3.1〜3.3, 3.6 |
+| **Excalidraw Service** | JSON保存、SVG/PNG/PDF変換 | 3.3, 3.6 |
+| **API Gateway** | ルーティング、認証検証（暗黙的に介在、詳細は「業務フロー図の表現について」参照） | 全て |
 
 ---
 
@@ -1042,9 +1525,9 @@ stop
 | システム | 役割 | 関連フロー |
 |---------|------|-----------|
 | **Supabase Auth** | OAuth認証、セッション管理、JWT発行 | 3.4 |
-| **Supabase** | データ永続化、Storage、プロジェクトCRUD、RLS | 3.1, 3.3, 3.5 |
+| **Supabase** | データ永続化、Storage、プロジェクトCRUD、RLS、図表保存 | 3.1, 3.3, 3.5, 3.6 |
 | **OAuthプロバイダー** | GitHub OAuth, Google OAuth | 3.4 |
-| **OpenRouter API** | LLM呼び出し（GPT-4o-mini, Claude等） | 3.1, 3.2, 3.3 |
+| **OpenRouter API** | LLM呼び出し（GPT-4o-mini, Claude等）、用語一貫性チェック | 3.1, 3.2, 3.3, 3.6 |
 | **OpenAI API** | Embedding生成（本フローには未登場） | - |
 | **Context7 MCP** | PlantUML構文情報取得 | 3.1, 3.2 |
 
@@ -1069,3 +1552,4 @@ stop
 7. **AIチャット連携**: 3.3でGUI編集とAIチャットの組み合わせによるイテレーティブ修正が可能か？
 8. **認証仕様の整合性**: 3.4でOAuth認証のみ（GitHub, Google）、Email/Password不使用が明記されているか？
 9. **プロジェクト管理の整合性**: 3.5で削除確認ダイアログ、RLS、カスケード削除が適切に実装されているか？
+10. **保存・エクスポートの整合性**: 3.6で手動/自動保存、用語一貫性チェック、PNG/SVG/PDF対応が適切か？

@@ -74,14 +74,15 @@ System_Boundary(studio, "PlantUML Studio") {
     ' - CRUD操作（作成・読取・更新・削除）
     ' - バージョン管理（SHA-256ハッシュ）
     ' - 構文検証・レンダリング
-    '   - PlantUML JAR同梱（コンテナ内）
-    '   - java -jar plantuml.jar で実行
+    '   - node-plantuml（Node.jsラッパー）
+    '   - ローカルJAR同梱（コンテナ内）
+    '   - Java 17 + Graphviz で実行
     '   - 公式サーバー不使用（プライバシー保護）
     ' - SVG/PNG レンダリング
     ' - PDF/画像エクスポート
     ' - AI自動修正ループ（検証エラー時、最大3回）
     '--------------------------------------------------
-    System(plantuml, "PlantUML Service", "Cloud Run\n図表CRUD\nJAR同梱検証\nAI自動修正")
+    System(plantuml, "PlantUML Service", "Cloud Run\n図表CRUD\nnode-plantuml\n(ローカルJAR)")
 }
 
 '--------------------------------------------------
@@ -112,9 +113,10 @@ System_Ext(openrouter, "OpenRouter API", "LLM統合\nGPT-4o-mini\nClaude, Gemini
 System_Ext(openai, "OpenAI API", "Embedding生成\ntext-embedding-3")
 
 '--------------------------------------------------
-' 注: PlantUML JAR
-' - 外部システムではなく、PlantUML Serviceコンテナに同梱
-' - Cloud Run上でjava -jar plantuml.jarとして実行
+' 注: node-plantuml + ローカルJAR
+' - node-plantuml: PlantUML JARのNode.jsラッパー
+' - ローカルJAR: PlantUML Serviceコンテナに同梱
+' - 実行環境: Java 17 + Graphviz（コンテナ内）
 ' - 公式サーバー不使用（プライバシー保護）
 '--------------------------------------------------
 
@@ -168,7 +170,7 @@ Rel(excalidraw, openrouter, "JSON生成", "HTTPS")
 |---------|------|---------|---------|
 | **Frontend Service** | ユーザーインターフェース | Monaco Editor、4パネルレイアウト、リアルタイムプレビュー | - |
 | **API Gateway** | API入口・ルーティング | 認証検証、レート制限、サービス振り分け | - |
-| **PlantUML Service** | 図表管理 | CRUD、バージョン管理、**JAR同梱検証**、レンダリング、AI自動修正 | OpenRouter |
+| **PlantUML Service** | 図表管理 | CRUD、バージョン管理、**node-plantuml（ローカルJAR）**、レンダリング、AI自動修正 | OpenRouter |
 | **AI Service** | AI機能全般 | Question-Start、生成、チャット、用語一貫性、**RAG(Embedding+pgvector)** | OpenRouter, **OpenAI** |
 | **Excalidraw Service** | ワイヤーフレーム | **LLM→JSON生成**、レンダリング、テンプレート | OpenRouter |
 
@@ -184,7 +186,8 @@ Rel(excalidraw, openrouter, "JSON生成", "HTTPS")
 
 | コンポーネント | 同梱先 | 詳細 |
 |--------------|-------|------|
-| **PlantUML JAR** | PlantUML Service | java -jar実行、公式サーバー不使用（プライバシー保護） |
+| **node-plantuml** | PlantUML Service | Node.jsラッパー、ローカルJAR + Java 17 + Graphviz |
+| **PlantUML JAR** | PlantUML Service | ローカル実行、公式サーバー不使用（プライバシー保護） |
 
 ---
 
