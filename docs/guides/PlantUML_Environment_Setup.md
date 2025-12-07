@@ -86,7 +86,7 @@ PlantUML2_Opus4.5/
 | ドキュメント | パス |
 |-------------|------|
 | PlantUML開発憲法 | `docs/guides/PlantUML_Development_Constitution.md` |
-| **スクリプトリファレンス** | `docs/guides/validate_plantuml_reference.md` |
+| **スクリプトリファレンス** | `docs/guides/PlantUML_Script_Reference.md` |
 | プロジェクトガイド | `CLAUDE.md` |
 | issuesテンプレート仕様書 | `docs/guides/validate_plantuml_issues_template_spec.md` |
 | PlantUML公式 | https://plantuml.com/ |
