@@ -166,7 +166,7 @@ pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -Diagram
 ## 付録
 
 環境構成・インストール方法・トラブルシューティングは以下を参照：
-- `docs/guides/PlantUML_SVG_Generation_Guide.md`
+- `docs/guides/PlantUML_Environment_Setup.md`
 
 ---
 

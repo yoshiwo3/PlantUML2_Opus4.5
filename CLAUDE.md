@@ -483,193 +483,46 @@ OPENAI_API_KEY=sk-xxxxx
 
 ## PlantUML Code Rules
 
-すべてのPlantUMLコード（.pumlファイル、ドキュメント内コードブロック）作成時は以下のフローに従う：
+PlantUML図表を作成する際は、**PlantUML開発憲法**に従うこと。
 
-### 必須フロー（2段階ワークフロー）
+> **必読**: `docs/guides/PlantUML_Development_Constitution.md`
 
-```
-1. Context7で仕様確認 → 2. コード作成
-    ↓
-Phase 1: Review（-Review）
-  3. PNG生成 + レビューログ生成（.review.json）
-  4. 視覚的レビュー（4パス方式）
-  5. レビューログ更新（status: completed/failed）
-    ↓
-Phase 2: Publish（-Publish）※レビュー完了後のみ
-  6. レビューログ検証 → SVG生成・正式版保存
-  7. Gitコミット
-```
-
-### Step 1: Context7 MCPで仕様確認（必須）
-
-PlantUML図表を新規作成・修正する前に、**必ずContext7 MCPに問い合わせる**：
+### クイックリファレンス
 
 ```
-mcp__context7__resolve-library-id → libraryName: "plantuml"
-mcp__context7__get-library-docs   → topic: "<図表タイプ>" (例: "activity diagram", "sequence diagram")
+1. Context7で仕様確認
+2. 憲法の禁止事項・既知制限を確認
+3. コード作成 → PNG生成（-Review）
+4. 視覚的レビュー（4パス方式）+ ソース対比確認
+5. レビューログ更新
+6. SVG生成（-Publish）
 ```
 
-**確認すべき内容**:
-- 使用する図表タイプの構文
-- スイムレーン、分岐、ループ等の特殊構文
-- skinparam、pragma等のオプション
-- 既知の制約・非互換性
-
-### Step 2: コード作成
-
-Context7で確認した仕様に基づいてPlantUMLコードを作成。
-
-### Step 3: PNG生成 + レビューログ生成（Phase 1: Review）
-
-**ローカルPlantUML JARを使用してPNGを生成し、レビューログを作成する。**
+### コマンド
 
 ```powershell
-# Phase 1: レビュー用PNG生成 + レビューログ生成
+# Phase 1: レビュー用PNG生成
 pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Review
-```
 
-生成されるファイル:
-- `diagram.png` - 視覚的レビュー用
-- `diagram.review.json` - レビューログ（status: pending）
-
-- 検証失敗時は修正→再Review（履歴は自動保持）
-- 検証スキップ・エラー無視は**禁止**
-
-### Step 4: 視覚的レビュー（必須）
-
-**生成されたPNGをClaudeが読み込み、視覚的に確認する。**
-※SVGはXMLテキストとして返されるため、必ずPNGを使用
-
-```
-Read tool → PNGファイルを読み込み → 視覚的に分析
-```
-
-**4パス方式でレビュー**（接続線見落とし防止）:
-
-| パス | 確認内容 | 重要度 |
-|:---:|---------|:-----:|
-| Pass 1 | 全体構造（スイムレーン、開始/終了） | ○ |
-| Pass 2 | **接続線**（結線、途切れ、孤立ノード） | **最重要** |
-| Pass 3 | ノード内容（テキスト、条件ラベル） | ○ |
-| Pass 4 | スタイル（色分け、note、レイアウト） | ○ |
-
-**Pass 2 接続線チェック（必須）**:
-- [ ] start→最初のアクション接続
-- [ ] 全フロー→stop到達
-- [ ] if/else、switchの全分岐接続
-- [ ] スイムレーン間の矢印途切れなし
-- [ ] 孤立ノードなし
-
-**推奨**: ソース+SVG並行確認（ソースの接続構文とSVG描画を相互検証）
-
-詳細: `docs/guides/PlantUML_SVG_Generation_Guide.md` Step 4
-
-### Step 5: レビューログ更新
-
-4パスレビュー完了後、Claudeが`.review.json`を更新する。
-
-**レビューログ構造**（`-Review`実行時に自動生成）:
-```json
-{
-  "current": {
-    "status": "pending",
-    "review": { "pass1_structure": false, ... },
-    "issues": [
-      { "pass": null, "symptom": null, "cause": null }
-    ]
-  }
-}
-```
-
-**問題なしの場合**:
-1. `issues`を空配列`[]`に変更
-2. `review`の各passを`true`に変更
-3. `status`を`"completed"`に変更
-4. `reviewed_at`に現在日時を記入
-
-**問題ありの場合**:
-1. テンプレートの`pass`/`symptom`/`cause`に値を記入
-2. 複数問題がある場合はオブジェクトを追加
-3. `status`を`"failed"`に変更 → Step 2に戻る
-
-### Step 6: 正式版保存（Phase 2: Publish）
-
-**レビューログがcompleted & ハッシュ一致の場合のみ**保存可能。
-
-```powershell
-# Phase 2: レビューログ検証 → SVG生成・正式版保存
+# Phase 2: 正式版SVG保存（レビュー完了後）
 pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -DiagramType "business_flow"
 ```
 
-スクリプトが自動検証:
-1. レビューログ存在確認
-2. status = completed
-3. ハッシュ一致（.puml未変更確認）
+### 絶対禁止（憲法より抜粋）
 
-### よく使うContext7クエリ例
+| # | 禁止事項 |
+|:-:|---------|
+| 1 | **if/fork内でスイムレーン遷移するコードを書く** |
+| 2 | **SVGのXMLテキストを見て視覚確認したと判断する** |
+| 3 | **ソース+PNG対比確認をスキップする** |
+| 4 | **Context7確認なしでPlantUMLコードを作成する** |
 
-| 図表タイプ | topic |
-|-----------|-------|
-| アクティビティ図 | `"activity diagram swimlane"` |
-| シーケンス図 | `"sequence diagram"` |
-| ユースケース図 | `"use case diagram"` |
-| クラス図 | `"class diagram"` |
-| コンポーネント図 | `"component diagram"` |
-| 状態図 | `"state diagram"` |
+### 関連ドキュメント
 
-### 禁止事項
-
-- Context7確認なしでのPlantUMLコード作成
-- バリデーション未実施での保存
-- エラー無視・検証スキップ
-- レビューログ未更新でPublish（スクリプトが拒否）
-- レビュー後に.pumlを修正してPublish（ハッシュ不一致で拒否）
-
-### イテレーティブ改善（プレビュー問題発生時）
-
-プレビューで接続線の問題等が発生した場合、以下のループを回す：
-
-```
-Context7照会 → 案を作成 → Context7照会 → 案を修正 → プレビュー確認
-     ↑                                              │
-     └──────────── 問題が残る場合 ←─────────────────┘
-```
-
-**手順**:
-1. Context7でPlantUML構文を再確認
-2. GitHub Issues/公式ドキュメントで既知の問題を調査
-3. 回避策を適用
-4. プレビューで確認、問題が残れば1に戻る
-
-### PlantUML既知の制限と回避策
-
-| 問題 | 原因 | 回避策 |
-|------|------|--------|
-| **スイムレーンをまたぐ条件分岐で接続線が切れる** | 「完全には実装されていない」機能 ([Issue #1007](https://github.com/plantuml/plantuml/issues/1007)) | 条件分岐を1つのスイムレーン内に収め、noteで詳細を説明 |
-| ネストしたsplit/forkとスイムレーンの問題 | レンダリングバグ ([Issue #2161](https://github.com/plantuml/plantuml/issues/2161)) | 構造を簡素化、detachで分岐を終端 |
-| シーケンス図で`note bottom of`使用不可 | 構文非対応 | `note over`を使用 |
-
-**回避策パターン例（スイムレーン問題）**:
-
-```plantuml
-' ❌ 問題のあるパターン（スイムレーンをまたぐ条件分岐）
-if (タイプ?) then (A)
-  |Service A|
-  :処理A;
-else (B)
-  |Service B|
-  :処理B;
-endif
-
-' ✅ 回避策（1つのスイムレーン内に収める）
-|Frontend Service|
-:処理を実行;
-note right
-  **タイプ別処理**
-  ・A → Service Aで処理
-  ・B → Service Bで処理
-end note
-```
+| ドキュメント | 内容 |
+|-------------|------|
+| `docs/guides/PlantUML_Development_Constitution.md` | **憲法（必読）** - 禁止事項、既知制限、必須プロセス |
+| `docs/guides/PlantUML_Environment_Setup.md` | 環境構成、スクリプト詳細、トラブルシューティング |
 
 ## Directory Structure
 
