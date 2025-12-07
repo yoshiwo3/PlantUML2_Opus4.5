@@ -54,7 +54,7 @@ endif
 | 問題 | 回避策 |
 |------|--------|
 | endif直後のスイムレーン遷移で接続が切れる | endif後に1行アクションを入れてから遷移 |
-| ネストしたsplit/forkとスイムレーン | 構造を簡素化、detachで分岐を終端 |
+| ネストしたsplit/forkとスイムレーン ([Issue #2161](https://github.com/plantuml/plantuml/issues/2161)) | 構造を簡素化、detachで分岐を終端 |
 | シーケンス図で`note bottom of`使用不可 | `note over`を使用 |
 
 ---
