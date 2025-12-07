@@ -522,7 +522,8 @@ pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -Diagram
 | ドキュメント | 内容 |
 |-------------|------|
 | `docs/guides/PlantUML_Development_Constitution.md` | **憲法（必読）** - 禁止事項、既知制限、必須プロセス |
-| `docs/guides/PlantUML_Environment_Setup.md` | 環境構成、スクリプト詳細、トラブルシューティング |
+| `docs/guides/PlantUML_Environment_Setup.md` | 環境構成（Java、Graphviz、ディレクトリ構成） |
+| `docs/guides/validate_plantuml_reference.md` | スクリプト詳細・出力例、トラブルシューティング |
 
 ## Directory Structure
 
