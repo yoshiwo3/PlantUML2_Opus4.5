@@ -1,6 +1,6 @@
 # PlantUML開発憲法
 
-**バージョン**: 1.9
+**バージョン**: 2.0
 **作成日**: 2025-12-07
 
 ClaudeCodeが高品質なPlantUML図表を作成するための行動規範。
@@ -98,13 +98,7 @@ mcp__context7__get-library-docs   → topic: "<図表タイプ>"
 
 #### Step 4: PNG + レビューログ生成
 
-```powershell
-pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Review
-```
-
-**生成されるファイル:**
-- `diagram.png` - 視覚的レビュー用
-- `diagram.review.json` - レビューログ（status: pending）
+**コマンド**: § 6 `-Review` 参照
 
 #### Step 5-7: レビュー・対比確認・ログ更新
 
@@ -167,51 +161,7 @@ Context7照会 → 案を作成 → Context7照会 → 案を修正 → プレ�
 
 レビュー完了（status: completed）後に実行する。
 
-```powershell
-pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -DiagramType "<type>"
-```
-
-| DiagramType | 保存先 |
-|-------------|--------|
-| `business_flow` | `docs/proposals/diagrams/business_flow/` |
-| `sequence` | `docs/proposals/diagrams/sequence/` |
-| `usecase` | `docs/proposals/diagrams/usecase/` |
-| `context` | `docs/proposals/diagrams/context/` |
-| `component` | `docs/proposals/diagrams/component/` |
-| `class` | `docs/proposals/diagrams/class/` |
-| `dfd` | `docs/proposals/diagrams/dfd/` |
-
-#### 保存先ルール
-
-| 用途 | 保存先 | 説明 |
-|------|--------|------|
-| 正式版SVG | `docs/proposals/diagrams/<DiagramType>/` | PRDに採用する図表 |
-| 一時検証用PNG | `docs/evidence/<日付>/` | レビュー・作業証跡 |
-| レビューログ | `.puml`と同じディレクトリ | 品質保証の証跡 |
-
-#### スクリプトの検証内容
-
-| # | 検証項目 | 失敗時のエラー |
-|:-:|---------|---------------|
-| 1 | レビューログ存在 | `"Review log not found. Run -Review first."` |
-| 2 | status = completed | `"Review not completed. Status: pending/failed"` |
-| 3 | ハッシュ一致 | `"File modified after review. Run -Review again."` |
-
-#### レビュー完了後のファイル管理
-
-| ファイル | Publish後の扱い | 理由 |
-|---------|----------------|------|
-| `.puml` | **保持** | ソースコードとして管理 |
-| `.review.json` | **保持** | 品質保証の証跡、履歴分析に使用 |
-| `.png` | **保持（evidence内）** | 作業証跡として保存 |
-| `.svg` | **proposals/diagrams/に保存** | 正式版として管理 |
-
-#### Gitコミット
-
-```bash
-git add docs/proposals/diagrams/
-git commit -m "docs: 業務フロー図SVGを追加"
-```
+**コマンド**: § 6 `-Publish` 参照
 
 ### 1.5 改善サイクル完了時の更新
 
@@ -672,12 +622,67 @@ status: failed で記録 → .puml修正 → 再 -Review → 再レビュー →
 
 ## 6. コマンドリファレンス
 
-```powershell
-# レビュー用PNG生成
-pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Review
+### `-Review`: レビュー用PNG生成
 
-# 正式版SVG保存
-pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -DiagramType "business_flow"
+```powershell
+pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Review
+```
+
+**生成されるファイル:**
+
+| ファイル | 用途 |
+|---------|------|
+| `diagram.png` | 視覚的レビュー用（マルチモーダル機能で確認） |
+| `diagram.review.json` | レビューログ（status: pending） |
+
+### `-Publish`: 正式版SVG保存
+
+```powershell
+pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -DiagramType "<type>"
+```
+
+**DiagramType一覧:**
+
+| DiagramType | 保存先 |
+|-------------|--------|
+| `business_flow` | `docs/proposals/diagrams/business_flow/` |
+| `sequence` | `docs/proposals/diagrams/sequence/` |
+| `usecase` | `docs/proposals/diagrams/usecase/` |
+| `context` | `docs/proposals/diagrams/context/` |
+| `component` | `docs/proposals/diagrams/component/` |
+| `class` | `docs/proposals/diagrams/class/` |
+| `dfd` | `docs/proposals/diagrams/dfd/` |
+
+**スクリプトの検証内容:**
+
+| # | 検証項目 | 失敗時のエラー |
+|:-:|---------|---------------|
+| 1 | レビューログ存在 | `"Review log not found. Run -Review first."` |
+| 2 | status = completed | `"Review not completed. Status: pending/failed"` |
+| 3 | ハッシュ一致 | `"File modified after review. Run -Review again."` |
+
+### 保存先ルール
+
+| 用途 | 保存先 | 説明 |
+|------|--------|------|
+| 正式版SVG | `docs/proposals/diagrams/<DiagramType>/` | PRDに採用する図表 |
+| 一時検証用PNG | `docs/evidence/<日付>/` | レビュー・作業証跡 |
+| レビューログ | `.puml`と同じディレクトリ | 品質保証の証跡 |
+
+### ファイル管理
+
+| ファイル | Publish後の扱い | 理由 |
+|---------|----------------|------|
+| `.puml` | **保持** | ソースコードとして管理 |
+| `.review.json` | **保持** | 品質保証の証跡、履歴分析に使用 |
+| `.png` | **保持（evidence内）** | 作業証跡として保存 |
+| `.svg` | **proposals/diagrams/に保存** | 正式版として管理 |
+
+### Gitコミット
+
+```bash
+git add docs/proposals/diagrams/
+git commit -m "docs: 業務フロー図SVGを追加"
 ```
 
 ---
@@ -693,6 +698,7 @@ pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -Diagram
 
 | 日付 | バージョン | 変更内容 |
 |------|-----------|---------|
+| 2025-12-07 | 2.0 | **重複削減Phase 1**: コマンドを § 6 に集約、§ 1.2/1.4 から重複コマンドを削除し参照に変更 |
 | 2025-12-07 | 1.9 | **構成改善**: § 1 必須プロセスを冒頭に移動（AIが全体フローを先に把握できるよう）、セクション番号・相互参照を更新 |
 | 2025-12-07 | 1.8 | 関連ドキュメントにissuesテンプレート仕様書・Serenaメモリ参照を追加（38項目完全網羅） |
 | 2025-12-07 | 1.7 | § 4 に4パス方式の目的説明追加、Pass 2チェックリストをテーブル形式に拡充（チェック内容詳細） |
