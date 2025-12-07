@@ -1,0 +1,54 @@
+@startuml business_flow_llm_prompt_management
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLMプロンプト管理（UC 5-4）
+
+|開発者|
+start
+:「プロンプト管理」をクリック;
+
+|Frontend Service|
+:プロンプト一覧取得;
+
+|Supabase|
+:llm_prompt_templates 取得;
+
+|Frontend Service|
+:プロンプト一覧表示;
+note right
+  **表示項目**
+  - 名前・slug
+  - カテゴリ（system/user/assistant）
+  - 機能キー
+  - バージョン
+end note
+:操作待機;
+
+|開発者|
+switch (操作を選択)
+case (新規作成)
+  :「新規作成」をクリック;
+  :プロンプト内容を入力;
+  :「保存」をクリック;
+  #lightblue:新規作成実行;
+  note right: Frontend Service でエディタ表示\nSupabase にテンプレート挿入
+  detach
+case (編集)
+  :プロンプトをクリック;
+  :内容を修正;
+  :「保存」をクリック;
+  #palegreen:編集実行;
+  note right: Frontend Service で編集エディタ表示\nSupabase にテンプレート更新（バージョン+1）
+  detach
+case (無効化)
+  :「無効化」をクリック;
+  #lightyellow:無効化実行;
+  note right: Frontend Service で確認ダイアログ\nSupabase で is_active = false 更新
+  detach
+case (戻る)
+  :LLM管理画面へ;
+  stop
+endswitch
+
+@enduml

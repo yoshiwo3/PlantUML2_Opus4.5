@@ -1,0 +1,70 @@
+@startuml business_flow_system_settings
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - システム設定（UC 5-13）
+
+|開発者|
+start
+:「システム設定」をクリック;
+
+|Frontend Service|
+:現在の設定を取得;
+
+|Supabase|
+:system_settings テーブル取得;
+
+|Frontend Service|
+:システム設定画面表示;
+note right
+  **設定カテゴリ**
+  - 機能フラグ
+  - 表示設定
+  - 制限値
+  - 外部連携
+end note
+
+|開発者|
+switch (設定カテゴリを選択)
+case (機能フラグ)
+  :機能フラグ設定画面;
+case (表示設定)
+  :表示設定画面;
+case (制限値)
+  :制限値設定画面;
+case (外部連携)
+  :外部連携設定画面;
+endswitch
+
+|開発者|
+:設定値を変更;
+:「保存」をクリック;
+
+|Frontend Service|
+#lightyellow:確認ダイアログ表示;
+
+|開発者|
+if (確認?) then (はい)
+  :確認OK;
+else (キャンセル)
+  |Frontend Service|
+  :ダイアログを閉じる;
+  stop
+endif
+
+|Frontend Service|
+:設定更新リクエスト;
+
+|Supabase|
+:system_settings 更新;
+
+|Frontend Service|
+if (更新成功?) then (はい)
+  #palegreen:完了通知;
+  :アプリケーション設定リロード;
+else (エラー)
+  #mistyrose:エラー通知;
+endif
+stop
+
+@enduml

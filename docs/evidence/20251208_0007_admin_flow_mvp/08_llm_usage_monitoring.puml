@@ -1,0 +1,46 @@
+@startuml business_flow_llm_usage_monitoring
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLM使用量監視（UC 5-7）
+
+|開発者|
+start
+:「使用量監視」をクリック;
+
+|Frontend Service|
+fork
+  :内部ログ取得;
+  |Supabase|
+  :llm_usage_logs 集計;
+fork again
+  |Frontend Service|
+  :OpenRouter残高取得;
+  |OpenRouter API|
+  :/api/v1/key 呼び出し;
+  :クレジット残高返却;
+end fork
+
+|Frontend Service|
+:使用量ダッシュボード表示;
+note right
+  **表示項目**
+  - クレジット残高
+  - 期間別使用量グラフ
+  - モデル別コスト内訳
+  - 機能別トークン数
+end note
+:操作待機;
+
+|開発者|
+if (詳細確認?) then (はい)
+  :期間・フィルタを選択;
+  #lightblue:詳細確認実行;
+  note right: Frontend Service で\n詳細データ取得・表示
+  :画面を閉じる;
+else (いいえ)
+  :画面を閉じる;
+endif
+stop
+
+@enduml

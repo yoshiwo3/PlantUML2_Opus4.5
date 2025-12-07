@@ -1,0 +1,52 @@
+@startuml business_flow_llm_management_overview
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLM管理（概要）
+
+|開発者|
+start
+:LLM管理画面へ遷移;
+
+|Frontend Service|
+:LLM管理ダッシュボード表示;
+note right
+  **表示内容**
+  - 登録モデル一覧
+  - 機能別割当状況
+  - 使用量サマリ
+  - フォールバック状態
+end note
+
+|開発者|
+switch (操作を選択)
+case (モデル登録\nUC 5-2)
+  #lightblue:モデル登録画面へ;
+  note right: 3.9.2.1 参照
+  detach
+case (モデル切替\nUC 5-3)
+  #palegreen:モデル割当画面へ;
+  note right: 3.9.2.2 参照
+  detach
+case (プロンプト管理\nUC 5-4)
+  #lightyellow:プロンプト一覧へ;
+  note right: 3.9.2.3 参照
+  detach
+case (パラメータ設定\nUC 5-5)
+  #AntiqueWhite:パラメータ設定へ;
+  note right: 3.9.2.4 参照
+  detach
+case (使用量監視\nUC 5-7)
+  #LightCyan:使用量ダッシュボードへ;
+  note right: 3.9.2.5 参照
+  detach
+case (フォールバック設定\nUC 5-8)
+  #MistyRose:フォールバック設定へ;
+  note right: 3.9.2.6 参照
+  detach
+case (戻る)
+  :管理ダッシュボードへ;
+  stop
+endswitch
+
+@enduml

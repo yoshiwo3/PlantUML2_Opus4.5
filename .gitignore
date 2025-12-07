@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+nul
+
+# Backup files
+*_backup.md
+* copy *.md
+
+# Playwright
+.playwright-mcp/
+
+# Misc
+C*.txt
+get_shortpath.ps1

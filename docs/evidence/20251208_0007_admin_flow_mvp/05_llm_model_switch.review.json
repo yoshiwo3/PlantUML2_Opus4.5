@@ -1,0 +1,25 @@
+﻿{
+    "current":  {
+                    "hash":  "C96E300C620E8252",
+                    "timestamp":  "2025-12-08T00:16:37",
+                    "reviewed_at":  null,
+                    "issues":  [
+                                   {
+                                       "pass":  null,
+                                       "symptom":  null,
+                                       "cause":  null
+                                   }
+                               ],
+                    "status":  "pending",
+                    "review":  {
+                                   "pass4_style":  false,
+                                   "pass1_structure":  false,
+                                   "pass3_content":  false,
+                                   "pass2_connections":  false
+                               }
+                },
+    "history":  [
+
+                ],
+    "file":  "05_llm_model_switch.puml"
+}

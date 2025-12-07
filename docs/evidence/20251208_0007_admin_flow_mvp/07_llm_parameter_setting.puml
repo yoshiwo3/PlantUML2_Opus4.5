@@ -1,0 +1,46 @@
+@startuml business_flow_llm_parameter_setting
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLMパラメータ設定（UC 5-5）
+
+|開発者|
+start
+:「パラメータ設定」をクリック;
+
+|Frontend Service|
+:パラメータ設定画面表示;
+note right
+  **設定可能パラメータ**
+  - temperature (0.0-2.0)
+  - max_tokens (1-∞)
+  - top_p (0.0-1.0)
+  - frequency_penalty
+  - presence_penalty
+end note
+:操作待機;
+
+|開発者|
+:設定レベルを選択;
+
+if (設定レベル?) then (モデルデフォルト)
+  :モデルを選択;
+  :パラメータを調整;
+  #lightblue:モデルデフォルト更新実行;
+  note right: Supabase で\nllm_models.default_* 更新
+else (機能別オーバーライド)
+  :機能を選択;
+  :パラメータを調整;
+  #palegreen:機能別オーバーライド更新実行;
+  note right: Supabase で\nllm_model_assignments.override_* 更新
+endif
+:更新結果確認;
+
+if (更新成功?) then (はい)
+  #palegreen:完了通知;
+else (エラー)
+  #mistyrose:エラー通知;
+endif
+stop
+
+@enduml

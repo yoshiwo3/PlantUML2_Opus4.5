@@ -1,7 +1,36 @@
 {
   "permissions": {
     "allow": [
-      "mcp__serena__think_about_whether_you_are_done"
+      "Bash(Select-Object -First 5 -ExpandProperty FullName)",
+      "Bash(mkdir:*)",
+      "Bash(npx:*)",
+      "WebSearch",
+      "Bash(curl:*)",
+      "Bash(java:*)",
+      "Bash(npm info:*)",
+      "WebFetch(domain:github.com)",
+      "mcp__serena__write_memory",
+      "mcp__serena__edit_memory",
+      "mcp__serena__list_memories",
+      "mcp__serena__activate_project",
+      "mcp__serena__read_memory",
+      "mcp__claude-ops-mcp__listFileChanges",
+      "mcp__claude-ops-mcp__listBashHistory",
+      "Bash(powershell:*)",
+      "Bash(where:*)",
+      "Bash(pwsh -Command \"Get-Help ''C:\\d\\PlantUML2_Opus4.5\\scripts\\validate_plantuml.ps1'' -Parameter Format\")",
+      "Bash(pwsh:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(Get-ChildItem \"C:\\d\\PlantUML2_Opus4.5\\docs\\evidence\\20251207_admin_flow_review\")",
+      "Bash(Select-Object Name, Extension)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \"scripts/validate_plantuml.ps1\" -InputPath \"docs/evidence/20251207_1552_admin_flow_review\" -Review)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \"scripts/validate_plantuml.ps1\" -InputPath \"docs/evidence/20251207_1552_admin_flow_review/01_overview.puml\" -Review)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(powershell.exe:*)"
     ],
     "deny": [],
     "ask": []
@@ -15,18 +44,6 @@
       "args": [
         "-y",
         "@upstash/context7-mcp"
-      ],
-      "env": {
-        "SYSTEMROOT": "C:/Windows"
-      }
-    },
-    "playwright": {
-      "command": "C:/Program Files/nodejs/npx.cmd",
-      "args": [
-        "-y",
-        "@playwright/mcp@latest",
-        "--browser",
-        "chromium"
       ],
       "env": {
         "SYSTEMROOT": "C:/Windows"

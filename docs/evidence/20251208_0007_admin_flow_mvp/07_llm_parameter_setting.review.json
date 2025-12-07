@@ -1,0 +1,25 @@
+﻿{
+    "current":  {
+                    "hash":  "92A81BCAB7C892C3",
+                    "timestamp":  "2025-12-08T00:29:28",
+                    "reviewed_at":  null,
+                    "issues":  [
+                                   {
+                                       "pass":  null,
+                                       "symptom":  null,
+                                       "cause":  null
+                                   }
+                               ],
+                    "status":  "pending",
+                    "review":  {
+                                   "pass4_style":  false,
+                                   "pass1_structure":  false,
+                                   "pass3_content":  false,
+                                   "pass2_connections":  false
+                               }
+                },
+    "history":  [
+
+                ],
+    "file":  "07_llm_parameter_setting.puml"
+}

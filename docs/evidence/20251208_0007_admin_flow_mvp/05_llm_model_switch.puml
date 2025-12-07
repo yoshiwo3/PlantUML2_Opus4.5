@@ -1,0 +1,53 @@
+@startuml business_flow_llm_model_switch
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLMモデル切替（UC 5-3）
+
+|開発者|
+start
+:「モデル割当」をクリック;
+
+|Frontend Service|
+:機能別割当一覧表示;
+note right
+  **機能キー**
+  - ai_chat: AIチャット
+  - syntax_check: 構文チェック
+  - question_start: Question-Start
+  - terminology_check: 用語一貫性
+end note
+
+|開発者|
+:変更する機能を選択;
+:新しいモデルを選択;
+:「適用」をクリック;
+
+|Frontend Service|
+#lightyellow:確認ダイアログ表示;
+
+|開発者|
+if (確認?) then (はい)
+  :確認OK;
+else (キャンセル)
+  |Frontend Service|
+  :ダイアログを閉じる;
+  stop
+endif
+
+|Frontend Service|
+:割当更新リクエスト;
+
+|Supabase|
+:llm_model_assignments 更新;
+
+|Frontend Service|
+if (更新成功?) then (はい)
+  :割当一覧更新;
+  #palegreen:完了通知;
+else (エラー)
+  #mistyrose:エラー通知;
+endif
+stop
+
+@enduml

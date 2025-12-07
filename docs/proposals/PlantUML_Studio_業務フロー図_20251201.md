@@ -20,6 +20,7 @@
 | 3.6 | 保存・エクスポートフロー | UC 3-5, 3-6 |
 | 3.7 | バージョン管理フロー | UC 3-7, 3-8 |
 | 3.8 | 図表削除フロー | UC 3-9 |
+| 3.9 | 管理機能フロー（MVP） | UC 5-1, 5-2〜5-5, 5-7, 5-8, 5-13 |
 
 ---
 
@@ -1865,12 +1866,664 @@ stop
 
 ---
 
+## 3.9 管理機能フロー（MVP）
+
+**関連ユースケース**: UC 5-1 ユーザーを管理する, UC 5-2〜5-5 LLM管理, UC 5-7〜5-8 LLM監視・フォールバック, UC 5-13 システム設定を変更する
+**アクター**: 開発者（管理者権限）
+**技術決定**: TD-007（AI機能プロバイダー構成）
+
+### 設計思想
+
+管理機能は**開発者専用**の機能であり、エンドユーザーはアクセスできない。
+TD-007に基づき、AI機能はLLM（OpenRouter経由）とEmbedding（OpenAI直接）で分離されている。
+MVPでは**LLM管理**に焦点を当て、Embedding管理・学習コンテンツ管理はPhase 2で実装する。
+
+#### アクセス制御
+
+| 機能 | エンドユーザー | 管理者 | 開発者 |
+|------|:-------------:|:------:|:------:|
+| AIチャット利用 | ✅ | ✅ | ✅ |
+| LLMモデル設定閲覧 | ❌ | ✅ | ✅ |
+| LLMモデル設定変更 | ❌ | ❌ | ✅ |
+| 使用量閲覧 | ❌ | ✅ | ✅ |
+| システム設定変更 | ❌ | ❌ | ✅ |
+
+#### MVP管理機能一覧
+
+| UC | 機能名 | カテゴリ | LLM設計書参照 |
+|:--:|--------|----------|:------------:|
+| 5-1 | ユーザーを管理する | 5-A. ユーザー管理 | - |
+| 5-2 | LLMモデルを登録する | 5-B. LLM管理 | LM-01 |
+| 5-3 | LLMモデルを切り替える | 5-B. LLM管理 | LM-02 |
+| 5-4 | LLMプロンプトを管理する | 5-B. LLM管理 | LM-03 |
+| 5-5 | LLMパラメータを設定する | 5-B. LLM管理 | LM-04 |
+| 5-7 | LLM使用量を監視する | 5-B. LLM管理 | LM-06 |
+| 5-8 | LLMフォールバックを設定する | 5-B. LLM管理 | LM-07 |
+| 5-13 | システム設定を変更する | 5-E. システム設定 | - |
+
+### 3.9 概要図
+
+```plantuml
+@startuml business_flow_admin_overview
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - 管理機能（MVP概要）
+
+|開発者|
+start
+:管理画面にアクセス;
+
+|Frontend Service|
+:権限チェック;
+if (開発者権限?) then (はい)
+  :管理ダッシュボード表示;
+  :機能選択を待機;
+else (いいえ)
+  #mistyrose:アクセス拒否;
+  stop
+endif
+
+|開発者|
+switch (管理機能を選択)
+case (ユーザー管理\nUC 5-1)
+  #lightblue:ユーザー管理画面へ;
+  note right
+    詳細は 3.9.1 参照
+  end note
+  detach
+case (LLM管理\nUC 5-2〜5-5, 5-7, 5-8)
+  #palegreen:LLM管理画面へ;
+  note right
+    詳細は 3.9.2 参照
+  end note
+  detach
+case (システム設定\nUC 5-13)
+  #lightyellow:システム設定画面へ;
+  note right
+    詳細は 3.9.3 参照
+  end note
+  detach
+case (戻る)
+  :ダッシュボードへ;
+  stop
+endswitch
+
+@enduml
+```
+
+### 3.9.1 ユーザー管理フロー詳細（UC 5-1）
+
+ユーザーの一覧表示、詳細確認、権限変更、無効化を行う。
+
+```plantuml
+@startuml business_flow_user_management_overview
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - ユーザー管理（概要）
+
+|開発者|
+start
+:ユーザー管理画面へ遷移;
+
+|Frontend Service|
+:ユーザー一覧取得\n（Supabase Auth API）;
+:一覧表示;
+note right
+  **表示項目**
+  - メールアドレス
+  - 認証プロバイダー
+  - 最終ログイン日時
+  - ステータス（有効/無効）
+end note
+:操作待機;
+
+|開発者|
+switch (操作を選択)
+case (詳細確認)
+  :ユーザーをクリック;
+  #lightblue:詳細確認実行;
+  note right: Frontend Service で\nユーザー詳細表示
+  detach
+case (権限変更)
+  :権限変更をクリック;
+  #palegreen:権限変更実行;
+  note right
+    Frontend Service で
+    権限変更ダイアログ表示
+    roles: user, admin, developer
+  end note
+  detach
+case (無効化)
+  :無効化をクリック;
+  #lightyellow:無効化実行;
+  note right: Frontend Service で\n確認ダイアログ → 無効化
+  detach
+case (戻る)
+  :管理ダッシュボードへ;
+  stop
+endswitch
+
+@enduml
+```
+
+#### ユーザー管理フローテーブル
+
+| 操作 | 処理内容 | 担当 | エラー処理 |
+|------|---------|------|-----------|
+| 一覧表示 | ユーザー一覧取得（Admin API） | Supabase | 失敗時: エラー通知 |
+| 詳細確認 | ユーザー詳細取得 | Supabase | 失敗時: エラー通知 |
+| 権限変更 | app_metadata.role更新 | Supabase | 失敗時: エラー通知 |
+| 無効化 | ユーザーBAN処理 | Supabase | 失敗時: エラー通知 |
+
+### 3.9.2 LLM管理フロー（UC 5-2〜5-5, 5-7, 5-8）
+
+LLM管理機能は、OpenRouter経由でLLMモデルを管理する。
+
+| サブ機能 | UC | 説明 |
+|---------|:--:|------|
+| モデル登録 | 5-2 | OpenRouterモデルをシステムに登録 |
+| モデル切替 | 5-3 | 機能別にアクティブモデルを変更 |
+| プロンプト管理 | 5-4 | プロンプトテンプレートのCRUD |
+| パラメータ設定 | 5-5 | temperature, max_tokens等の設定 |
+| 使用量監視 | 5-7 | コスト・トークン数の監視 |
+| フォールバック設定 | 5-8 | 障害時の代替モデル設定 |
+
+```plantuml
+@startuml business_flow_llm_management_overview
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLM管理（概要）
+
+|開発者|
+start
+:LLM管理画面へ遷移;
+
+|Frontend Service|
+:LLM管理ダッシュボード表示;
+note right
+  **表示内容**
+  - 登録モデル一覧
+  - 機能別割当状況
+  - 使用量サマリ
+  - フォールバック状態
+end note
+
+|開発者|
+switch (操作を選択)
+case (モデル登録\nUC 5-2)
+  #lightblue:モデル登録画面へ;
+  note right: 3.9.2.1 参照
+  detach
+case (モデル切替\nUC 5-3)
+  #palegreen:モデル割当画面へ;
+  note right: 3.9.2.2 参照
+  detach
+case (プロンプト管理\nUC 5-4)
+  #lightyellow:プロンプト一覧へ;
+  note right: 3.9.2.3 参照
+  detach
+case (パラメータ設定\nUC 5-5)
+  #AntiqueWhite:パラメータ設定へ;
+  note right: 3.9.2.4 参照
+  detach
+case (使用量監視\nUC 5-7)
+  #LightCyan:使用量ダッシュボードへ;
+  note right: 3.9.2.5 参照
+  detach
+case (フォールバック設定\nUC 5-8)
+  #MistyRose:フォールバック設定へ;
+  note right: 3.9.2.6 参照
+  detach
+case (戻る)
+  :管理ダッシュボードへ;
+  stop
+endswitch
+
+@enduml
+```
+
+#### 3.9.2.1 LLMモデル登録フロー（UC 5-2）
+
+```plantuml
+@startuml business_flow_llm_model_register
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLMモデル登録（UC 5-2）
+
+|開発者|
+start
+:「モデル登録」をクリック;
+
+|Frontend Service|
+:モデル登録画面表示;
+:OpenRouterモデル一覧取得;
+
+|OpenRouter API|
+:/api/v1/models 呼び出し;
+:利用可能モデル一覧返却;
+note right
+  300+モデル
+  Claude, GPT-4o, Gemini,
+  Llama, Mistral 等
+end note
+
+|Frontend Service|
+:モデル選択UI表示;
+
+|開発者|
+:モデルを選択;
+:デフォルトパラメータを設定;
+:「登録」をクリック;
+
+|Frontend Service|
+:登録リクエスト送信;
+
+|Supabase|
+:llm_models テーブルに挿入;
+
+|Frontend Service|
+if (登録成功?) then (はい)
+  :モデル一覧更新;
+  #palegreen:完了通知;
+else (エラー)
+  #mistyrose:エラー通知;
+endif
+stop
+
+@enduml
+```
+
+#### 3.9.2.2 LLMモデル切替フロー（UC 5-3）
+
+```plantuml
+@startuml business_flow_llm_model_switch
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLMモデル切替（UC 5-3）
+
+|開発者|
+start
+:「モデル割当」をクリック;
+
+|Frontend Service|
+:機能別割当一覧表示;
+note right
+  **機能キー**
+  - ai_chat: AIチャット
+  - syntax_check: 構文チェック
+  - question_start: Question-Start
+  - terminology_check: 用語一貫性
+end note
+
+|開発者|
+:変更する機能を選択;
+:新しいモデルを選択;
+:「適用」をクリック;
+
+|Frontend Service|
+#lightyellow:確認ダイアログ表示;
+
+|開発者|
+if (確認?) then (はい)
+  |Frontend Service|
+  :割当更新リクエスト;
+
+  |Supabase|
+  :llm_model_assignments 更新;
+
+  |Frontend Service|
+  if (更新成功?) then (はい)
+    :割当一覧更新;
+    #palegreen:完了通知;
+  else (エラー)
+    #mistyrose:エラー通知;
+  endif
+else (キャンセル)
+  |Frontend Service|
+  :ダイアログを閉じる;
+endif
+stop
+
+@enduml
+```
+
+#### 3.9.2.3 LLMプロンプト管理フロー（UC 5-4）
+
+```plantuml
+@startuml business_flow_llm_prompt_management
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLMプロンプト管理（UC 5-4）
+
+|開発者|
+start
+:「プロンプト管理」をクリック;
+
+|Frontend Service|
+:プロンプト一覧取得;
+
+|Supabase|
+:llm_prompt_templates 取得;
+
+|Frontend Service|
+:プロンプト一覧表示;
+note right
+  **表示項目**
+  - 名前・slug
+  - カテゴリ（system/user/assistant）
+  - 機能キー
+  - バージョン
+end note
+:操作待機;
+
+|開発者|
+switch (操作を選択)
+case (新規作成)
+  :「新規作成」をクリック;
+  :プロンプト内容を入力;
+  :「保存」をクリック;
+  #lightblue:新規作成実行;
+  note right: Frontend Service でエディタ表示\nSupabase にテンプレート挿入
+  detach
+case (編集)
+  :プロンプトをクリック;
+  :内容を修正;
+  :「保存」をクリック;
+  #palegreen:編集実行;
+  note right: Frontend Service で編集エディタ表示\nSupabase にテンプレート更新（バージョン+1）
+  detach
+case (無効化)
+  :「無効化」をクリック;
+  #lightyellow:無効化実行;
+  note right: Frontend Service で確認ダイアログ\nSupabase で is_active = false 更新
+  detach
+case (戻る)
+  :LLM管理画面へ;
+  stop
+endswitch
+
+@enduml
+```
+
+#### 3.9.2.4 LLMパラメータ設定フロー（UC 5-5）
+
+```plantuml
+@startuml business_flow_llm_parameter_setting
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLMパラメータ設定（UC 5-5）
+
+|開発者|
+start
+:「パラメータ設定」をクリック;
+
+|Frontend Service|
+:パラメータ設定画面表示;
+note right
+  **設定可能パラメータ**
+  - temperature (0.0-2.0)
+  - max_tokens (1-∞)
+  - top_p (0.0-1.0)
+  - frequency_penalty
+  - presence_penalty
+end note
+:操作待機;
+
+|開発者|
+:設定レベルを選択;
+
+if (設定レベル?) then (モデルデフォルト)
+  :モデルを選択;
+  :パラメータを調整;
+  #lightblue:モデルデフォルト更新実行;
+  note right: Supabase で\nllm_models.default_* 更新
+else (機能別オーバーライド)
+  :機能を選択;
+  :パラメータを調整;
+  #palegreen:機能別オーバーライド更新実行;
+  note right: Supabase で\nllm_model_assignments.override_* 更新
+endif
+:更新結果確認;
+
+if (更新成功?) then (はい)
+  #palegreen:完了通知;
+else (エラー)
+  #mistyrose:エラー通知;
+endif
+stop
+
+@enduml
+```
+
+#### 3.9.2.5 LLM使用量監視フロー（UC 5-7）
+
+```plantuml
+@startuml business_flow_llm_usage_monitoring
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLM使用量監視（UC 5-7）
+
+|開発者|
+start
+:「使用量監視」をクリック;
+
+|Frontend Service|
+fork
+  :内部ログ取得;
+  |Supabase|
+  :llm_usage_logs 集計;
+fork again
+  |Frontend Service|
+  :OpenRouter残高取得;
+  |OpenRouter API|
+  :/api/v1/key 呼び出し;
+  :クレジット残高返却;
+end fork
+
+|Frontend Service|
+:使用量ダッシュボード表示;
+note right
+  **表示項目**
+  - クレジット残高
+  - 期間別使用量グラフ
+  - モデル別コスト内訳
+  - 機能別トークン数
+end note
+:操作待機;
+
+|開発者|
+if (詳細確認?) then (はい)
+  :期間・フィルタを選択;
+  #lightblue:詳細確認実行;
+  note right: Frontend Service で\n詳細データ取得・表示
+  :画面を閉じる;
+else (いいえ)
+  :画面を閉じる;
+endif
+stop
+
+@enduml
+```
+
+#### 3.9.2.6 LLMフォールバック設定フロー（UC 5-8）
+
+```plantuml
+@startuml business_flow_llm_fallback_setting
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLMフォールバック設定（UC 5-8）
+
+|開発者|
+start
+:「フォールバック設定」をクリック;
+
+|Frontend Service|
+:フォールバックチェーン一覧表示;
+note right
+  **チェーン例**
+  1. Claude 3.5 Sonnet
+  2. GPT-4o
+  3. Llama 3.1 70B
+end note
+:操作待機;
+
+|開発者|
+switch (操作を選択)
+case (チェーン作成)
+  :「新規チェーン」をクリック;
+  :チェーン名を入力;
+  :モデルを優先順に追加;
+  :「保存」をクリック;
+  #lightblue:チェーン作成実行;
+  note right: Frontend Service で設定画面表示\nSupabase に llm_fallback_chains 挿入
+  detach
+case (チェーン編集)
+  :チェーンをクリック;
+  :設定を変更;
+  :「保存」をクリック;
+  #palegreen:チェーン編集実行;
+  note right: Frontend Service で編集画面表示\nSupabase に llm_fallback_chains 更新
+  detach
+case (機能に割当)
+  :機能を選択;
+  :チェーンを選択;
+  #lightyellow:割当実行;
+  note right: Supabase に\nllm_fallback_assignments 更新
+  detach
+case (戻る)
+  :LLM管理画面へ;
+  stop
+endswitch
+
+@enduml
+```
+
+#### LLM管理フローテーブル（サマリ）
+
+| UC | 操作 | 主な処理 | 外部システム |
+|:--:|------|---------|-------------|
+| 5-2 | モデル登録 | OpenRouterモデル選択 → DB保存 | OpenRouter API |
+| 5-3 | モデル切替 | 機能別割当変更 | Supabase |
+| 5-4 | プロンプト管理 | テンプレートCRUD、バージョン管理 | Supabase |
+| 5-5 | パラメータ設定 | サンプリングパラメータ調整 | Supabase |
+| 5-7 | 使用量監視 | ログ集計 + OpenRouter残高確認 | OpenRouter API, Supabase |
+| 5-8 | フォールバック設定 | フォールバックチェーン定義 | Supabase |
+
+### 3.9.3 システム設定フロー詳細（UC 5-13）
+
+アプリケーション全体の設定を変更する。
+
+```plantuml
+@startuml business_flow_system_settings
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - システム設定（UC 5-13）
+
+|開発者|
+start
+:「システム設定」をクリック;
+
+|Frontend Service|
+:現在の設定を取得;
+
+|Supabase|
+:system_settings テーブル取得;
+
+|Frontend Service|
+:システム設定画面表示;
+note right
+  **設定カテゴリ**
+  - 機能フラグ
+  - 表示設定
+  - 制限値
+  - 外部連携
+end note
+
+|開発者|
+switch (設定カテゴリを選択)
+case (機能フラグ)
+  :機能フラグ設定画面;
+case (表示設定)
+  :表示設定画面;
+case (制限値)
+  :制限値設定画面;
+case (外部連携)
+  :外部連携設定画面;
+endswitch
+
+|開発者|
+:設定値を変更;
+:「保存」をクリック;
+
+|Frontend Service|
+#lightyellow:確認ダイアログ表示;
+
+|開発者|
+if (確認?) then (はい)
+  |Frontend Service|
+  :設定更新リクエスト;
+
+  |Supabase|
+  :system_settings 更新;
+
+  |Frontend Service|
+  if (更新成功?) then (はい)
+    #palegreen:完了通知;
+    :アプリケーション設定リロード;
+  else (エラー)
+    #mistyrose:エラー通知;
+  endif
+else (キャンセル)
+  |Frontend Service|
+  :ダイアログを閉じる;
+endif
+stop
+
+@enduml
+```
+
+#### システム設定項目一覧
+
+| カテゴリ | 設定項目 | 型 | デフォルト値 |
+|---------|---------|-----|-------------|
+| **機能フラグ** | ai_enabled | boolean | true |
+| | excalidraw_enabled | boolean | true |
+| | version_history_enabled | boolean | false |
+| **表示設定** | default_theme | string | "light" |
+| | editor_font_size | integer | 14 |
+| **制限値** | max_projects_per_user | integer | 50 |
+| | max_diagrams_per_project | integer | 100 |
+| | max_file_size_mb | integer | 10 |
+| **外部連携** | openrouter_api_key | string | - |
+| | openai_api_key | string | - |
+
+### エラーハンドリング
+
+| エラー種別 | 原因 | 対応 |
+|-----------|------|------|
+| 認証エラー | セッション期限切れ | ログイン画面にリダイレクト |
+| 権限エラー | 開発者権限なし | 「アクセス権限がありません」 |
+| ネットワークエラー | 通信障害 | 「接続に失敗しました。再試行してください。」 |
+| API制限エラー | OpenRouter制限超過 | 「API制限に達しました。しばらく待ってください。」 |
+
+---
+
 ## アクター一覧（整合性確認）
 
 | アクター | 役割 | 関連フロー |
 |---------|------|-----------|
-| **エンドユーザー** | 図表作成・編集、AI機能利用、認証、プロジェクト管理、保存・エクスポート、バージョン管理、図表削除 | 3.1〜3.8 全て |
-| **開発者** | システム管理（本フローには未登場） | - |
+| **エンドユーザー** | 図表作成・編集、AI機能利用、認証、プロジェクト管理、保存・エクスポート、バージョン管理、図表削除 | 3.1〜3.8 |
+| **開発者** | システム管理、ユーザー管理、LLM管理、システム設定 | 3.9 |
 
 ---
 
@@ -1878,7 +2531,7 @@ stop
 
 | サービス | 役割 | 関連フロー |
 |---------|------|-----------|
-| **Frontend Service** | UI、Monaco Editor、Excalidraw、入力待機処理、プレビュー更新、認証画面、プロジェクト管理UI、保存・エクスポートUI、履歴パネル、削除確認UI | 3.1〜3.8 全て |
+| **Frontend Service** | UI、Monaco Editor、Excalidraw、入力待機処理、プレビュー更新、認証画面、プロジェクト管理UI、保存・エクスポートUI、履歴パネル、削除確認UI、管理画面UI | 3.1〜3.9 全て |
 | **PlantUML Service** | node-plantuml実行、検証、SVG/PNG/PDF生成、バージョン管理（v3） | 3.1, 3.2, 3.6, 3.7(v3) |
 | **AI Service** | AI自動修正（Context7 + OpenRouter）、AIチャット、JSON生成、用語一貫性チェック | 3.1〜3.3, 3.6 |
 | **Excalidraw Service** | JSON生成、SVG/PNG/PDF変換、バージョン管理（v3） | 3.3, 3.6, 3.7(v3), 3.8 |
@@ -1890,11 +2543,11 @@ stop
 
 | システム | 役割 | 関連フロー |
 |---------|------|-----------|
-| **Supabase Auth** | OAuth認証、セッション管理、JWT発行 | 3.4 |
-| **Supabase** | データ永続化、Storage、プロジェクトCRUD、RLS、図表保存、バージョン履歴、削除処理 | 3.1, 3.3, 3.5, 3.6, 3.7, 3.8 |
+| **Supabase Auth** | OAuth認証、セッション管理、JWT発行、ユーザー管理（Admin API） | 3.4, 3.9.1 |
+| **Supabase** | データ永続化、Storage、プロジェクトCRUD、RLS、図表保存、バージョン履歴、削除処理、LLM設定保存、システム設定保存 | 3.1, 3.3, 3.5, 3.6, 3.7, 3.8, 3.9 |
 | **OAuthプロバイダー** | GitHub OAuth, Google OAuth | 3.4 |
-| **OpenRouter API** | LLM呼び出し（GPT-4o-mini, Claude等）、用語一貫性チェック | 3.1, 3.2, 3.3, 3.6 |
-| **OpenAI API** | Embedding生成（本フローには未登場） | - |
+| **OpenRouter API** | LLM呼び出し（GPT-4o-mini, Claude等）、用語一貫性チェック、モデル一覧取得、使用量取得 | 3.1, 3.2, 3.3, 3.6, 3.9.2 |
+| **OpenAI API** | Embedding生成（Phase 2） | - |
 | **Context7 MCP** | PlantUML構文情報取得 | 3.1, 3.2 |
 
 ---
@@ -1921,3 +2574,7 @@ stop
 10. **保存・エクスポートの整合性**: 3.6で手動保存、用語一貫性チェック、PNG/SVG/PDF対応が適切か？
 11. **バージョン管理の整合性**: 3.7でPlantUML/Excalidraw両対応、SHA-256ハッシュ、復元前保存が適切か？
 12. **図表削除の整合性**: 3.8で確認ダイアログ、カスケード削除、RLS適用が適切か？
+13. **管理機能の整合性**: 3.9でUC 5-1, 5-2〜5-5, 5-7, 5-8, 5-13が正しくカバーされているか？
+14. **LLM設計書との整合性**: 3.9.2でLM-01〜LM-07と対応しているか？
+15. **TD-007との整合性**: 3.9でOpenRouter/OpenAI分離が反映されているか？
+16. **アクセス制御の整合性**: 3.9で開発者権限のみが操作できることが明示されているか？

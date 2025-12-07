@@ -1,0 +1,46 @@
+@startuml business_flow_admin_overview
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - 管理機能（MVP概要）
+
+|開発者|
+start
+:管理画面にアクセス;
+
+|Frontend Service|
+:権限チェック;
+if (開発者権限?) then (はい)
+  :管理ダッシュボード表示;
+  :機能選択を待機;
+else (いいえ)
+  #mistyrose:アクセス拒否;
+  stop
+endif
+
+|開発者|
+switch (管理機能を選択)
+case (ユーザー管理\nUC 5-1)
+  #lightblue:ユーザー管理画面へ;
+  note right
+    詳細は 3.9.1 参照
+  end note
+  detach
+case (LLM管理\nUC 5-2〜5-5, 5-7, 5-8)
+  #palegreen:LLM管理画面へ;
+  note right
+    詳細は 3.9.2 参照
+  end note
+  detach
+case (システム設定\nUC 5-13)
+  #lightyellow:システム設定画面へ;
+  note right
+    詳細は 3.9.3 参照
+  end note
+  detach
+case (戻る)
+  :ダッシュボードへ;
+  stop
+endswitch
+
+@enduml

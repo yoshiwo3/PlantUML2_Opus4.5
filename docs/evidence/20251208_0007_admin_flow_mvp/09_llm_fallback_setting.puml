@@ -1,0 +1,49 @@
+@startuml business_flow_llm_fallback_setting
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLMフォールバック設定（UC 5-8）
+
+|開発者|
+start
+:「フォールバック設定」をクリック;
+
+|Frontend Service|
+:フォールバックチェーン一覧表示;
+note right
+  **チェーン例**
+  1. Claude 3.5 Sonnet
+  2. GPT-4o
+  3. Llama 3.1 70B
+end note
+:操作待機;
+
+|開発者|
+switch (操作を選択)
+case (チェーン作成)
+  :「新規チェーン」をクリック;
+  :チェーン名を入力;
+  :モデルを優先順に追加;
+  :「保存」をクリック;
+  #lightblue:チェーン作成実行;
+  note right: Frontend Service で設定画面表示\nSupabase に llm_fallback_chains 挿入
+  detach
+case (チェーン編集)
+  :チェーンをクリック;
+  :設定を変更;
+  :「保存」をクリック;
+  #palegreen:チェーン編集実行;
+  note right: Frontend Service で編集画面表示\nSupabase に llm_fallback_chains 更新
+  detach
+case (機能に割当)
+  :機能を選択;
+  :チェーンを選択;
+  #lightyellow:割当実行;
+  note right: Supabase に\nllm_fallback_assignments 更新
+  detach
+case (戻る)
+  :LLM管理画面へ;
+  stop
+endswitch
+
+@enduml

@@ -1,0 +1,39 @@
+﻿{
+    "current":  {
+                    "hash":  "B368CE8D20D1B82B",
+                    "timestamp":  "2025-12-08T00:39:43",
+                    "reviewed_at":  null,
+                    "issues":  [
+                                   {
+                                       "pass":  null,
+                                       "symptom":  null,
+                                       "cause":  null
+                                   }
+                               ],
+                    "status":  "pending",
+                    "review":  {
+                                   "pass4_style":  false,
+                                   "pass1_structure":  false,
+                                   "pass3_content":  false,
+                                   "pass2_connections":  false
+                               }
+                },
+    "history":  [
+                    {
+                        "hash":  "REVIEW_COMPLETED",
+                        "timestamp":  "2025-12-08T00:17:00",
+                        "reviewed_at":  "2025-12-08T00:18:00",
+                        "issues":  [
+
+                                   ],
+                        "status":  "completed",
+                        "review":  {
+                                       "pass4_style":  true,
+                                       "pass1_structure":  true,
+                                       "pass3_content":  true,
+                                       "pass2_connections":  true
+                                   }
+                    }
+                ],
+    "file":  "02_user_management.puml"
+}

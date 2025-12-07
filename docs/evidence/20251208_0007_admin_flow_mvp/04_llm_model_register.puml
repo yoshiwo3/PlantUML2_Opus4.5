@@ -1,0 +1,47 @@
+@startuml business_flow_llm_model_register
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - LLMモデル登録（UC 5-2）
+
+|開発者|
+start
+:「モデル登録」をクリック;
+
+|Frontend Service|
+:モデル登録画面表示;
+:OpenRouterモデル一覧取得;
+
+|OpenRouter API|
+:/api/v1/models 呼び出し;
+:利用可能モデル一覧返却;
+note right
+  300+モデル
+  Claude, GPT-4o, Gemini,
+  Llama, Mistral 等
+end note
+
+|Frontend Service|
+:モデル選択UI表示;
+
+|開発者|
+:モデルを選択;
+:デフォルトパラメータを設定;
+:「登録」をクリック;
+
+|Frontend Service|
+:登録リクエスト送信;
+
+|Supabase|
+:llm_models テーブルに挿入;
+
+|Frontend Service|
+if (登録成功?) then (はい)
+  :モデル一覧更新;
+  #palegreen:完了通知;
+else (エラー)
+  #mistyrose:エラー通知;
+endif
+stop
+
+@enduml

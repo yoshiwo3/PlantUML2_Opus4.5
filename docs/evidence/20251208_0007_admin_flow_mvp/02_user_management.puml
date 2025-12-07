@@ -1,0 +1,76 @@
+@startuml business_flow_user_management_overview
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 業務フロー図 - ユーザー管理（UC 5-1）
+
+|開発者|
+start
+:ユーザー管理画面へ遷移;
+
+|Frontend Service|
+:ユーザー一覧取得\n（Supabase Auth API）;
+:一覧表示;
+note right
+  **表示項目**
+  - メールアドレス
+  - 認証プロバイダー
+  - 最終ログイン日時
+  - ステータス（有効/無効）
+  - ロール（user/admin/developer）
+end note
+:操作待機;
+
+|開発者|
+switch (操作を選択)
+case (新規登録\n【Create】)
+  :「新規登録」をクリック;
+  :メールアドレスを入力;
+  :初期ロールを選択;
+  :「登録」をクリック;
+  #lightblue:ユーザー登録実行;
+  note right
+    Supabase Auth API で
+    招待メール送信
+    （パスワード設定リンク付き）
+  end note
+  detach
+case (詳細確認\n【Read】)
+  :ユーザーをクリック;
+  #palegreen:詳細確認実行;
+  note right: Frontend Service で\nユーザー詳細表示
+  detach
+case (権限変更\n【Update】)
+  :権限変更をクリック;
+  :新しいロールを選択;
+  :「適用」をクリック;
+  #lightyellow:権限変更実行;
+  note right
+    Supabase で
+    app_metadata.role 更新
+    roles: user, admin, developer
+  end note
+  detach
+case (無効化\n【Soft Delete】)
+  :「無効化」をクリック;
+  #AntiqueWhite:無効化実行;
+  note right: Supabase Auth API で\nユーザーBAN処理
+  detach
+case (削除\n【Hard Delete】)
+  :「削除」をクリック;
+  #mistyrose:削除確認ダイアログ;
+  note right
+    **警告表示**
+    - 関連データも削除される
+    - この操作は取り消せない
+  end note
+  :「削除を確定」をクリック;
+  #mistyrose:ユーザー削除実行;
+  note right: Supabase Auth API で\nユーザー完全削除
+  detach
+case (戻る)
+  :管理ダッシュボードへ;
+  stop
+endswitch
+
+@enduml

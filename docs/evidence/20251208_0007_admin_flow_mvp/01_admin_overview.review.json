@@ -1,0 +1,52 @@
+﻿{
+    "current":  {
+                    "hash":  "0BE5E8819F700E61",
+                    "timestamp":  "2025-12-08T00:16:29",
+                    "reviewed_at":  null,
+                    "issues":  [
+                                   {
+                                       "pass":  null,
+                                       "symptom":  null,
+                                       "cause":  null
+                                   }
+                               ],
+                    "status":  "pending",
+                    "review":  {
+                                   "pass4_style":  false,
+                                   "pass1_structure":  false,
+                                   "pass3_content":  false,
+                                   "pass2_connections":  false
+                               }
+                },
+    "history":  [
+                    {
+                        "hash":  "0BE5E8819F700E61",
+                        "timestamp":  "2025-12-08T00:12:41",
+                        "reviewed_at":  "2025-12-08T00:16:00",
+                        "issues":  [
+
+                                   ],
+                        "status":  "completed",
+                        "review":  {
+                                       "pass4_style":  true,
+                                       "pass1_structure":  true,
+                                       "pass3_content":  true,
+                                       "pass2_connections":  true
+                                   }
+                    },
+                    {
+                        "hash":  "03BB9F5556282D1E",
+                        "timestamp":  "2025-12-08T00:11:34",
+                        "reviewed_at":  "2025-12-08T00:15:00",
+                        "issues":  [
+                                       {
+                                           "pass":  2,
+                                           "symptom":  "endif after swimlane transition - connection broken",
+                                           "cause":  "Constitution S3 prohibited pattern"
+                                       }
+                                   ],
+                        "status":  "failed"
+                    }
+                ],
+    "file":  "01_admin_overview.puml"
+}
