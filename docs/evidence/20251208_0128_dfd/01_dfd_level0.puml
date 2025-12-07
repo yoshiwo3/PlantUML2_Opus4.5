@@ -1,0 +1,44 @@
+@startuml dfd_level0
+title データフロー図 - レベル0（コンテキスト図）
+
+skinparam backgroundColor white
+skinparam defaultFontSize 11
+
+' 外部エンティティ（人間）
+rectangle "エンドユーザー" as user #LightBlue
+rectangle "開発者" as dev #LightGreen
+
+' 外部エンティティ（外部システム）
+rectangle "OpenRouter API" as openrouter #Lavender
+rectangle "OpenAI API" as openai #Lavender
+
+' プロセス（システム全体）
+usecase "PlantUML\nStudio" as system #AliceBlue
+
+' データストア（データ項目付き）
+database "Supabase Storage\n---\nsource_code\npreview_svg\nmetadata" as storage #LightYellow
+database "Supabase Auth\n---\nuser_id\naccess_token\nprovider" as auth #LightYellow
+
+' === データフロー: エンドユーザー ===
+user --> system : {source_code,\nproject_name,\ndiagram_name}
+system --> user : {preview_svg,\nerrors[],\nai_response}
+
+' === データフロー: 開発者 ===
+dev --> system : {command,\nllm_config,\nsystem_settings}
+system --> dev : {logs[],\nusers[],\nusage_stats}
+
+' === データフロー: データストア ===
+system --> storage : {file_path,\nsource_code,\npreview_svg}
+storage --> system : {source_code,\npreview_svg,\nmetadata}
+
+system --> auth : {provider,\ncode_verifier}
+auth --> system : {access_token,\nuser_id,\nexpires_at}
+
+' === データフロー: 外部AI ===
+system --> openrouter : {model,\nmessages[],\ntemperature}
+openrouter --> system : {response,\ngenerated_code}
+
+system --> openai : {model,\ninput_text}
+openai --> system : {embedding[]}
+
+@enduml

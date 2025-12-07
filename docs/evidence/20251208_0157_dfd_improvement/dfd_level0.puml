@@ -1,0 +1,44 @@
+@startuml dfd_level0
+title データフロー図 - レベル0（コンテキスト図）
+scale 0.9
+
+skinparam backgroundColor white
+skinparam defaultFontSize 11
+skinparam roundCorner 15
+
+' === 外部エンティティ（四角形） ===
+rectangle "エンドユーザー" as user #LightBlue
+rectangle "開発者" as dev #LightGreen
+rectangle "OpenRouter API" as openrouter #Lavender
+rectangle "OpenAI API" as openai #Lavender
+
+' === プロセス（円）- DFD Yourdon記法 ===
+circle "  0.0\nPlantUML\n Studio  " as system #AliceBlue
+
+' === データストア（横線付き四角形） ===
+card "==D1: 図表ストレージ==\nsource_code | preview_svg | metadata" as storage #LightYellow
+card "==D2: 認証情報==\nuser_id | access_token | expires_at" as auth #LightYellow
+
+' === データフロー: エンドユーザー ===
+user --> system : DF-1,3,7,10,11-14\n{source_code, project_name,\ndiagram_name, question}
+system --> user : DF-2,6,15\n{preview_svg, errors[],\nai_response, projects[]}
+
+' === データフロー: 開発者 ===
+dev --> system : {command, llm_config,\nsystem_settings}
+system --> dev : {logs[], users[],\nusage_stats}
+
+' === データフロー: データストア ===
+system --> storage : DF-4\n{file_path, source_code,\npreview_svg}
+storage --> system : {source_code,\npreview_svg, metadata}
+
+system --> auth : {provider, code_verifier}
+auth --> system : {access_token,\nuser_id, expires_at}
+
+' === データフロー: 外部AI ===
+system --> openrouter : DF-8\n{model, messages[],\ntemperature}
+openrouter --> system : {response,\ngenerated_code}
+
+system --> openai : DF-9\n{model, input_text}
+openai --> system : {embedding[]}
+
+@enduml

@@ -1,0 +1,64 @@
+@startuml dfd_level1
+title データフロー図 - レベル1（主要プロセス）
+
+skinparam backgroundColor white
+skinparam defaultFontSize 10
+
+' 外部エンティティ
+rectangle "エンドユーザー" as user #LightBlue
+rectangle "開発者" as dev #LightGreen
+rectangle "OpenRouter API" as openrouter #Lavender
+rectangle "OpenAI API" as openai #Lavender
+
+' プロセス
+usecase "P1.0\n認証処理" as P1 #AliceBlue
+usecase "P2.0\n図表管理" as P2 #AliceBlue
+usecase "P3.0\n検証・\nレンダリング" as P3 #AliceBlue
+usecase "P4.0\nAI支援" as P4 #AliceBlue
+usecase "P5.0\n管理機能" as P5 #AliceBlue
+usecase "P6.0\nエクスポート" as P6 #AliceBlue
+
+' データストア（データ項目付き）
+database "D1: 図表ストレージ\n---\nsource_code\npreview_svg\nmetadata" as D1 #LightYellow
+database "D2: 認証情報\n---\nuser_id\naccess_token\nexpires_at" as D2 #LightYellow
+
+' === P1.0 認証処理 ===
+user --> P1 : {provider,\ncode_verifier}
+P1 --> D2 : {session_data}
+D2 --> P1 : {is_valid}
+P1 --> user : {access_token,\nuser_id}
+
+' === P2.0 図表管理 ===
+user --> P2 : {action,\nproject_name,\ndiagram_name,\nsource_code}
+P2 --> P3 : {source_code,\ncontent_type}
+P3 --> P2 : {is_valid,\npreview_svg,\nerrors[]}
+P2 --> D1 : {file_path,\nsource_code,\npreview_svg}
+D1 --> P2 : {source_code,\nmetadata}
+P2 --> user : {diagrams[],\nresult}
+
+' === P3.0 検証・レンダリング ===
+P3 --> openrouter : {model,\nerror_context}
+openrouter --> P3 : {fixed_code}
+
+' === P4.0 AI支援 ===
+user --> P4 : {question,\ncontext_code}
+P4 --> openrouter : {model,\nmessages[]}
+openrouter --> P4 : {response}
+P4 --> openai : {input_text}
+openai --> P4 : {embedding[]}
+P4 --> user : {ai_response,\nsuggestions[]}
+
+' === P5.0 管理機能 ===
+dev --> P5 : {command,\nparams}
+P5 --> D2 : {query}
+D2 --> P5 : {users[]}
+P5 --> openrouter : {config_request}
+openrouter --> P5 : {usage_data}
+P5 --> dev : {result,\nstats}
+
+' === P6.0 エクスポート ===
+user --> P6 : {diagram_name,\nformat}
+D1 --> P6 : {source_code}
+P6 --> user : {exported_file}
+
+@enduml

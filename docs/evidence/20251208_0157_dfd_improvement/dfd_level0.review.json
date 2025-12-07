@@ -1,0 +1,17 @@
+{
+    "current":  {
+                    "hash":  "8BE4CB65B29B0927",
+                    "timestamp":  "2025-12-08T02:01:32",
+                    "reviewed_at":  "2025-12-08T02:05:00",
+                    "issues":  [],
+                    "status":  "completed",
+                    "review":  {
+                                   "pass4_style":  true,
+                                   "pass1_structure":  true,
+                                   "pass3_content":  true,
+                                   "pass2_connections":  true
+                               }
+                },
+    "history":  [],
+    "file":  "dfd_level0.puml"
+}

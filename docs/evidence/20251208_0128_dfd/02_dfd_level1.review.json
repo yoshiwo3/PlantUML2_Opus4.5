@@ -1,0 +1,31 @@
+{
+    "current": {
+        "hash": "4A298E0B443CB69C",
+        "timestamp": "2025-12-08T01:43:41",
+        "reviewed_at": "2025-12-08T01:45:00",
+        "issues": [],
+        "status": "completed",
+        "review": {
+            "pass1_structure": true,
+            "pass2_connections": true,
+            "pass3_content": true,
+            "pass4_style": true
+        }
+    },
+    "history": [
+        {
+            "hash": "54D2AF7F83C0C534",
+            "timestamp": "2025-12-08T01:32:51",
+            "reviewed_at": "2025-12-08T01:35:00",
+            "issues": [],
+            "status": "completed",
+            "review": {
+                "pass1_structure": true,
+                "pass2_connections": true,
+                "pass3_content": true,
+                "pass4_style": true
+            }
+        }
+    ],
+    "file": "02_dfd_level1.puml"
+}

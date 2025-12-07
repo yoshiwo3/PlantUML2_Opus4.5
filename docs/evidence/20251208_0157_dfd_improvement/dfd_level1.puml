@@ -1,0 +1,73 @@
+@startuml dfd_level1
+title データフロー図 - レベル1（主要プロセス）
+scale 0.85
+
+skinparam backgroundColor white
+skinparam defaultFontSize 9
+skinparam roundCorner 15
+
+' === 外部エンティティ（四角形） ===
+rectangle "エンドユーザー" as user #LightBlue
+rectangle "開発者" as dev #LightGreen
+rectangle "OpenRouter\nAPI" as openrouter #Lavender
+rectangle "OpenAI\nAPI" as openai #Lavender
+
+' === プロセス（円）- DFD Yourdon記法 ===
+circle " P1.0\n認証\n処理 " as P1 #AliceBlue
+circle " P2.0\nプロジェクト\n管理 " as P2 #AliceBlue
+circle " P3.0\n図表\n管理 " as P3 #AliceBlue
+circle " P4.0\n検証・\nレンダリング " as P4 #AliceBlue
+circle " P5.0\nAI\n支援 " as P5 #AliceBlue
+circle " P6.0\n管理\n機能 " as P6 #AliceBlue
+circle " P7.0\nエクス\nポート " as P7 #AliceBlue
+
+' === データストア（横線付き四角形） ===
+card "==D1: 図表ストレージ==\nsource_code | preview_svg | metadata" as D1 #LightYellow
+card "==D2: 認証情報==\nuser_id | access_token | expires_at" as D2 #LightYellow
+
+' === P1.0 認証処理 ===
+user --> P1 : DF-1\n{provider, code_verifier}
+P1 --> D2 : {session_data}
+D2 --> P1 : {is_valid}
+P1 --> user : DF-2/2E\n{access_token, user_id}\nor {error}
+
+' === P2.0 プロジェクト管理 ===
+user --> P2 : DF-11-14\n{action, project_name}
+P2 --> D1 : {list_prefix}
+D1 --> P2 : {projects[]}
+P2 --> user : DF-15/15E\n{projects[], success}\nor {error}
+
+' === P3.0 図表管理 ===
+user --> P3 : DF-3\n{action, project_name,\ndiagram_name, source_code}
+P3 --> P4 : DF-5\n{source_code, content_type}
+P4 --> P3 : DF-6/6E\n{is_valid, preview_svg,\nerrors[]}
+P3 --> D1 : DF-4\n{file_path, source_code,\npreview_svg}
+D1 --> P3 : {source_code, metadata}
+P3 --> user : DF-16\n{diagrams[], result}
+
+' === P4.0 検証・レンダリング ===
+P4 --> openrouter : {model, error_context}
+openrouter --> P4 : {fixed_code}
+
+' === P5.0 AI支援 ===
+user --> P5 : DF-7\n{question, context_code}
+P5 --> openrouter : DF-8\n{model, messages[]}
+openrouter --> P5 : {response}
+P5 --> openai : DF-9\n{input_text}
+openai --> P5 : {embedding[]}
+P5 --> user : DF-9E\n{ai_response,\nsuggestions[]}\nor {error}
+
+' === P6.0 管理機能 ===
+dev --> P6 : {command, params}
+P6 --> D2 : {query}
+D2 --> P6 : {users[]}
+P6 --> openrouter : {config_request}
+openrouter --> P6 : {usage_data}
+P6 --> dev : {result, stats}
+
+' === P7.0 エクスポート ===
+user --> P7 : DF-10\n{diagram_name, format}
+D1 --> P7 : {source_code}
+P7 --> user : {exported_file}
+
+@enduml
