@@ -214,24 +214,25 @@ Phase 6: 品質・権限定義
 | 3.6 | **保存・エクスポートフロー** | 3-5, 3-6 (保存・エクスポート) | MVP | ✅ 完了 |
 | 3.7 | **バージョン管理フロー** | 3-7, 3-8 (履歴・復元) | MVP | ✅ 完了 |
 | 3.8 | **図表削除フロー** | 3-9 (図表削除) | MVP | ✅ 完了 |
-| 3.9 | **学習コンテンツフロー** | 3-10, 3-11 (検索・確認) | Phase 2 | 🔴 要作成 |
-| 3.10 | **管理機能フロー** | 5-1〜5-13 (開発者向け管理) | Phase 2 | 🔴 要作成 |
+| 3.9 | **管理機能フロー（MVP）** | 5-1, 5-2〜5-5, 5-7, 5-8, 5-13 | **MVP** | 🔴 要作成 |
+| 3.10 | **学習コンテンツフロー** | 3-10, 3-11 (検索・確認) | Phase 2 | 🔴 要作成 |
+| 3.11 | **管理機能フロー（Phase 2）** | 5-6, 5-9〜5-12 | Phase 2 | 🔴 要作成 |
 
-**業務フロー図 進捗: 8/10 完了（80%）** ※MVP必須フロー完了
+**業務フロー図 進捗: 8/11 完了（73%）** ※MVP必須: 8/9完了（89%）
 
-**MVP必須で未完了: 0フロー** ✅ 全完了
-**Phase 2で未完了: 2フロー** (3.9〜3.10)
+**MVP必須で未完了: 1フロー** (3.9 管理機能フロー)
+**Phase 2で未完了: 2フロー** (3.10, 3.11)
 
 #### ユースケースカバレッジ
 
-| パッケージ | 総UC数 | カバー済み | 未カバー |
-|-----------|:------:|:----------:|:--------:|
-| 1. 認証 | 2 | 2 | 0 |
-| 2. プロジェクト管理 | 4 | 4 | 0 |
-| 3. 図表操作 | 11 | 9 | 2 (3-10〜3-11: Phase 2) |
-| 4. AI機能 | 2 | 2 | 0 |
-| 5. 管理機能 | 13 | 0 | 13 (5-1〜5-13: Phase 2) |
-| **合計** | **32** | **17** | **15** |
+| パッケージ | 総UC数 | カバー済み | 未カバー(MVP) | 未カバー(Phase 2) |
+|-----------|:------:|:----------:|:-------------:|:-----------------:|
+| 1. 認証 | 2 | 2 | 0 | 0 |
+| 2. プロジェクト管理 | 4 | 4 | 0 | 0 |
+| 3. 図表操作 | 11 | 9 | 0 | 2 (3-10, 3-11) |
+| 4. AI機能 | 2 | 2 | 0 | 0 |
+| 5. 管理機能 | 13 | 0 | **8** (5-1〜5-5, 5-7, 5-8, 5-13) | 5 (5-6, 5-9〜5-12) |
+| **合計** | **32** | **17** | **8** | **7** |
 
 ### 非機能要件一覧表の項目（IPA非機能要求グレード準拠）
 
@@ -484,10 +485,19 @@ OPENAI_API_KEY=sk-xxxxx
 
 すべてのPlantUMLコード（.pumlファイル、ドキュメント内コードブロック）作成時は以下のフローに従う：
 
-### 必須フロー
+### 必須フロー（2段階ワークフロー）
 
 ```
-1. Context7で仕様確認 → 2. コード作成 → 3. バリデーション → 4. 保存
+1. Context7で仕様確認 → 2. コード作成
+    ↓
+Phase 1: Review（-Review）
+  3. PNG生成 + レビューログ生成（.review.json）
+  4. 視覚的レビュー（4パス方式）
+  5. レビューログ更新（status: completed/failed）
+    ↓
+Phase 2: Publish（-Publish）※レビュー完了後のみ
+  6. レビューログ検証 → SVG生成・正式版保存
+  7. Gitコミット
 ```
 
 ### Step 1: Context7 MCPで仕様確認（必須）
@@ -509,18 +519,92 @@ mcp__context7__get-library-docs   → topic: "<図表タイプ>" (例: "activity
 
 Context7で確認した仕様に基づいてPlantUMLコードを作成。
 
-### Step 3: バリデーション（必須）
+### Step 3: PNG生成 + レビューログ生成（Phase 1: Review）
 
-```
-mcp__plantuml-validator__generate_plantuml_diagram
+**ローカルPlantUML JARを使用してPNGを生成し、レビューログを作成する。**
+
+```powershell
+# Phase 1: レビュー用PNG生成 + レビューログ生成
+pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Review
 ```
 
-- 検証失敗時は修正→再検証（最大5回リトライ）
+生成されるファイル:
+- `diagram.png` - 視覚的レビュー用
+- `diagram.review.json` - レビューログ（status: pending）
+
+- 検証失敗時は修正→再Review（履歴は自動保持）
 - 検証スキップ・エラー無視は**禁止**
 
-### Step 4: 保存/コミット
+### Step 4: 視覚的レビュー（必須）
 
-バリデーション成功後のみ保存・コミット可能。
+**生成されたPNGをClaudeが読み込み、視覚的に確認する。**
+※SVGはXMLテキストとして返されるため、必ずPNGを使用
+
+```
+Read tool → PNGファイルを読み込み → 視覚的に分析
+```
+
+**4パス方式でレビュー**（接続線見落とし防止）:
+
+| パス | 確認内容 | 重要度 |
+|:---:|---------|:-----:|
+| Pass 1 | 全体構造（スイムレーン、開始/終了） | ○ |
+| Pass 2 | **接続線**（結線、途切れ、孤立ノード） | **最重要** |
+| Pass 3 | ノード内容（テキスト、条件ラベル） | ○ |
+| Pass 4 | スタイル（色分け、note、レイアウト） | ○ |
+
+**Pass 2 接続線チェック（必須）**:
+- [ ] start→最初のアクション接続
+- [ ] 全フロー→stop到達
+- [ ] if/else、switchの全分岐接続
+- [ ] スイムレーン間の矢印途切れなし
+- [ ] 孤立ノードなし
+
+**推奨**: ソース+SVG並行確認（ソースの接続構文とSVG描画を相互検証）
+
+詳細: `docs/guides/PlantUML_SVG_Generation_Guide.md` Step 4
+
+### Step 5: レビューログ更新
+
+4パスレビュー完了後、Claudeが`.review.json`を更新する。
+
+**レビューログ構造**（`-Review`実行時に自動生成）:
+```json
+{
+  "current": {
+    "status": "pending",
+    "review": { "pass1_structure": false, ... },
+    "issues": [
+      { "pass": null, "symptom": null, "cause": null }
+    ]
+  }
+}
+```
+
+**問題なしの場合**:
+1. `issues`を空配列`[]`に変更
+2. `review`の各passを`true`に変更
+3. `status`を`"completed"`に変更
+4. `reviewed_at`に現在日時を記入
+
+**問題ありの場合**:
+1. テンプレートの`pass`/`symptom`/`cause`に値を記入
+2. 複数問題がある場合はオブジェクトを追加
+3. `status`を`"failed"`に変更 → Step 2に戻る
+
+### Step 6: 正式版保存（Phase 2: Publish）
+
+**レビューログがcompleted & ハッシュ一致の場合のみ**保存可能。
+
+```powershell
+# Phase 2: レビューログ検証 → SVG生成・正式版保存
+pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -DiagramType "business_flow"
+```
+
+スクリプトが自動検証:
+1. レビューログ存在確認
+2. status = completed
+3. ハッシュ一致（.puml未変更確認）
 
 ### よく使うContext7クエリ例
 
@@ -538,6 +622,8 @@ mcp__plantuml-validator__generate_plantuml_diagram
 - Context7確認なしでのPlantUMLコード作成
 - バリデーション未実施での保存
 - エラー無視・検証スキップ
+- レビューログ未更新でPublish（スクリプトが拒否）
+- レビュー後に.pumlを修正してPublish（ハッシュ不一致で拒否）
 
 ### イテレーティブ改善（プレビュー問題発生時）
 
@@ -617,6 +703,14 @@ PlantUML2_Opus4.5/
 │   │   ├── 20251202_auth_flow/
 │   │   └── 20251206_project_management/
 │   ├── proposals/           # 正式版（レビュー済み）
+│   │   ├── diagrams/        # ★ 正式版SVG保存先
+│   │   │   ├── business_flow/
+│   │   │   ├── sequence/
+│   │   │   ├── usecase/
+│   │   │   ├── context/
+│   │   │   ├── component/
+│   │   │   ├── class/
+│   │   │   └── dfd/
 │   │   ├── PlantUML_Studio_コンテキスト図_20251130.md
 │   │   ├── PlantUML_Studio_ユースケース図_20251130.md
 │   │   ├── PlantUML_Studio_シーケンス図_ログイン_20251130.md
@@ -628,7 +722,8 @@ PlantUML2_Opus4.5/
 │   └── poc/evidence/        # PoC証跡（Layer 3）
 ├── scripts/
 │   ├── create_evidence.ps1  # Evidence自動作成（Windows）
-│   └── create_evidence.sh   # Evidence自動作成（Linux/macOS）
+│   ├── create_evidence.sh   # Evidence自動作成（Linux/macOS）
+│   └── validate_plantuml.ps1 # ★ PlantUML検証・SVG生成
 └── CLAUDE.md                # プロジェクトガイド
 ```
 
@@ -655,6 +750,10 @@ Serenaは積極的に活用する：
 1. `instructions.md`: 作業開始時に作成
 2. `00_raw_notes.md`: 作業中にリアルタイム更新
 3. `work_sheet.md`: 作業完了時に作成
+
+**ディレクトリ命名規則**: `yyyyMMdd_HHmm_<work_type>`
+- 例: `20251207_0902_admin_flow_mvp`
+- 日時は作業開始時刻を使用
 
 自動化スクリプト: `pwsh scripts/create_evidence.ps1 <evidence_name>`
 
@@ -696,7 +795,9 @@ Serenaは積極的に活用する：
 
 2. **Evidenceディレクトリとテンプレート作成**（1分）
    ```powershell
-   pwsh scripts/create_evidence.ps1 <work_type>
+   # ディレクトリ名: yyyyMMdd_HHmm_<work_type>
+   pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm_work_type>
+   # 例: pwsh scripts/create_evidence.ps1 20251207_0902_admin_flow_mvp
    ```
 
 3. **instructions.md編集**（4分）
@@ -833,6 +934,7 @@ Serenaは積極的に活用する：
 | ドキュメント | パス | 内容 |
 |-------------|------|------|
 | AI駆動開発ガイド | `doc/AI_DRIVEN_DEV_ENVIRONMENT_SETUP_GUIDE.md` | 環境構築・運用の完全ガイド |
+| PlantUML SVG生成ガイド | `docs/guides/PlantUML_SVG_Generation_Guide.md` | SVG生成・視覚的レビューの手順 |
 | Memory Bank | `docs/context/` | プロジェクト全体の知識ベース |
 | テンプレート集 | `docs/templates/` | Evidence・引継ぎ資料テンプレート |
 | セッション引継ぎ | `docs/session_handovers/` | 過去のセッション引継ぎ資料 |
