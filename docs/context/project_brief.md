@@ -1,7 +1,7 @@
 # プロジェクト概要（Project Brief）
 
 **プロジェクト名**: PlantUML Studio (PlantUML2_Opus4.5)
-**最終更新**: 2025-12-06
+**最終更新**: 2025-12-08
 **ステータス**: Planning（PRD作成中）
 
 ---
@@ -23,10 +23,28 @@
 
 - **エディタ**: Monaco Editor（PlantUML）+ Excalidraw UI（ワイヤーフレーム）
 - **プレビュー**: node-plantuml（ローカルJAR + Java 17 + Graphviz）
-- **AI機能**: Question-Start、目的別AIチャット、用語一貫性チェック、RAG検索
+- **AI機能**: Question-Start、目的別AIチャット、用語一貫性チェック、RAG検索、PlantUML図表AI自動イテレーション作成（エラー自動修正）
 - **アーキテクチャ**: マイクロサービス（Cloud Run）、APIファースト
 - **認証**: OAuth（GitHub、Google）、Supabase Auth
 - **データ保存**: Repository Pattern（MVP: Storage、v3: DB）
+
+#### AI機能: PlantUML図表AI自動イテレーション作成（エラー自動修正）
+
+> **詳細**: `docs/guides/PlantUML_Development_Constitution.md`（憲法v3.4）
+
+Claude CodeがPlantUML図表を自律的に作成・検証・修正するAI機能。人間の介入なしに高品質な図表を生成する。
+
+**プロセス**:
+1. Context7で仕様確認 → 禁止事項・既知制限を確認
+2. コード作成 → PNG生成（`-Review`）
+3. 4パスレビュー + ソース対比確認（確証バイアス防止）
+4. 問題発見 → 改善ループ（自動イテレーション）
+5. レビュー完了 → SVG正式版保存（`-Publish`）
+
+**成果**:
+- 10フロー中7フロー（70%）で問題を自動検出・修正
+- if/fork/switch内スイムレーン遷移問題のパターン化
+- レビューログ（`.review.json`）による品質保証の証跡管理
 
 ---
 

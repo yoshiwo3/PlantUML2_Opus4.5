@@ -1954,14 +1954,14 @@ endswitch
 
 ### 3.9.1 ユーザー管理フロー詳細（UC 5-1）
 
-ユーザーの一覧表示、詳細確認、権限変更、無効化を行う。
+ユーザーの一覧表示、詳細確認、権限変更、無効化、削除を行う。CRUD操作に対応。
 
 ```plantuml
 @startuml business_flow_user_management_overview
 skinparam ActivityFontSize 12
 skinparam ConditionEndStyle hline
 
-title 業務フロー図 - ユーザー管理（概要）
+title 業務フロー図 - ユーザー管理（UC 5-1）
 
 |開発者|
 start
@@ -1976,29 +1976,56 @@ note right
   - 認証プロバイダー
   - 最終ログイン日時
   - ステータス（有効/無効）
+  - ロール（user/admin/developer）
 end note
 :操作待機;
 
 |開発者|
 switch (操作を選択)
-case (詳細確認)
+case (新規登録\n【Create】)
+  :「新規登録」をクリック;
+  :メールアドレスを入力;
+  :初期ロールを選択;
+  :「登録」をクリック;
+  #lightblue:ユーザー登録実行;
+  note right
+    Supabase Auth API で
+    招待メール送信
+    （パスワード設定リンク付き）
+  end note
+  detach
+case (詳細確認\n【Read】)
   :ユーザーをクリック;
-  #lightblue:詳細確認実行;
+  #palegreen:詳細確認実行;
   note right: Frontend Service で\nユーザー詳細表示
   detach
-case (権限変更)
+case (権限変更\n【Update】)
   :権限変更をクリック;
-  #palegreen:権限変更実行;
+  :新しいロールを選択;
+  :「適用」をクリック;
+  #lightyellow:権限変更実行;
   note right
-    Frontend Service で
-    権限変更ダイアログ表示
+    Supabase で
+    app_metadata.role 更新
     roles: user, admin, developer
   end note
   detach
-case (無効化)
-  :無効化をクリック;
-  #lightyellow:無効化実行;
-  note right: Frontend Service で\n確認ダイアログ → 無効化
+case (無効化\n【Soft Delete】)
+  :「無効化」をクリック;
+  #AntiqueWhite:無効化実行;
+  note right: Supabase Auth API で\nユーザーBAN処理
+  detach
+case (削除\n【Hard Delete】)
+  :「削除」をクリック;
+  #mistyrose:削除確認ダイアログ;
+  note right
+    **警告表示**
+    - 関連データも削除される
+    - この操作は取り消せない
+  end note
+  :「削除を確定」をクリック;
+  #mistyrose:ユーザー削除実行;
+  note right: Supabase Auth API で\nユーザー完全削除
   detach
 case (戻る)
   :管理ダッシュボードへ;
@@ -2010,12 +2037,14 @@ endswitch
 
 #### ユーザー管理フローテーブル
 
-| 操作 | 処理内容 | 担当 | エラー処理 |
-|------|---------|------|-----------|
-| 一覧表示 | ユーザー一覧取得（Admin API） | Supabase | 失敗時: エラー通知 |
-| 詳細確認 | ユーザー詳細取得 | Supabase | 失敗時: エラー通知 |
-| 権限変更 | app_metadata.role更新 | Supabase | 失敗時: エラー通知 |
-| 無効化 | ユーザーBAN処理 | Supabase | 失敗時: エラー通知 |
+| 操作 | CRUD | 処理内容 | 担当 | エラー処理 |
+|------|:----:|---------|------|-----------|
+| 新規登録 | Create | 招待メール送信 | Supabase Auth | 失敗時: エラー通知 |
+| 一覧表示 | Read | ユーザー一覧取得（Admin API） | Supabase | 失敗時: エラー通知 |
+| 詳細確認 | Read | ユーザー詳細取得 | Supabase | 失敗時: エラー通知 |
+| 権限変更 | Update | app_metadata.role更新 | Supabase | 失敗時: エラー通知 |
+| 無効化 | Soft Delete | ユーザーBAN処理 | Supabase | 失敗時: エラー通知 |
+| 削除 | Hard Delete | ユーザー完全削除 | Supabase Auth | 失敗時: エラー通知 |
 
 ### 3.9.2 LLM管理フロー（UC 5-2〜5-5, 5-7, 5-8）
 
@@ -2170,22 +2199,25 @@ end note
 
 |開発者|
 if (確認?) then (はい)
-  |Frontend Service|
-  :割当更新リクエスト;
-
-  |Supabase|
-  :llm_model_assignments 更新;
-
-  |Frontend Service|
-  if (更新成功?) then (はい)
-    :割当一覧更新;
-    #palegreen:完了通知;
-  else (エラー)
-    #mistyrose:エラー通知;
-  endif
+  :確認OK;
 else (キャンセル)
   |Frontend Service|
   :ダイアログを閉じる;
+  stop
+endif
+
+|Frontend Service|
+:割当更新リクエスト;
+
+|Supabase|
+:llm_model_assignments 更新;
+
+|Frontend Service|
+if (更新成功?) then (はい)
+  :割当一覧更新;
+  #palegreen:完了通知;
+else (エラー)
+  #mistyrose:エラー通知;
 endif
 stop
 
@@ -2470,22 +2502,25 @@ endswitch
 
 |開発者|
 if (確認?) then (はい)
-  |Frontend Service|
-  :設定更新リクエスト;
-
-  |Supabase|
-  :system_settings 更新;
-
-  |Frontend Service|
-  if (更新成功?) then (はい)
-    #palegreen:完了通知;
-    :アプリケーション設定リロード;
-  else (エラー)
-    #mistyrose:エラー通知;
-  endif
+  :確認OK;
 else (キャンセル)
   |Frontend Service|
   :ダイアログを閉じる;
+  stop
+endif
+
+|Frontend Service|
+:設定更新リクエスト;
+
+|Supabase|
+:system_settings 更新;
+
+|Frontend Service|
+if (更新成功?) then (はい)
+  #palegreen:完了通知;
+  :アプリケーション設定リロード;
+else (エラー)
+  #mistyrose:エラー通知;
 endif
 stop
 

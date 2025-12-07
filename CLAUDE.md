@@ -358,8 +358,16 @@ const Excalidraw = dynamic(
 )
 ```
 
-### PlantUML構文注意
-- シーケンス図で`note bottom of`は使用不可 → `note over`を使用
+### PlantUML構文注意（既知の制限）
+
+> **詳細**: `docs/guides/PlantUML_Development_Constitution.md` § 3 参照
+
+| 問題 | 回避策 |
+|------|--------|
+| **if/fork/switch内でスイムレーン遷移** | switch全体を1スイムレーン内に収め、noteで詳細を説明 |
+| **if/else両方でスイムレーン遷移** | if全体を1スイムレーン内に収め、noteで説明 |
+| endif直後のスイムレーン遷移 | endif後に1行アクションを入れてから遷移 |
+| シーケンス図で`note bottom of`使用不可 | `note over`を使用 |
 
 ### TD-005: プロジェクト選択状態のSupabase保存
 ```typescript
@@ -508,14 +516,20 @@ pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Review
 pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -DiagramType "business_flow"
 ```
 
-### 絶対禁止（憲法より抜粋）
+### 絶対禁止（憲法v3.4より抜粋）
 
 | # | 禁止事項 |
 |:-:|---------|
-| 1 | **if/fork内でスイムレーン遷移するコードを書く** |
+| 1 | **if/fork/switch内でスイムレーン遷移するコードを書く** |
 | 2 | **SVGのXMLテキストを見て視覚確認したと判断する** |
 | 3 | **ソース+PNG対比確認をスキップする** |
 | 4 | **Context7確認なしでPlantUMLコードを作成する** |
+| 5 | **レビューログ未更新でPublishする** |
+| 6 | **レビュー後に.pumlを修正してPublishする** |
+| 7 | **ソースコードから接続を推測して✅をつける** |
+| 8 | **PNGと.pumlを同時に読み込む**（確証バイアス防止） |
+
+> **最重要**: #1の違反は10フロー中7フロー（70%）で発生。switch/case内のスイムレーン遷移も禁止（2025-12-08発見）。
 
 ### 関連ドキュメント
 

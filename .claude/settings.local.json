@@ -30,7 +30,9 @@
       "Bash(powershell.exe -ExecutionPolicy Bypass -File \"scripts/validate_plantuml.ps1\" -InputPath \"docs/evidence/20251207_1552_admin_flow_review/01_overview.puml\" -Review)",
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
-      "Bash(powershell.exe:*)"
+      "Bash(powershell.exe:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
