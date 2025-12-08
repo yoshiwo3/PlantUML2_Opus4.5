@@ -1,0 +1,336 @@
+@startuml class_diagram_domain_model
+
+title PlantUML Studio - ドメインモデル（MVP + Phase 2）
+
+skinparam class {
+  BackgroundColor<<entity>> #E8F5E9
+  BorderColor<<entity>> #2E7D32
+  BackgroundColor<<valueobject>> #E3F2FD
+  BorderColor<<valueobject>> #1565C0
+  BackgroundColor<<enum>> #FFF3E0
+  BorderColor<<enum>> #EF6C00
+}
+
+skinparam groupInheritance 2
+skinparam linetype ortho
+
+' ============================================
+' エンティティ（Entity）
+' ============================================
+
+package "認証・ユーザー" <<Rectangle>> {
+  class User <<entity>> {
+    +user_id: UUID {PK}
+    +email: VARCHAR(255) {UK}
+    +provider: UserProvider
+    +role: UserRole
+    +last_sign_in_at: TIMESTAMP
+    +last_selected_project_id: VARCHAR(100) {FK, nullable}
+    +is_active: BOOLEAN
+    +created_at: TIMESTAMP
+    --
+    +createProject(name: String): Project
+    +selectProject(projectName: String): void
+    +deactivate(): void
+  }
+
+  class Session <<entity>> {
+    +session_id: UUID {PK}
+    +user_id: UUID {FK}
+    +access_token: JWT
+    +refresh_token: VARCHAR(512)
+    +expires_at: TIMESTAMP
+    +created_at: TIMESTAMP
+    --
+    +isValid(): Boolean
+    +refresh(): Session
+    +revoke(): void
+  }
+}
+
+package "プロジェクト・図表" <<Rectangle>> {
+  class Project <<entity>> {
+    +project_name: VARCHAR(100) {UK}
+    +user_id: UUID {FK}
+    +description: TEXT
+    +storage_path: VARCHAR(255) {UK}
+    +created_at: TIMESTAMP
+    +updated_at: TIMESTAMP
+    --
+    +addDiagram(diagram: Diagram): void
+    +removeDiagram(diagramName: String): void
+    +rename(newName: String): void
+    +updateDescription(desc: String): void
+  }
+
+  class Diagram <<entity>> {
+    +diagram_name: VARCHAR(100) {UK}
+    +project_name: VARCHAR(100) {FK}
+    +content_type: ContentType
+    +source_code: TEXT
+    +preview_svg: BLOB
+    +file_path: VARCHAR(255) {UK}
+    +file_size: INTEGER
+    +template_id: VARCHAR(50) {FK, nullable}
+    +created_at: TIMESTAMP
+    +updated_at: TIMESTAMP
+    --
+    +validate(): ValidationResult
+    +save(): void
+    +export(format: ExportFormat): Blob
+    +updateContent(code: String): void
+  }
+
+  class Template <<entity>> {
+    +template_id: VARCHAR(50) {PK}
+    +name: VARCHAR(100)
+    +category: DiagramCategory
+    +content_type: ContentType
+    +source_code: TEXT
+    +preview_url: URL
+    +description: TEXT
+    --
+    +apply(): String
+    +getPreview(): SVG
+  }
+}
+
+package "管理機能" <<Rectangle>> {
+  class LLMModel <<entity>> {
+    +model_id: VARCHAR(200) {PK}
+    +display_name: VARCHAR(100)
+    +input_cost: DECIMAL(10,6)
+    +output_cost: DECIMAL(10,6)
+    +max_context: INTEGER
+    +description: TEXT
+    +is_active: BOOLEAN
+    --
+    +activate(): void
+    +deactivate(): void
+    +updateCost(input: Decimal, output: Decimal): void
+  }
+
+  class Prompt <<entity>> {
+    +prompt_id: VARCHAR(50) {PK}
+    +name: VARCHAR(100)
+    +purpose: PromptPurpose
+    +system_prompt: TEXT
+    +user_template: TEXT
+    +model_id: VARCHAR(200) {FK}
+    +temperature: DECIMAL(2,1)
+    +max_tokens: INTEGER
+    +is_active: BOOLEAN
+    --
+    +render(variables: Map): String
+    +test(): AIResponse
+  }
+
+  class SystemConfig <<entity>> {
+    +config_key: VARCHAR(100) {PK}
+    +config_value: TEXT
+    +category: ConfigCategory
+    +description: TEXT
+    +updated_at: TIMESTAMP
+    +updated_by: UUID {FK}
+    --
+    +getValue(): any
+    +setValue(value: any): void
+  }
+}
+
+package "Phase 2: 学習コンテンツ" <<Rectangle>> #FFFDE7 {
+  class LearningContent <<entity>> {
+    +content_id: UUID {PK}
+    +title: VARCHAR(200)
+    +category: LearningCategory
+    +content_type: ContentType
+    +body: TEXT
+    +sample_code: TEXT
+    +embedding_vector: VECTOR(1536)
+    +tags: VARCHAR[]
+    +created_at: TIMESTAMP
+    +updated_at: TIMESTAMP
+    --
+    +search(query: String): LearningContent[]
+    +generateEmbedding(): void
+  }
+}
+
+' ============================================
+' 値オブジェクト（Value Object）
+' ============================================
+
+package "値オブジェクト" <<Rectangle>> {
+  class ValidationResult <<valueobject>> {
+    +valid: Boolean
+    +errors: ValidationError[]
+    +svg: String
+    +processing_time_ms: Number
+    --
+    +hasErrors(): Boolean
+    +getFirstError(): ValidationError
+  }
+
+  class ValidationError <<valueobject>> {
+    +line: Number
+    +column: Number
+    +message: String
+    +severity: ErrorSeverity
+    +suggestion: String
+    --
+    +format(): String
+  }
+
+  class AIResponse <<valueobject>> {
+    +content: String
+    +model_used: String
+    +input_tokens: Number
+    +output_tokens: Number
+    +cost: Decimal
+    +latency_ms: Number
+    --
+    +estimateCost(): Decimal
+  }
+}
+
+' ============================================
+' 列挙型（Enum）
+' ============================================
+
+package "列挙型" <<Rectangle>> {
+  enum ContentType <<enum>> {
+    PUML
+    EXCALIDRAW
+  }
+
+  enum DiagramCategory <<enum>> {
+    SEQUENCE
+    CLASS
+    USECASE
+    ACTIVITY
+    STATE
+    COMPONENT
+    ER
+    FLOWCHART
+    WIREFRAME
+    MOCKUP
+  }
+
+  enum UserRole <<enum>> {
+    USER
+    DEVELOPER
+  }
+
+  enum UserProvider <<enum>> {
+    GITHUB
+    GOOGLE
+  }
+
+  enum ExportFormat <<enum>> {
+    PNG
+    SVG
+    PDF
+    PUML
+    JSON
+  }
+
+  enum ErrorSeverity <<enum>> {
+    ERROR
+    WARNING
+    INFO
+  }
+
+  enum PromptPurpose <<enum>> {
+    QUESTION_START
+    CODE_GENERATE
+    ERROR_FIX
+    TERM_CHECK
+  }
+
+  enum ConfigCategory <<enum>> {
+    FEATURE_FLAG
+    DISPLAY
+    LIMIT
+    EXTERNAL
+  }
+
+  enum LearningCategory <<enum>> {
+    SYNTAX
+    BESTPRACTICE
+    EXAMPLE
+    TUTORIAL
+  }
+}
+
+' ============================================
+' 関連（Relationships）
+' ============================================
+
+' User関連
+User "1" --o "0..*" Project : owns >
+User "1" --o "0..*" Session : has >
+User "1" ..> "0..1" Project : last_selected >
+
+' Project関連
+Project "1" --o "0..*" Diagram : contains >
+
+' Diagram関連
+Diagram "0..*" --> "0..1" Template : created_from >
+Diagram ..> ValidationResult : produces >
+Diagram --> ContentType : type >
+
+' Template関連
+Template --> ContentType : for >
+Template --> DiagramCategory : category >
+
+' LLM関連
+Prompt "0..*" --> "1" LLMModel : uses >
+
+' ValidationResult関連
+ValidationResult "1" --o "0..*" ValidationError : contains >
+ValidationError --> ErrorSeverity : severity >
+
+' SystemConfig関連
+SystemConfig --> ConfigCategory : category >
+
+' User関連（enum）
+User --> UserRole : role >
+User --> UserProvider : provider >
+
+' Prompt関連（enum）
+Prompt --> PromptPurpose : purpose >
+
+' LearningContent関連
+LearningContent --> LearningCategory : category >
+LearningContent --> ContentType : content_type >
+
+' ============================================
+' ノート
+' ============================================
+
+note top of User
+  **TD-005対応**
+  last_selected_project_id で
+  前回の作業を即座に再開可能
+end note
+
+note top of Project
+  **TD-006対応（Storage Only）**
+  MVPはSupabase Storageのみ
+  storage_path: /{user_id}/{project_name}/
+end note
+
+note bottom of Diagram
+  **ファイル形式**
+  .puml: PlantUMLソース（コメント内Markdown）
+  .excalidraw.json: Excalidrawソース
+  .preview.svg: プレビュー画像
+end note
+
+note right of LearningContent
+  **Phase 2（TD-007対応）**
+  Embeddingはpgvector使用
+  OpenAI text-embedding-3-small
+end note
+
+@enduml

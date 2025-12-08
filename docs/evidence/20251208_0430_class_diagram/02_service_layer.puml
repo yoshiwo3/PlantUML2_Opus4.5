@@ -1,0 +1,358 @@
+@startuml class_diagram_service_layer
+
+title PlantUML Studio - サービス層（MVP + Phase 2）
+
+skinparam class {
+  BackgroundColor<<service>> #E3F2FD
+  BorderColor<<service>> #1565C0
+  BackgroundColor<<repository>> #E8F5E9
+  BorderColor<<repository>> #2E7D32
+  BackgroundColor<<interface>> #FFF3E0
+  BorderColor<<interface>> #EF6C00
+  BackgroundColor<<client>> #F3E5F5
+  BorderColor<<client>> #7B1FA2
+}
+
+skinparam groupInheritance 2
+skinparam linetype ortho
+
+' ============================================
+' インターフェース（Repository Pattern - TD-006）
+' ============================================
+
+package "Repository Interface" <<Rectangle>> {
+  interface IDiagramRepository <<interface>> {
+    +list(projectName: String): Diagram[]
+    +get(projectName: String, diagramName: String): Diagram
+    +save(diagram: Diagram): void
+    +delete(projectName: String, diagramName: String): void
+    +exists(projectName: String, diagramName: String): Boolean
+  }
+
+  interface IProjectRepository <<interface>> {
+    +list(userId: UUID): Project[]
+    +get(userId: UUID, projectName: String): Project
+    +create(project: Project): void
+    +update(project: Project): void
+    +delete(userId: UUID, projectName: String): void
+    +exists(userId: UUID, projectName: String): Boolean
+  }
+
+  interface ITemplateRepository <<interface>> {
+    +list(category?: DiagramCategory): Template[]
+    +get(templateId: String): Template
+    +getByCategory(category: DiagramCategory): Template[]
+  }
+}
+
+package "Repository Implementation（MVP）" <<Rectangle>> {
+  class StorageDiagramRepository <<repository>> {
+    -storageClient: StorageClient
+    --
+    +list(projectName: String): Diagram[]
+    +get(projectName: String, diagramName: String): Diagram
+    +save(diagram: Diagram): void
+    +delete(projectName: String, diagramName: String): void
+    +exists(projectName: String, diagramName: String): Boolean
+    --
+    -buildPath(projectName: String, diagramName: String): String
+    -parseMetadata(content: String): DiagramMetadata
+  }
+
+  class StorageProjectRepository <<repository>> {
+    -storageClient: StorageClient
+    --
+    +list(userId: UUID): Project[]
+    +get(userId: UUID, projectName: String): Project
+    +create(project: Project): void
+    +update(project: Project): void
+    +delete(userId: UUID, projectName: String): void
+    +exists(userId: UUID, projectName: String): Boolean
+    --
+    -buildPath(userId: UUID, projectName: String): String
+  }
+
+  class StaticTemplateRepository <<repository>> {
+    -templates: Map<String, Template>
+    --
+    +list(category?: DiagramCategory): Template[]
+    +get(templateId: String): Template
+    +getByCategory(category: DiagramCategory): Template[]
+  }
+}
+
+' ============================================
+' サービス層
+' ============================================
+
+package "認証サービス" <<Rectangle>> {
+  class AuthService <<service>> {
+    -supabaseClient: SupabaseClient
+    --
+    +signInWithOAuth(provider: UserProvider): AuthResult
+    +signOut(): void
+    +getSession(): Session
+    +refreshSession(): Session
+    +getUser(): User
+    --
+    -validateSession(session: Session): Boolean
+    -handleCallback(code: String): AuthResult
+  }
+}
+
+package "プロジェクト・図表サービス" <<Rectangle>> {
+  class ProjectService <<service>> {
+    -projectRepository: IProjectRepository
+    -authService: AuthService
+    --
+    +create(dto: CreateProjectDto): Project
+    +update(projectName: String, dto: UpdateProjectDto): Project
+    +delete(projectName: String): void
+    +list(): Project[]
+    +get(projectName: String): Project
+    +select(projectName: String): void
+    --
+    -validateProjectName(name: String): Boolean
+    -checkDuplicateName(userId: UUID, name: String): void
+  }
+
+  class DiagramService <<service>> {
+    -diagramRepository: IDiagramRepository
+    -validationService: ValidationService
+    -templateRepository: ITemplateRepository
+    --
+    +create(dto: CreateDiagramDto): Diagram
+    +update(projectName: String, diagramName: String, dto: UpdateDiagramDto): Diagram
+    +delete(projectName: String, diagramName: String): void
+    +list(projectName: String): Diagram[]
+    +get(projectName: String, diagramName: String): Diagram
+    +createFromTemplate(projectName: String, templateId: String): Diagram
+    --
+    -validateDiagramName(name: String): Boolean
+  }
+
+  class TemplateService <<service>> {
+    -templateRepository: ITemplateRepository
+    --
+    +list(category?: DiagramCategory): Template[]
+    +get(templateId: String): Template
+    +getCategories(): DiagramCategory[]
+    +getPreview(templateId: String): SVG
+  }
+}
+
+package "検証・エクスポートサービス" <<Rectangle>> {
+  class ValidationService <<service>> {
+    -plantUMLValidator: PlantUMLValidator
+    -aiService: AIService
+    --
+    +validate(code: String): ValidationResult
+    +validateWithAutoFix(code: String, maxRetries: Number): ValidationResult
+    +render(code: String): SVG
+    --
+    -parseErrors(output: String): ValidationError[]
+    -suggestFix(error: ValidationError, code: String): String
+  }
+
+  class ExportService <<service>> {
+    -validationService: ValidationService
+    --
+    +exportPNG(diagram: Diagram): Blob
+    +exportSVG(diagram: Diagram): Blob
+    +exportPDF(diagram: Diagram): Blob
+    +exportSource(diagram: Diagram): String
+    --
+    -convertSVGtoPNG(svg: String): Blob
+    -convertSVGtoPDF(svg: String): Blob
+  }
+}
+
+package "AI機能サービス" <<Rectangle>> {
+  class AIService <<service>> {
+    -llmClient: OpenRouterClient
+    -promptService: PromptService
+    --
+    +questionStart(question: String, context?: String): AIResponse
+    +generateCode(prompt: String, diagramType: DiagramCategory): AIResponse
+    +suggestFix(error: ValidationError, code: String): AIResponse
+    +checkTermConsistency(code: String, glossary: String[]): TermCheckResult
+    --
+    -selectModel(purpose: PromptPurpose): LLMModel
+    -buildPrompt(purpose: PromptPurpose, variables: Map): String
+  }
+
+  class PromptService <<service>> {
+    -promptRepository: IPromptRepository
+    --
+    +get(promptId: String): Prompt
+    +getByPurpose(purpose: PromptPurpose): Prompt
+    +render(prompt: Prompt, variables: Map): String
+    +test(prompt: Prompt, testInput: String): AIResponse
+  }
+}
+
+package "管理サービス" <<Rectangle>> {
+  class AdminService <<service>> {
+    -userRepository: IUserRepository
+    -systemConfigRepository: ISystemConfigRepository
+    --
+    +listUsers(filter?: UserFilter): User[]
+    +getUser(userId: UUID): User
+    +updateUserRole(userId: UUID, role: UserRole): void
+    +deactivateUser(userId: UUID): void
+    +getConfig(key: String): SystemConfig
+    +updateConfig(key: String, value: any): void
+    --
+    -checkAdminPermission(): void
+  }
+
+  class LLMConfigService <<service>> {
+    -llmModelRepository: ILLMModelRepository
+    -promptRepository: IPromptRepository
+    -usageLogRepository: IUsageLogRepository
+    --
+    +registerModel(dto: RegisterModelDto): LLMModel
+    +switchModel(purpose: PromptPurpose, modelId: String): void
+    +managePrompt(dto: PromptDto): Prompt
+    +setParameters(modelId: String, params: LLMParams): void
+    +monitorUsage(period: DateRange): UsageReport
+    +setFallback(primaryModelId: String, fallbackModelId: String): void
+    --
+    -validateModelId(modelId: String): Boolean
+    -checkModelAvailability(modelId: String): Boolean
+  }
+}
+
+package "Phase 2: 学習コンテンツサービス" <<Rectangle>> #FFFDE7 {
+  class LearningService <<service>> {
+    -contentRepository: ILearningContentRepository
+    -embeddingClient: OpenAIEmbeddingClient
+    --
+    +search(query: String): LearningContent[]
+    +get(contentId: UUID): LearningContent
+    +register(dto: RegisterContentDto): LearningContent
+    +update(contentId: UUID, dto: UpdateContentDto): LearningContent
+    +delete(contentId: UUID): void
+    --
+    -generateEmbedding(text: String): Vector
+    -similaritySearch(vector: Vector, limit: Number): LearningContent[]
+  }
+}
+
+' ============================================
+' 外部クライアント
+' ============================================
+
+package "外部クライアント" <<Rectangle>> {
+  class SupabaseClient <<client>> {
+    +auth: AuthClient
+    +storage: StorageClient
+    --
+    +signIn(provider: String): AuthResult
+    +signOut(): void
+    +getUser(): User
+    +from(bucket: String): StorageBucket
+  }
+
+  class StorageClient <<client>> {
+    -bucketName: String
+    --
+    +upload(path: String, file: Blob): void
+    +download(path: String): Blob
+    +list(prefix: String): FileObject[]
+    +remove(paths: String[]): void
+    +getPublicUrl(path: String): URL
+  }
+
+  class OpenRouterClient <<client>> {
+    -apiKey: String
+    -baseUrl: String
+    --
+    +chatCompletion(request: ChatRequest): ChatResponse
+    +listModels(): Model[]
+    --
+    -handleFallback(request: ChatRequest, models: String[]): ChatResponse
+    -estimateCost(model: String, tokens: Number): Decimal
+  }
+
+  class PlantUMLValidator <<client>> {
+    -jarPath: String
+    -graphvizPath: String
+    --
+    +validate(code: String): ValidationResult
+    +render(code: String, format: String): Blob
+    --
+    -executeJar(args: String[]): ProcessResult
+  }
+}
+
+package "Phase 2: Embeddingクライアント" <<Rectangle>> #FFFDE7 {
+  class OpenAIEmbeddingClient <<client>> {
+    -apiKey: String
+    -model: String
+    --
+    +createEmbedding(text: String): Vector
+    +createBatchEmbedding(texts: String[]): Vector[]
+    --
+    -handleRateLimit(): void
+  }
+}
+
+' ============================================
+' 関連（Relationships）
+' ============================================
+
+' Repository Pattern（インターフェース実装）
+IDiagramRepository <|.. StorageDiagramRepository
+IProjectRepository <|.. StorageProjectRepository
+ITemplateRepository <|.. StaticTemplateRepository
+
+' サービス → Repository依存
+DiagramService --> IDiagramRepository : uses >
+DiagramService --> ITemplateRepository : uses >
+ProjectService --> IProjectRepository : uses >
+TemplateService --> ITemplateRepository : uses >
+
+' サービス → サービス依存
+DiagramService --> ValidationService : uses >
+ProjectService --> AuthService : uses >
+ValidationService --> AIService : uses >
+AIService --> PromptService : uses >
+
+' サービス → クライアント依存
+AuthService --> SupabaseClient : uses >
+StorageDiagramRepository --> StorageClient : uses >
+StorageProjectRepository --> StorageClient : uses >
+AIService --> OpenRouterClient : uses >
+ValidationService --> PlantUMLValidator : uses >
+LearningService --> OpenAIEmbeddingClient : uses >
+
+' ============================================
+' ノート
+' ============================================
+
+note top of IDiagramRepository
+  **TD-006: Repository Pattern**
+  MVP: StorageRepository
+  v3: DB+StorageRepository に差し替え
+end note
+
+note right of OpenRouterClient
+  **TD-007: LLM機能**
+  OpenRouter経由で統一API
+  フォールバック対応
+end note
+
+note right of OpenAIEmbeddingClient
+  **TD-007: Embedding機能**
+  OpenAI直接接続
+  text-embedding-3-small
+end note
+
+note bottom of ValidationService
+  **PlantUML検証**
+  node-plantuml + Java 17 + Graphviz
+  ローカルJAR使用
+end note
+
+@enduml
