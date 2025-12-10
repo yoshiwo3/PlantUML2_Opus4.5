@@ -70,6 +70,6 @@ Write-Host "`n次のステップ:" -ForegroundColor Cyan
 Write-Host "1. instructions.md を編集（目標、コンテキスト、実施内容、完了条件）" -ForegroundColor White
 Write-Host "2. 作業開始（00_raw_notes.md にリアルタイム記録）" -ForegroundColor White
 Write-Host "3. 作業完了後、work_sheet.md を作成（テンプレート: docs/templates/work_sheet_template.md）" -ForegroundColor White
-Write-Host "4. Git commit & push" -ForegroundColor White
+Write-Host "4. Git commit and push" -ForegroundColor White
 
 Write-Host "`nEvidence 3点セット初期化完了！" -ForegroundColor Green

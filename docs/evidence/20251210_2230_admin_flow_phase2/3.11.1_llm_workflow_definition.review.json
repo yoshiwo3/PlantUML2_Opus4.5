@@ -1,0 +1,17 @@
+{
+    "current": {
+        "hash": "6CCE2E845284EFB5",
+        "timestamp": "2025-12-10T22:52:05",
+        "reviewed_at": "2025-12-10T22:53:00",
+        "issues": [],
+        "status": "completed",
+        "review": {
+            "pass1_structure": true,
+            "pass2_connections": true,
+            "pass3_content": true,
+            "pass4_style": true
+        }
+    },
+    "history": [],
+    "file": "3.11.1_llm_workflow_definition.puml"
+}

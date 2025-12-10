@@ -21,6 +21,8 @@
 | 3.7 | バージョン管理フロー | UC 3-7, 3-8 |
 | 3.8 | 図表削除フロー | UC 3-9 |
 | 3.9 | 管理機能フロー（MVP） | UC 5-1, 5-2〜5-5, 5-7, 5-8, 5-13 |
+| 3.10 | 学習コンテンツフロー（Phase 2） | UC 3-10, 3-11 |
+| 3.11 | 管理機能フロー（Phase 2） | UC 5-6, 5-9, 5-10 |
 
 ---
 
@@ -2553,12 +2555,455 @@ stop
 
 ---
 
+## 3.11 管理機能フロー（Phase 2）
+
+**関連ユースケース**: UC 5-6 LLMワークフローを定義する, UC 5-9 Embeddingモデルを設定する, UC 5-10 Embedding使用量を監視する
+
+**フェーズ**: Phase 2（AI機能高度化・学習支援）
+
+**前提条件**: 開発者権限を持つユーザーのみアクセス可能
+
+### 3.11.1 概要図（Phase 2管理機能の全体構成）
+
+```plantuml
+@startuml business_flow_admin_phase2_overview
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 3.11 管理機能フロー（Phase 2）概要
+
+|開発者|
+start
+:管理画面にアクセス;
+:Phase 2管理タブを選択;
+
+|開発者|
+switch (管理機能を選択)
+case (LLMワークフロー定義\nUC 5-6)
+  #lightblue:LLMワークフロー画面へ;
+  note right
+    詳細は 3.11.1 参照
+    ====
+    DAGエディタでワークフロー定義
+    ・ステップ追加（モデル、プロンプト）
+    ・入出力マッピング（Jinja2）
+    ・条件分岐設定
+  end note
+  detach
+case (Embeddingモデル設定\nUC 5-9)
+  #palegreen:Embedding設定画面へ;
+  note right
+    詳細は 3.11.2 参照
+    ====
+    モデル切替と再生成オプション
+    ・text-embedding-3-small/large
+    ・既存再生成 or 新規のみ
+  end note
+  detach
+case (Embedding使用量監視\nUC 5-10)
+  #lightyellow:使用量ダッシュボードへ;
+  note right
+    詳細は 3.11.3 参照
+    ====
+    トークン数・コスト監視
+    ・OpenAI直接接続
+  end note
+  detach
+case (戻る)
+  :管理画面トップへ;
+  stop
+endswitch
+
+@enduml
+```
+
+### 3.11.2 LLMワークフロー定義フロー（UC 5-6）
+
+**技術決定**: TD-008 LLMワークフローのDAG構造採用（Phase 2）
+
+```plantuml
+@startuml business_flow_llm_workflow_definition
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 3.11.1 LLMワークフロー定義フロー（UC 5-6）
+
+|開発者|
+start
+:LLMワークフロー画面を開く;
+
+|Frontend Service|
+:ワークフロー一覧を要求;
+
+|Supabase|
+:llm_workflowsから
+ワークフロー一覧を返却;
+
+|Frontend Service|
+:ワークフロー一覧を表示;
+
+|開発者|
+switch (操作を選択)
+case (新規作成)
+  :新規作成をクリック;
+  detach
+case (既存編集)
+  :ワークフローを選択;
+  detach
+case (戻る)
+  :管理画面に戻る;
+  stop
+endswitch
+
+' === 新規作成/編集の共通フロー ===
+
+|Frontend Service|
+:DAGエディタを表示;
+note right
+  **DAGエディタUI**
+  ビジュアルノードエディタ
+  （React Flow等で実装）
+end note
+
+|開発者|
+:ワークフローを定義;
+note right
+  **DAGエディタでの操作**
+  ====
+  **ステップ追加**
+  ・モデル選択
+  ・プロンプト設定
+  ・パラメータオーバーライド
+  ・出力スキーマ定義（任意）
+  ====
+  **入出力マッピング**
+  ・Jinja2テンプレート
+  ・AI支援で参照パス提案
+  ====
+  **エッジ接続**
+  ・success/error/always
+  ・LLM判定（カスタム条件）
+  ====
+  ※ 詳細は以下で別途定義:
+  ・シーケンス図 UC 5-6
+  ・ワイヤーフレーム DAGエディタUI
+  ・機能一覧表 LM-05詳細仕様
+end note
+
+|開発者|
+:テスト実行をクリック;
+
+|Frontend Service|
+:テストリクエストを送信;
+
+|Supabase|
+:ワークフローを一時保存;
+
+|Frontend Service|
+:サンプル入力でワークフロー実行;
+note right
+  **テスト実行**
+  サンプル入力でDAGを
+  順次実行し結果を確認
+end note
+
+|Frontend Service|
+:テスト結果を表示;
+
+|開発者|
+if (テスト成功?) then (はい)
+  :保存をクリック;
+else (いいえ)
+  :ワークフローを修正;
+  stop
+endif
+
+|Frontend Service|
+:保存リクエストを送信;
+
+|Supabase|
+:llm_workflows, llm_workflow_steps,
+llm_workflow_edges を保存;
+
+|Supabase|
+:保存結果を返却;
+
+|Frontend Service|
+:保存完了通知を表示;
+
+|開発者|
+:ワークフロー有効化を確認;
+stop
+
+@enduml
+```
+
+#### DAG構造の詳細設計（TD-008）
+
+| 項目 | 決定 | 説明 |
+|------|------|------|
+| **UI** | ビジュアルノードエディタ | React Flow等で実装、直感的なドラッグ&ドロップ操作 |
+| **入出力マッピング** | Jinja2テンプレート + AI支援 | `{{ step1.output }}`、`{{ step1.output.errors[0].message }}`等 |
+| **出力スキーマ** | オプション（JSON Schema形式） | 必須ではないが、定義すれば型安全性向上 |
+| **条件分岐** | success/error/always + LLM判定 | LLMにカスタム条件を判定させることも可能 |
+
+#### データモデル
+
+| テーブル | 説明 |
+|---------|------|
+| `llm_workflows` | ワークフロー定義のメタデータ |
+| `llm_workflow_steps` | 各ステップの定義（モデル、プロンプト、パラメータ） |
+| `llm_workflow_edges` | ステップ間の接続（条件分岐含む） |
+| `llm_workflow_step_inputs` | ステップへの入力マッピング定義 |
+
+### 3.11.3 Embeddingモデル設定フロー（UC 5-9）
+
+**技術決定**: TD-009 Embeddingモデル切り替え時の再生成戦略（Phase 2）
+
+```plantuml
+@startuml business_flow_embedding_model_setting
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 3.11.2 Embeddingモデル設定フロー（UC 5-9）
+
+|開発者|
+start
+:Embedding設定画面を開く;
+
+|Frontend Service|
+:現在の設定を取得;
+
+|Supabase|
+:embedding_settingsから
+現在のモデル設定を返却;
+
+|Frontend Service|
+:設定画面を表示;
+note right
+  **表示項目**
+  ・現在のモデル
+  ・次元数
+  ・チャンクサイズ
+  ・コスト情報
+end note
+
+|開発者|
+:モデルを選択;
+note right
+  **選択可能モデル**
+  ・text-embedding-3-small
+  ・text-embedding-3-large
+  ・text-embedding-ada-002
+end note
+
+|開発者|
+:パラメータを設定;
+note right
+  **設定項目**
+  ・次元数（1536/3072）
+  ・チャンクサイズ
+  ・オーバーラップ
+end note
+
+|開発者|
+:再生成オプションを選択;
+note right
+  **再生成オプション**
+  ・既存コンテンツを再生成
+  ・新規コンテンツのみ適用
+end note
+
+|開発者|
+:保存ボタンをクリック;
+
+|Frontend Service|
+:コスト見積もりを計算;
+
+|Frontend Service|
+:確認ダイアログを表示;
+note right
+  **確認内容**
+  ・モデル変更内容
+  ・再生成対象件数
+  ・推定コスト
+end note
+
+|開発者|
+if (確認?) then (OK)
+  :確認をクリック;
+else (キャンセル)
+  :設定画面に戻る;
+  stop
+endif
+
+|Frontend Service|
+:設定保存リクエスト送信;
+
+|Supabase|
+:embedding_settingsを更新;
+
+|Supabase|
+if (再生成が必要?) then (はい)
+  :再生成ジョブをキュー登録;
+  note right
+    バックグラウンドで
+    Embedding再生成を実行
+  end note
+else (いいえ)
+  :設定のみ更新;
+endif
+
+|Supabase|
+:更新結果を返却;
+
+|Frontend Service|
+:完了通知を表示;
+note right
+  **表示内容**
+  ・設定更新完了
+  ・再生成ジョブの状態
+end note
+
+|開発者|
+:設定完了を確認;
+stop
+
+@enduml
+```
+
+#### 再生成戦略（TD-009）
+
+| 項目 | 決定 |
+|------|------|
+| **再生成オプション** | 「既存コンテンツ再生成」または「新規コンテンツのみ」を選択可能 |
+| **追加フィールド** | `embedding_settings.regeneration_status`, `regeneration_progress` |
+| **バックグラウンド処理** | 再生成はジョブキューで非同期実行 |
+
+### 3.11.4 Embedding使用量監視フロー（UC 5-10）
+
+```plantuml
+@startuml business_flow_embedding_usage_monitoring
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 3.11.3 Embedding使用量監視フロー（UC 5-10）
+
+|開発者|
+start
+:使用量ダッシュボードを開く;
+
+|Frontend Service|
+:ダッシュボードデータを要求;
+
+|Supabase|
+:embedding_usage_logsから
+使用量データを集計;
+note right
+  **集計項目**
+  ・日次トークン数
+  ・日次コスト
+  ・モデル別内訳
+end note
+
+|Supabase|
+:embedding_usage_dailyビューを返却;
+
+|Frontend Service|
+:ダッシュボードを表示;
+note right
+  **表示内容**
+  ・トークン使用量グラフ
+  ・コスト推移グラフ
+  ・モデル別テーブル
+end note
+
+|開発者|
+:期間を選択;
+note right
+  **選択可能期間**
+  ・日次
+  ・週次
+  ・月次
+  ・カスタム
+end note
+
+|Frontend Service|
+:選択期間でデータを再取得;
+
+|Supabase|
+:指定期間の使用量を集計;
+
+|Supabase|
+:集計結果を返却;
+
+|Frontend Service|
+:グラフ・テーブルを更新;
+
+|開発者|
+if (リアルタイム残高確認?) then (はい)
+  :残高確認をクリック;
+else (いいえ)
+  :ダッシュボードを確認;
+  stop
+endif
+
+|Frontend Service|
+:OpenAI残高を要求;
+
+|OpenAI API|
+:現在の残高・使用量を返却;
+note right
+  **OpenAI直接接続**
+  GET /v1/dashboard/billing/usage
+end note
+
+|Frontend Service|
+:残高情報を表示;
+note right
+  **表示内容**
+  ・現在の残高
+  ・今月の使用量
+  ・残り日数予測
+end note
+
+|開発者|
+:残高を確認;
+stop
+
+@enduml
+```
+
+### 3.11.5 関連テーブル（Phase 2 管理機能）
+
+| テーブル名 | 説明 | 関連UC |
+|-----------|------|--------|
+| `llm_workflows` | ワークフロー定義 | UC 5-6 |
+| `llm_workflow_steps` | ワークフローステップ | UC 5-6 |
+| `llm_workflow_edges` | ステップ間接続 | UC 5-6 |
+| `llm_workflow_step_inputs` | 入力マッピング | UC 5-6 |
+| `embedding_settings` | Embedding設定 | UC 5-9 |
+| `embedding_usage_logs` | 使用量ログ | UC 5-10 |
+| `embedding_usage_daily` | 日次集計ビュー | UC 5-10 |
+
+### エラーハンドリング（Phase 2）
+
+| エラー種別 | 原因 | 対応 |
+|-----------|------|------|
+| 認証エラー | セッション期限切れ | ログイン画面にリダイレクト |
+| 権限エラー | 開発者権限なし | 「アクセス権限がありません」 |
+| ワークフロー循環エラー | DAGに循環が存在 | 「ワークフローに循環があります。修正してください。」 |
+| Embedding再生成失敗 | APIエラー/タイムアウト | 「再生成に失敗しました。再試行してください。」 |
+| OpenAI API接続エラー | 残高取得失敗 | 「OpenAI APIに接続できません。」 |
+
+---
+
 ## アクター一覧（整合性確認）
 
 | アクター | 役割 | 関連フロー |
 |---------|------|-----------|
 | **エンドユーザー** | 図表作成・編集、AI機能利用、認証、プロジェクト管理、保存・エクスポート、バージョン管理、図表削除 | 3.1〜3.8 |
-| **開発者** | システム管理、ユーザー管理、LLM管理、システム設定 | 3.9 |
+| **開発者** | システム管理、ユーザー管理、LLM管理、システム設定、LLMワークフロー定義、Embedding管理 | 3.9, 3.11 |
 
 ---
 
@@ -2582,7 +3027,7 @@ stop
 | **Supabase** | データ永続化、Storage、プロジェクトCRUD、RLS、図表保存、バージョン履歴、削除処理、LLM設定保存、システム設定保存 | 3.1, 3.3, 3.5, 3.6, 3.7, 3.8, 3.9 |
 | **OAuthプロバイダー** | GitHub OAuth, Google OAuth | 3.4 |
 | **OpenRouter API** | LLM呼び出し（GPT-4o-mini, Claude等）、用語一貫性チェック、モデル一覧取得、使用量取得 | 3.1, 3.2, 3.3, 3.6, 3.9.2 |
-| **OpenAI API** | Embedding生成（Phase 2） | - |
+| **OpenAI API** | Embedding生成、使用量監視（Phase 2） | 3.11 |
 | **Context7 MCP** | PlantUML構文情報取得 | 3.1, 3.2 |
 
 ---
@@ -2612,4 +3057,7 @@ stop
 13. **管理機能の整合性**: 3.9でUC 5-1, 5-2〜5-5, 5-7, 5-8, 5-13が正しくカバーされているか？
 14. **LLM設計書との整合性**: 3.9.2でLM-01〜LM-07と対応しているか？
 15. **TD-007との整合性**: 3.9でOpenRouter/OpenAI分離が反映されているか？
-16. **アクセス制御の整合性**: 3.9で開発者権限のみが操作できることが明示されているか？
+16. **アクセス制御の整合性**: 3.9, 3.11で開発者権限のみが操作できることが明示されているか？
+17. **Phase 2管理機能の整合性**: 3.11でUC 5-6, 5-9, 5-10が正しくカバーされているか？
+18. **TD-008との整合性**: 3.11.2でDAG構造が正しく表現されているか？
+19. **TD-009との整合性**: 3.11.3でEmbedding再生成戦略が正しく表現されているか？

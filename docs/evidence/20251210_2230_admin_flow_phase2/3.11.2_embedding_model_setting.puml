@@ -1,0 +1,109 @@
+@startuml business_flow_embedding_model_setting
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 3.11.2 Embeddingモデル設定フロー（UC 5-9）
+
+|開発者|
+start
+:Embedding設定画面を開く;
+
+|Frontend Service|
+:現在の設定を取得;
+
+|Supabase|
+:embedding_settingsから
+現在のモデル設定を返却;
+
+|Frontend Service|
+:設定画面を表示;
+note right
+  **表示項目**
+  ・現在のモデル
+  ・次元数
+  ・チャンクサイズ
+  ・コスト情報
+end note
+
+|開発者|
+:モデルを選択;
+note right
+  **選択可能モデル**
+  ・text-embedding-3-small
+  ・text-embedding-3-large
+  ・text-embedding-ada-002
+end note
+
+|開発者|
+:パラメータを設定;
+note right
+  **設定項目**
+  ・次元数（1536/3072）
+  ・チャンクサイズ
+  ・オーバーラップ
+end note
+
+|開発者|
+:再生成オプションを選択;
+note right
+  **再生成オプション**
+  ・既存コンテンツを再生成
+  ・新規コンテンツのみ適用
+end note
+
+|開発者|
+:保存ボタンをクリック;
+
+|Frontend Service|
+:コスト見積もりを計算;
+
+|Frontend Service|
+:確認ダイアログを表示;
+note right
+  **確認内容**
+  ・モデル変更内容
+  ・再生成対象件数
+  ・推定コスト
+end note
+
+|開発者|
+if (確認?) then (OK)
+  :確認をクリック;
+else (キャンセル)
+  :設定画面に戻る;
+  stop
+endif
+
+|Frontend Service|
+:設定保存リクエスト送信;
+
+|Supabase|
+:embedding_settingsを更新;
+
+|Supabase|
+if (再生成が必要?) then (はい)
+  :再生成ジョブをキュー登録;
+  note right
+    バックグラウンドで
+    Embedding再生成を実行
+  end note
+else (いいえ)
+  :設定のみ更新;
+endif
+
+|Supabase|
+:更新結果を返却;
+
+|Frontend Service|
+:完了通知を表示;
+note right
+  **表示内容**
+  ・設定更新完了
+  ・再生成ジョブの状態
+end note
+
+|開発者|
+:設定完了を確認;
+stop
+
+@enduml

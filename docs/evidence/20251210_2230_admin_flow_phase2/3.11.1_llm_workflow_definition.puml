@@ -1,0 +1,114 @@
+@startuml business_flow_llm_workflow_definition
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 3.11.1 LLMワークフロー定義フロー（UC 5-6）
+
+|開発者|
+start
+:LLMワークフロー画面を開く;
+
+|Frontend Service|
+:ワークフロー一覧を要求;
+
+|Supabase|
+:llm_workflowsから
+ワークフロー一覧を返却;
+
+|Frontend Service|
+:ワークフロー一覧を表示;
+
+|開発者|
+switch (操作を選択)
+case (新規作成)
+  :新規作成をクリック;
+  detach
+case (既存編集)
+  :ワークフローを選択;
+  detach
+case (戻る)
+  :管理画面に戻る;
+  stop
+endswitch
+
+' === 新規作成/編集の共通フロー ===
+
+|Frontend Service|
+:DAGエディタを表示;
+note right
+  **DAGエディタUI**
+  ビジュアルノードエディタ
+  （React Flow等で実装）
+end note
+
+|開発者|
+:ワークフローを定義;
+note right
+  **DAGエディタでの操作**
+  ====
+  **ステップ追加**
+  ・モデル選択
+  ・プロンプト設定
+  ・パラメータオーバーライド
+  ・出力スキーマ定義（任意）
+  ====
+  **入出力マッピング**
+  ・Jinja2テンプレート
+  ・AI支援で参照パス提案
+  ====
+  **エッジ接続**
+  ・success/error/always
+  ・LLM判定（カスタム条件）
+  ====
+  ※ 詳細は以下で別途定義:
+  ・シーケンス図 UC 5-6
+  ・ワイヤーフレーム DAGエディタUI
+  ・機能一覧表 LM-05詳細仕様
+end note
+
+|開発者|
+:テスト実行をクリック;
+
+|Frontend Service|
+:テストリクエストを送信;
+
+|Supabase|
+:ワークフローを一時保存;
+
+|Frontend Service|
+:サンプル入力でワークフロー実行;
+note right
+  **テスト実行**
+  サンプル入力でDAGを
+  順次実行し結果を確認
+end note
+
+|Frontend Service|
+:テスト結果を表示;
+
+|開発者|
+if (テスト成功?) then (はい)
+  :保存をクリック;
+else (いいえ)
+  :ワークフローを修正;
+  stop
+endif
+
+|Frontend Service|
+:保存リクエストを送信;
+
+|Supabase|
+:llm_workflows, llm_workflow_steps,
+llm_workflow_edges を保存;
+
+|Supabase|
+:保存結果を返却;
+
+|Frontend Service|
+:保存完了通知を表示;
+
+|開発者|
+:ワークフロー有効化を確認;
+stop
+
+@enduml

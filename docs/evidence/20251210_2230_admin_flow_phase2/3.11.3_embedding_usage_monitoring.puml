@@ -1,0 +1,89 @@
+@startuml business_flow_embedding_usage_monitoring
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 3.11.3 Embedding使用量監視フロー（UC 5-10）
+
+|開発者|
+start
+:使用量ダッシュボードを開く;
+
+|Frontend Service|
+:ダッシュボードデータを要求;
+
+|Supabase|
+:embedding_usage_logsから
+使用量データを集計;
+note right
+  **集計項目**
+  ・日次トークン数
+  ・日次コスト
+  ・モデル別内訳
+end note
+
+|Supabase|
+:embedding_usage_dailyビューを返却;
+
+|Frontend Service|
+:ダッシュボードを表示;
+note right
+  **表示内容**
+  ・トークン使用量グラフ
+  ・コスト推移グラフ
+  ・モデル別テーブル
+end note
+
+|開発者|
+:期間を選択;
+note right
+  **選択可能期間**
+  ・日次
+  ・週次
+  ・月次
+  ・カスタム
+end note
+
+|Frontend Service|
+:選択期間でデータを再取得;
+
+|Supabase|
+:指定期間の使用量を集計;
+
+|Supabase|
+:集計結果を返却;
+
+|Frontend Service|
+:グラフ・テーブルを更新;
+
+|開発者|
+if (リアルタイム残高確認?) then (はい)
+  :残高確認をクリック;
+else (いいえ)
+  :ダッシュボードを確認;
+  stop
+endif
+
+|Frontend Service|
+:OpenAI残高を要求;
+
+|OpenAI API|
+:現在の残高・使用量を返却;
+note right
+  **OpenAI直接接続**
+  GET /v1/dashboard/billing/usage
+end note
+
+|Frontend Service|
+:残高情報を表示;
+note right
+  **表示内容**
+  ・現在の残高
+  ・今月の使用量
+  ・残り日数予測
+end note
+
+|開発者|
+:残高を確認;
+stop
+
+@enduml

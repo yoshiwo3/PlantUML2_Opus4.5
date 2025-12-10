@@ -1,0 +1,49 @@
+@startuml business_flow_admin_phase2_overview
+skinparam ActivityFontSize 12
+skinparam ConditionEndStyle hline
+
+title 3.11 管理機能フロー（Phase 2）概要
+
+|開発者|
+start
+:管理画面にアクセス;
+:Phase 2管理タブを選択;
+
+|開発者|
+switch (管理機能を選択)
+case (LLMワークフロー定義\nUC 5-6)
+  #lightblue:LLMワークフロー画面へ;
+  note right
+    詳細は 3.11.1 参照
+    ====
+    DAGエディタでワークフロー定義
+    ・ステップ追加（モデル、プロンプト）
+    ・入出力マッピング（Jinja2）
+    ・条件分岐設定
+  end note
+  detach
+case (Embeddingモデル設定\nUC 5-9)
+  #palegreen:Embedding設定画面へ;
+  note right
+    詳細は 3.11.2 参照
+    ====
+    モデル切替と再生成オプション
+    ・text-embedding-3-small/large
+    ・既存再生成 or 新規のみ
+  end note
+  detach
+case (Embedding使用量監視\nUC 5-10)
+  #lightyellow:使用量ダッシュボードへ;
+  note right
+    詳細は 3.11.3 参照
+    ====
+    トークン数・コスト監視
+    ・OpenAI直接接続
+  end note
+  detach
+case (戻る)
+  :管理画面トップへ;
+  stop
+endswitch
+
+@enduml
