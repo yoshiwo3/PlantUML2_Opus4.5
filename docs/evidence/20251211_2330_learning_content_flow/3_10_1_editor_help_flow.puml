@@ -1,0 +1,159 @@
+@startuml 3_10_1_editor_help_flow
+'==================================================
+' 3.10.1 エディタ内ヘルプフロー
+' UC 3-10: 学習コンテンツを検索する
+'
+' スイムレーン制約対応:
+' - if/switch内でスイムレーン遷移禁止
+' - 回避策: noteで詳細説明
+'==================================================
+
+skinparam ActivityBackgroundColor #FAFAFA
+skinparam ActivityBorderColor #666666
+skinparam SwimlaneWidth 180
+skinparam ConditionEndStyle hline
+
+title 3.10.1 エディタ内ヘルプフロー（UC 3-10）
+
+|#E3F2FD|user| エンドユーザー
+|#E8F5E9|fe| Frontend Service
+|#FFF3E0|api| Backend API
+|#FCE4EC|supa| Supabase
+|#F3E5F5|oai| OpenAI
+|#FFFDE7|or| OpenRouter
+
+|user|
+start
+:ヘルプを起動;
+note right
+  **起動方法（複合）**
+  - ヘルプボタンをクリック
+  - ショートカット（F1）
+  - テキスト選択→右クリック→「ヘルプを検索」
+end note
+
+|fe|
+:ヘルプパネルを開く;
+note right
+  トグル式サイドパネル
+  （開閉可能）
+end note
+
+:起動コンテキストを取得;
+note right
+  **取得情報**
+  - 選択中のテキスト（あれば）
+  - カーソル位置のコード
+  - 現在の図表タイプ
+end note
+
+|user|
+:質問を入力;
+note right
+  テキスト選択からの起動時は
+  選択コードが初期クエリとして
+  自動入力される
+end note
+
+|fe|
+:検索リクエストを送信;
+
+|api|
+:クエリを受信;
+:クエリをEmbedding化;
+
+|oai|
+:text-embedding-3-small;
+note right
+  1536次元ベクトル生成
+end note
+:Embeddingベクトルを返却;
+
+|api|
+:類似コンテンツを検索;
+
+|supa|
+:pgvectorでベクトル検索;
+note right
+  **Hybrid Search**
+  - ベクトル類似度検索
+  - 全文検索（BM25）
+  - スコア統合
+end note
+:検索結果を返却;
+
+|api|
+:検索結果を評価;
+note right
+  **評価基準**
+  - 類似度スコア閾値
+  - 結果件数
+end note
+
+:RAGプロンプトを構築;
+note right
+  **プロンプト構成**
+  - ユーザークエリ
+  - 選択コード（コンテキスト）
+  - 検索結果（上位3-5件）
+  - 図表タイプ情報
+end note
+
+|or|
+:LLMで回答生成;
+note right
+  OpenRouter経由
+  TD-007準拠
+end note
+:AI回答を返却;
+
+|api|
+:回答を整形;
+note right
+  **整形内容**
+  - 回答本文
+  - 参照元リンク
+  - コードスニペット抽出
+end note
+:レスポンスを返却;
+
+|fe|
+:回答を表示;
+note right
+  **表示内容**
+  - AI生成回答
+  - 参照元コンテンツへのリンク
+  - コードスニペット（あれば）
+end note
+
+|user|
+:回答を確認;
+
+|fe|
+:ユーザーアクションを待機;
+note right
+  **選択可能なアクション**
+  A: スニペットをコピー
+  B: スニペットをエディタに挿入
+  C: 参照元を表示
+  D: 追加質問
+  E: パネルを閉じる
+end note
+
+|user|
+:アクションを選択;
+
+|fe|
+:選択アクションを実行;
+note right
+  **アクション詳細**
+  A: クリップボードにコピー
+  B: カーソル位置に挿入
+  C: 学習画面へ遷移
+  D: 新規検索として処理
+  E: パネルを閉じて終了
+end note
+
+stop
+
+@enduml

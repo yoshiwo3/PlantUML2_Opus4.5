@@ -1,0 +1,270 @@
+@startuml 3_10_2_learning_screen_flow
+'==================================================
+' 3.10.2 学習画面フロー
+' UC 3-10: 学習コンテンツを検索する
+' UC 3-11: 学習コンテンツを確認する
+'
+' スイムレーン制約対応:
+' - if/switch内でスイムレーン遷移禁止
+' - 回避策: 機能選択はnoteで説明、分岐後は1レーンで処理
+'==================================================
+
+skinparam ActivityBackgroundColor #FAFAFA
+skinparam ActivityBorderColor #666666
+skinparam SwimlaneWidth 180
+skinparam ConditionEndStyle hline
+
+title 3.10.2 学習画面フロー（UC 3-10, 3-11）
+
+|#E3F2FD|user| エンドユーザー
+|#E8F5E9|fe| Frontend Service
+|#FFF3E0|api| Backend API
+|#FCE4EC|supa| Supabase
+|#F3E5F5|oai| OpenAI
+|#FFFDE7|or| OpenRouter
+
+|user|
+start
+:学習画面にアクセス;
+note right
+  サイドメニューまたは
+  ヘッダーから遷移
+end note
+
+|fe|
+:学習画面を表示;
+:カテゴリ一覧を取得;
+
+|api|
+:カテゴリ情報を取得;
+
+|supa|
+:learning_categoriesテーブル参照;
+note right
+  **カテゴリ構成（2階層）**
+  第1階層: 図表タイプ別
+  - シーケンス図
+  - クラス図
+  - アクティビティ図 等
+  第2階層: 目的別
+  - 基本構文
+  - 応用パターン
+  - Tips
+end note
+:カテゴリ一覧を返却;
+
+|api|
+:ユーザー進捗を取得;
+
+|supa|
+:user_progressテーブル参照;
+note right
+  **進捗情報**
+  - 完了コンテンツ数
+  - 進捗率
+  - 獲得バッジ
+end note
+:進捗情報を返却;
+
+|api|
+:お気に入り情報を取得;
+
+|supa|
+:user_favoritesテーブル参照;
+:お気に入り一覧を返却;
+
+|fe|
+:学習ダッシュボードを表示;
+note right
+  **表示内容**
+  - カテゴリ一覧
+  - 進捗率・バッジ
+  - お気に入りリスト
+  - 検索バー
+end note
+
+|user|
+:機能を選択;
+note right
+  **選択可能な機能**
+  A: カテゴリをブラウズ
+  B: RAG検索
+  C: チュートリアル実行
+  D: お気に入りを確認
+end note
+
+' === A: カテゴリブラウズ ===
+|fe|
+:【A】カテゴリを選択時;
+
+|api|
+:カテゴリ内コンテンツを取得;
+
+|supa|
+:learning_contentsテーブル参照;
+:コンテンツ一覧を返却;
+
+|fe|
+:コンテンツ一覧を表示;
+note right
+  タイトル、概要、
+  難易度、所要時間を表示
+end note
+
+|user|
+:コンテンツを選択;
+
+|fe|
+:コンテンツ詳細を表示;
+note right
+  **UC 3-11: コンテンツ確認**
+  - Markdown形式の説明
+  - コードサンプル
+  - 関連リンク
+end note
+
+|user|
+:スニペットを利用;
+
+|fe|
+:スニペット操作を実行;
+note right
+  **操作オプション**
+  - コピーボタン
+  - エディタ挿入ボタン
+end note
+
+|api|
+:閲覧履歴を記録;
+
+|supa|
+:user_progressテーブル更新;
+
+' === B: RAG検索 ===
+|fe|
+:【B】検索クエリ入力時;
+
+|user|
+:自然言語で質問を入力;
+
+|fe|
+:検索リクエストを送信;
+
+|api|
+:クエリをEmbedding化;
+
+|oai|
+:text-embedding-3-small;
+:Embeddingベクトルを返却;
+
+|api|
+:Hybrid Searchを実行;
+
+|supa|
+:pgvector + 全文検索;
+:検索結果を返却;
+
+|api|
+:RAGプロンプトを構築;
+
+|or|
+:LLMで回答生成;
+:AI回答を返却;
+
+|fe|
+:検索結果を表示;
+note right
+  - AI生成回答
+  - 関連コンテンツリンク
+  - スニペット
+end note
+
+' === C: チュートリアル実行 ===
+|fe|
+:【C】チュートリアル開始時;
+
+|api|
+:チュートリアルデータを取得;
+
+|supa|
+:tutorialsテーブル参照;
+:チュートリアル情報を返却;
+
+|fe|
+:チュートリアル画面を表示;
+note right
+  **インタラクティブ形式**
+  1. 説明を読む
+  2. コードを編集
+  3. プレビューで確認
+end note
+
+|user|
+:ステップを実行;
+note right
+  説明→編集→確認の
+  サイクルを繰り返す
+end note
+
+|fe|
+:コード編集エリアを提供;
+:リアルタイムプレビュー;
+
+|user|
+:チュートリアル完了;
+
+|api|
+:進捗を更新;
+
+|supa|
+:user_progressテーブル更新;
+note right
+  - 完了フラグ設定
+  - 進捗率再計算
+end note
+
+|api|
+:バッジ付与判定;
+
+|supa|
+:user_badgesテーブル確認;
+
+|fe|
+:完了状態を表示;
+note right
+  バッジ獲得時は
+  通知を表示
+end note
+
+' === D: お気に入り操作 ===
+|fe|
+:【D】お気に入り操作時;
+
+|user|
+:お気に入りに追加/削除;
+note right
+  **対象**
+  - コンテンツ記事
+  - コードスニペット
+end note
+
+|api|
+:お気に入り状態を更新;
+
+|supa|
+:user_favoritesテーブル更新;
+note right
+  **DB保存（ハイブリッド）**
+  - お気に入りはDB
+  - スニペットはStorage
+end note
+
+|fe|
+:お気に入り状態を反映;
+
+|user|
+:学習を継続または終了;
+
+stop
+
+@enduml
