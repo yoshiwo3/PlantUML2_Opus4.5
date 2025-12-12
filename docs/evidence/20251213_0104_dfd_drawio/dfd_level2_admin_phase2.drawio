@@ -1,0 +1,214 @@
+<mxfile host="app.diagrams.net" modified="2025-12-13T01:35:00.000Z" agent="Claude Code" version="24.0.0" etag="dfd-level2-admin-phase2" type="device">
+  <diagram id="dfd-level2-admin-phase2" name="DFD Level 2-Admin-Phase2 - 管理機能Phase2">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- タイトル -->
+        <mxCell id="title" value="データフロー図 - レベル2-Admin-Phase2（管理機能Phase2）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="20" width="500" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Yourdon-DeMarco記法 | P6.0 管理機能 Phase2分解（破線=Phase2）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#777777;" vertex="1" parent="1">
+          <mxGeometry x="300" y="45" width="400" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- 外部エンティティ: 管理者 -->
+        <mxCell id="entity-admin" value="管理者" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="80" y="280" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- プロセス: P6.7 監査ログ閲覧（Phase 2） -->
+        <mxCell id="process-p67" value="P6.7&#xa;監査ログ&#xa;閲覧" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontStyle=1;fontSize=11;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="320" y="120" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- プロセス: P6.8 システム設定（Phase 2） -->
+        <mxCell id="process-p68" value="P6.8&#xa;システム&#xa;設定" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontStyle=1;fontSize=11;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="520" y="120" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- プロセス: P6.9 API使用量管理（Phase 2） -->
+        <mxCell id="process-p69" value="P6.9&#xa;API使用量&#xa;管理" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontStyle=1;fontSize=11;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="320" y="300" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- プロセス: P6.10 レート制限設定（Phase 2） -->
+        <mxCell id="process-p610" value="P6.10&#xa;レート&#xa;制限設定" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontStyle=1;fontSize=11;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="520" y="300" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- データストア: D7 監査ログ（Phase 2） -->
+        <mxCell id="datastore-d7" value="" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F57C00;strokeWidth=2;top=1;bottom=1;left=0;right=0;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="720" y="135" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="datastore-d7-id" value="D7" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;fontColor=#F57C00;" vertex="1" parent="1">
+          <mxGeometry x="725" y="145" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="datastore-d7-name" value="監査ログ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="760" y="145" width="130" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- データストア: D8 システム設定（Phase 2） -->
+        <mxCell id="datastore-d8" value="" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F57C00;strokeWidth=2;top=1;bottom=1;left=0;right=0;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="720" y="315" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="datastore-d8-id" value="D8" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;fontColor=#F57C00;" vertex="1" parent="1">
+          <mxGeometry x="725" y="325" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="datastore-d8-name" value="システム設定" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="760" y="325" width="130" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- データストア: D9 API使用量（Phase 2） -->
+        <mxCell id="datastore-d9" value="" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F57C00;strokeWidth=2;top=1;bottom=1;left=0;right=0;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="720" y="495" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="datastore-d9-id" value="D9" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;fontColor=#F57C00;" vertex="1" parent="1">
+          <mxGeometry x="725" y="505" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="datastore-d9-name" value="API使用量" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="760" y="505" width="130" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- データフロー: 管理者 → P6.7 -->
+        <mxCell id="flow-admin-to-p67" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="entity-admin" target="process-p67">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-admin-to-p67-label" value="ログ閲覧要求" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-admin-to-p67">
+          <mxGeometry x="0" y="-10" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P6.7 → D7 -->
+        <mxCell id="flow-p67-to-d7" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="process-p67" target="datastore-d7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p67-to-d7-label" value="ログ検索" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p67-to-d7">
+          <mxGeometry x="0" y="-10" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: D7 → P6.7 -->
+        <mxCell id="flow-d7-to-p67" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;exitX=0;exitY=0.7;" edge="1" parent="1" source="datastore-d7" target="process-p67">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="650" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow-d7-to-p67-label" value="ログ一覧" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-d7-to-p67">
+          <mxGeometry x="0" y="10" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P6.7 → 管理者 -->
+        <mxCell id="flow-p67-to-admin" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="process-p67" target="entity-admin">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="250" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow-p67-to-admin-label" value="監査ログ表示" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p67-to-admin">
+          <mxGeometry x="0" y="10" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: 管理者 → P6.8 -->
+        <mxCell id="flow-admin-to-p68" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;curved=1;" edge="1" parent="1" source="entity-admin" target="process-p68">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="80" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow-admin-to-p68-label" value="設定変更要求" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-admin-to-p68">
+          <mxGeometry x="0" y="-10" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P6.8 → D8 -->
+        <mxCell id="flow-p68-to-d8" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;curved=1;" edge="1" parent="1" source="process-p68" target="datastore-d8">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow-p68-to-d8-label" value="設定保存" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p68-to-d8">
+          <mxGeometry x="0" y="-10" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: 管理者 → P6.9 -->
+        <mxCell id="flow-admin-to-p69" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="entity-admin" target="process-p69">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-admin-to-p69-label" value="使用量確認" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-admin-to-p69">
+          <mxGeometry x="0" y="-10" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P6.9 → D9 -->
+        <mxCell id="flow-p69-to-d9" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;curved=1;" edge="1" parent="1" source="process-p69" target="datastore-d9">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="500" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow-p69-to-d9-label" value="使用量取得" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p69-to-d9">
+          <mxGeometry x="0" y="10" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: 管理者 → P6.10 -->
+        <mxCell id="flow-admin-to-p610" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;curved=1;" edge="1" parent="1" source="entity-admin" target="process-p610">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="250" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow-admin-to-p610-label" value="制限設定" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-admin-to-p610">
+          <mxGeometry x="0" y="10" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P6.10 → D8 -->
+        <mxCell id="flow-p610-to-d8" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="process-p610" target="datastore-d8">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p610-to-d8-label" value="制限設定保存" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p610-to-d8">
+          <mxGeometry x="0" y="-10" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 注釈: Phase 2機能 -->
+        <mxCell id="note-phase2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="500" width="220" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="note-phase2-text" value="Phase 2 管理機能&#xa;UC 5-6 監査ログ閲覧&#xa;UC 5-9 システム設定変更&#xa;UC 5-10 API使用量管理&#xa;すべて破線で表示" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="90" y="510" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- フッター -->
+        <mxCell id="footer" value="PlantUML Studio - DFD Level 2-Admin-Phase2 | P6.0 管理機能 Phase2分解図" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="280" y="650" width="440" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

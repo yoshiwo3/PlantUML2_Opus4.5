@@ -1,0 +1,186 @@
+<mxfile host="app.diagrams.net" modified="2025-12-13T01:20:00.000Z" agent="Claude Code" version="24.0.0" etag="dfd-level1-ai" type="device">
+  <diagram id="dfd-level1-ai" name="DFD Level 1-C - AI支援フロー">
+    <mxGraphModel dx="1000" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="750" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- タイトル -->
+        <mxCell id="title" value="データフロー図 - レベル1-C（AI支援フロー）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Yourdon-DeMarco記法 | P5.0, P8.0" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#777777;" vertex="1" parent="1">
+          <mxGeometry x="350" y="45" width="300" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- 外部エンティティ: エンドユーザー -->
+        <mxCell id="entity-user" value="エンドユーザー" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="280" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- 外部API: OpenRouter API -->
+        <mxCell id="entity-openrouter" value="OpenRouter API" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#5E35B1;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="400" y="100" width="130" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 外部API: OpenAI API -->
+        <mxCell id="entity-openai" value="OpenAI API" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#5E35B1;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="750" y="280" width="130" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- プロセス: P5.0 AI支援 -->
+        <mxCell id="process-p5" value="P5.0&#xa;AI支援" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="360" y="270" width="110" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- プロセス: P8.0 学習コンテンツ [Phase 2] -->
+        <mxCell id="process-p8" value="P8.0&#xa;学習&#xa;コンテンツ" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontStyle=1;fontSize=11;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="360" y="500" width="110" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- データストア: D3 学習コンテンツストア [Phase 2] -->
+        <mxCell id="datastore-d3" value="" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F57C00;strokeWidth=2;top=1;bottom=1;left=0;right=0;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="650" y="500" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="datastore-d3-id" value="D3" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;fontColor=#F57C00;" vertex="1" parent="1">
+          <mxGeometry x="655" y="510" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="datastore-d3-name" value="学習コンテンツストア" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="690" y="510" width="170" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- データフロー: ユーザー → P5.0 (DF-7) -->
+        <mxCell id="flow-user-to-p5" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="entity-user" target="process-p5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-user-to-p5-label" value="DF-7 AI質問" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-user-to-p5">
+          <mxGeometry x="-0.1" y="-15" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P5.0 → ユーザー -->
+        <mxCell id="flow-p5-to-user" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="process-p5" target="entity-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p5-to-user-label" value="AI回答" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p5-to-user">
+          <mxGeometry x="0.1" y="15" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P5.0 → OpenRouter (DF-8) -->
+        <mxCell id="flow-p5-to-openrouter" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="process-p5" target="entity-openrouter">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p5-to-openrouter-label" value="DF-8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p5-to-openrouter">
+          <mxGeometry x="-0.2" y="-10" relative="1" as="geometry">
+            <mxPoint x="-15" y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: OpenRouter → P5.0 -->
+        <mxCell id="flow-openrouter-to-p5" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="entity-openrouter" target="process-p5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-openrouter-to-p5-label" value="response" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-openrouter-to-p5">
+          <mxGeometry x="0.2" y="10" relative="1" as="geometry">
+            <mxPoint x="15" y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P5.0 → OpenAI (DF-9) -->
+        <mxCell id="flow-p5-to-openai" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="process-p5" target="entity-openai">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p5-to-openai-label" value="DF-9 ベクトル変換" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p5-to-openai">
+          <mxGeometry x="-0.1" y="-15" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: OpenAI → P5.0 -->
+        <mxCell id="flow-openai-to-p5" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="entity-openai" target="process-p5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-openai-to-p5-label" value="embedding[]" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-openai-to-p5">
+          <mxGeometry x="0.1" y="15" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: ユーザー → P8.0 (DF-25) [Phase 2] -->
+        <mxCell id="flow-user-to-p8" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="entity-user" target="process-p8">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-user-to-p8-label" value="DF-25" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-user-to-p8">
+          <mxGeometry x="-0.2" y="-10" relative="1" as="geometry">
+            <mxPoint y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P8.0 → ユーザー (DF-28) [Phase 2] -->
+        <mxCell id="flow-p8-to-user" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="process-p8" target="entity-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p8-to-user-label" value="DF-28" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p8-to-user">
+          <mxGeometry x="0.2" y="10" relative="1" as="geometry">
+            <mxPoint y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P8.0 → OpenAI (DF-26) [Phase 2] -->
+        <mxCell id="flow-p8-to-openai" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="process-p8" target="entity-openai">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p8-to-openai-label" value="DF-26" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p8-to-openai">
+          <mxGeometry x="-0.2" y="-10" relative="1" as="geometry">
+            <mxPoint y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P8.0 → D3 (DF-27) [Phase 2] -->
+        <mxCell id="flow-p8-to-d3" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="process-p8" target="datastore-d3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p8-to-d3-label" value="DF-27" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p8-to-d3">
+          <mxGeometry x="-0.2" y="-10" relative="1" as="geometry">
+            <mxPoint y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: D3 → P8.0 [Phase 2] -->
+        <mxCell id="flow-d3-to-p8" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="datastore-d3" target="process-p8">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-d3-to-p8-label" value="検索結果" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-d3-to-p8">
+          <mxGeometry x="0.2" y="10" relative="1" as="geometry">
+            <mxPoint y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 注釈: TD-007 -->
+        <mxCell id="note-td007" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="130" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="note-td007-text" value="TD-007: LLM/Embedding分離&#xa;LLM: OpenRouter&#xa;Embedding: OpenAI" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="610" y="140" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 注釈: Phase 2 -->
+        <mxCell id="note-phase2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#AD1457;strokeWidth=1;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
+          <mxGeometry x="170" y="580" width="140" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="note-phase2-text" value="【Phase 2】破線部分" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontStyle=2;fontColor=#AD1457;" vertex="1" parent="1">
+          <mxGeometry x="180" y="590" width="120" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- フッター -->
+        <mxCell id="footer" value="PlantUML Studio - DFD Level 1-C | Yourdon-DeMarco記法" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="300" y="680" width="400" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

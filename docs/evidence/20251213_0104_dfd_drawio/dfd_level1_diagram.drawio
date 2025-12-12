@@ -1,0 +1,206 @@
+<mxfile host="app.diagrams.net" modified="2025-12-13T01:15:00.000Z" agent="Claude Code" version="24.0.0" etag="dfd-level1-diagram" type="device">
+  <diagram id="dfd-level1-diagram" name="DFD Level 1-B - 図表操作フロー">
+    <mxGraphModel dx="1100" dy="750" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- タイトル -->
+        <mxCell id="title" value="データフロー図 - レベル1-B（図表操作フロー）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Yourdon-DeMarco記法 | P2.0, P3.0, P4.0, P7.0" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#777777;" vertex="1" parent="1">
+          <mxGeometry x="400" y="45" width="300" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- 外部エンティティ: エンドユーザー -->
+        <mxCell id="entity-user" value="エンドユーザー" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=2;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="330" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- プロセス: P2.0 プロジェクト管理 -->
+        <mxCell id="process-p2" value="P2.0&#xa;プロジェクト&#xa;管理" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="150" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- プロセス: P3.0 図表管理 -->
+        <mxCell id="process-p3" value="P3.0&#xa;図表管理" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="450" y="310" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- プロセス: P4.0 検証・レンダリング -->
+        <mxCell id="process-p4" value="P4.0&#xa;検証・&#xa;レンダリング" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="680" y="310" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- プロセス: P7.0 エクスポート -->
+        <mxCell id="process-p7" value="P7.0&#xa;エクスポート" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="280" y="480" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- データストア: D1 図表ストレージ -->
+        <mxCell id="datastore-d1" value="" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F57C00;strokeWidth=2;top=1;bottom=1;left=0;right=0;" vertex="1" parent="1">
+          <mxGeometry x="800" y="550" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="datastore-d1-id" value="D1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=11;fontColor=#F57C00;" vertex="1" parent="1">
+          <mxGeometry x="805" y="560" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="datastore-d1-name" value="図表ストレージ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="840" y="560" width="150" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- データフロー: ユーザー → P2.0 (DF-11〜14) -->
+        <mxCell id="flow-user-to-p2" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="entity-user" target="process-p2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-user-to-p2-label" value="DF-11〜14&#xa;プロジェクト操作" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-user-to-p2">
+          <mxGeometry x="-0.1" y="-15" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P2.0 → ユーザー (DF-15) -->
+        <mxCell id="flow-p2-to-user" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="process-p2" target="entity-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p2-to-user-label" value="DF-15&#xa;操作結果" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p2-to-user">
+          <mxGeometry x="0.1" y="15" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: ユーザー → P3.0 (DF-3,23) -->
+        <mxCell id="flow-user-to-p3" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="entity-user" target="process-p3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-user-to-p3-label" value="DF-3,23&#xa;図表操作" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-user-to-p3">
+          <mxGeometry x="-0.1" y="-15" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P3.0 → ユーザー (DF-16,24) -->
+        <mxCell id="flow-p3-to-user" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="process-p3" target="entity-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p3-to-user-label" value="DF-16,24&#xa;操作結果" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p3-to-user">
+          <mxGeometry x="0.1" y="15" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P3.0 → P4.0 (DF-5) -->
+        <mxCell id="flow-p3-to-p4" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;entryX=0;entryY=0.3;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="process-p3" target="process-p4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p3-to-p4-label" value="DF-5 検証依頼" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p3-to-p4">
+          <mxGeometry x="-0.1" y="-15" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P4.0 → P3.0 (DF-6) -->
+        <mxCell id="flow-p4-to-p3" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;exitX=0;exitY=0.7;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="process-p4" target="process-p3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p4-to-p3-label" value="DF-6 検証結果" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p4-to-p3">
+          <mxGeometry x="0.1" y="15" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: ユーザー → P7.0 (DF-10) -->
+        <mxCell id="flow-user-to-p7" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="entity-user" target="process-p7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-user-to-p7-label" value="DF-10&#xa;エクスポート要求" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-user-to-p7">
+          <mxGeometry x="-0.1" y="-15" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P7.0 → ユーザー -->
+        <mxCell id="flow-p7-to-user" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="process-p7" target="entity-user">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p7-to-user-label" value="出力ファイル" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p7-to-user">
+          <mxGeometry x="0.1" y="15" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P3.0 → D1 (DF-4) -->
+        <mxCell id="flow-p3-to-d1" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="process-p3" target="datastore-d1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p3-to-d1-label" value="DF-4 保存" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p3-to-d1">
+          <mxGeometry x="-0.2" y="-15" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: D1 → P3.0 -->
+        <mxCell id="flow-d1-to-p3" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="datastore-d1" target="process-p3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-d1-to-p3-label" value="読取" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-d1-to-p3">
+          <mxGeometry x="0.2" y="15" relative="1" as="geometry">
+            <mxPoint y="10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: P2.0 → D1 -->
+        <mxCell id="flow-p2-to-d1" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="process-p2" target="datastore-d1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-p2-to-d1-label" value="一覧取得" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-p2-to-d1">
+          <mxGeometry x="-0.2" y="-15" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- データフロー: D1 → P7.0 -->
+        <mxCell id="flow-d1-to-p7" value="" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="datastore-d1" target="process-p7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="flow-d1-to-p7-label" value="ソース読込" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=9;" vertex="1" connectable="0" parent="flow-d1-to-p7">
+          <mxGeometry x="0.2" y="-15" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 凡例 -->
+        <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="620" width="500" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" value="【凡例】" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="70" y="625" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-entity" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="70" y="650" width="30" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-entity-label" value="外部エンティティ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="105" y="650" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-process" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#333333;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="200" y="650" width="30" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-process-label" value="プロセス" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="235" y="650" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-datastore" value="" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F57C00;strokeWidth=2;top=1;bottom=1;left=0;right=0;" vertex="1" parent="1">
+          <mxGeometry x="300" y="650" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-datastore-label" value="データストア" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="355" y="650" width="70" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- フッター -->
+        <mxCell id="footer" value="PlantUML Studio - DFD Level 1-B | Yourdon-DeMarco記法" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="350" y="720" width="400" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
