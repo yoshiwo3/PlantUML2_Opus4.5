@@ -1,9 +1,65 @@
 # PlantUML開発憲法
 
-**バージョン**: 3.5
+**バージョン**: 4.0
 **最終更新**: 2025-12-14
 
 ClaudeCodeが高品質なPlantUML図表を作成するための行動規範。
+
+---
+
+## 目次
+
+| セクション | 内容 | 参照タイミング |
+|-----------|------|---------------|
+| [§0 用語定義](#0-用語定義) | 本憲法で使用する用語の定義 | 初回・不明時 |
+| [§1 必須プロセス](#1-必須プロセス) | 全体フロー、Review/Publish手順 | 作業開始時 |
+| [§2 禁止事項](#2-禁止事項must-not) | プロセス違反（やってはいけないこと） | 作業前確認 |
+| [§3 技術的制限](#3-技術的制限と回避策) | PlantUMLの制約と回避策 | コード作成前 |
+| [§4 レビュー手順](#4-レビュー手順) | 4パスレビュー、対比確認 | レビュー時 |
+| [§5 コマンドリファレンス](#5-コマンドリファレンス) | スクリプト実行方法 | 実行時 |
+| [§6 ドキュメント構成](#6-ドキュメント構成ルール) | 1ファイル方式、Evidence作成 | 作業開始時 |
+| [付録](#付録) | 対比確認ガイド、DiagramType一覧 | 必要時 |
+
+---
+
+## 0. 用語定義
+
+本憲法で使用する用語の定義。初回読了時および不明時に参照すること。
+
+### プロセス用語
+
+| 用語 | 定義 |
+|------|------|
+| **Review** | PNG生成→視覚確認→レビューログ更新の一連のプロセス |
+| **Publish** | レビュー完了後、正式版SVGを保存するプロセス |
+| **4パスレビュー** | 構造→接続→内容→スタイルの4段階で確認する方式 |
+| **対比確認** | PNG視覚確認とソースコードを照合する作業 |
+
+### ファイル用語
+
+| 用語 | 定義 | 例 |
+|------|------|-----|
+| **ソースファイル** | PlantUMLコードを記述した`.puml`ファイル | `admin_flow.puml` |
+| **レビューログ** | レビュー結果を記録する`.review.json`ファイル | `admin_flow.review.json` |
+| **正式版** | Publish済みの`docs/proposals/diagrams/`内SVG | `admin_flow.svg` |
+| **Evidence** | 作業証跡を保存する`docs/evidence/`内ディレクトリ | `20251214_1800_admin_flow/` |
+
+### 図表用語
+
+| 用語 | 定義 |
+|------|------|
+| **スイムレーン** | アクティビティ図で責務を分離する縦の区画（`\|Actor\|`） |
+| **孤立ノード** | 上流または下流の接続線がないノード |
+| **上流接続** | ノードに入る矢印（入力） |
+| **下流接続** | ノードから出る矢印（出力） |
+
+### 1ファイル方式
+
+| 用語 | 定義 |
+|------|------|
+| **1ファイル方式** | 同種の図表を1つのMarkdownファイルに統合するルール |
+| **正しい例** | `PlantUML_Studio_シーケンス図_20251214.md`（全UC統合） |
+| **違反例** | `シーケンス図_ログイン.md` + `シーケンス図_CRUD.md`（分割） |
 
 ---
 
@@ -45,9 +101,9 @@ ClaudeCodeが高品質なPlantUML図表を作成するための行動規範。
 ┌─────────────────────────────────────────────────────────────────┐
 │  1. Context7で仕様確認                                           │
 │           ↓                                                     │
-│  2. 本憲法 § 2, § 3, § 6 を確認（禁止事項・既知制限・構成ルール） │
+│  2a. 本憲法 § 2, § 3 を確認（禁止事項・技術的制限）              │
 │           ↓                                                     │
-│  2.5. 既存ドキュメント構成確認（§ 6「1ファイル方式」検証）       │
+│  2b. 本憲法 § 6 を確認（1ファイル方式・既存ドキュメント検証）    │
 │           ↓                                                     │
 │  3. コード作成（.puml）                                          │
 │           ↓                                                     │
@@ -73,8 +129,8 @@ ClaudeCodeが高品質なPlantUML図表を作成するための行動規範。
 | Step | 内容 | 参照 |
 |:----:|------|:----:|
 | 1 | Context7で仕様確認 | 下記参照 |
-| 2 | 本憲法 § 2, § 3, § 6 を確認 | § 2, § 3, § 6 |
-| 2.5 | **既存ドキュメント構成確認**（1ファイル方式検証） | § 6 |
+| 2a | 本憲法 § 2, § 3 を確認（禁止事項・技術的制限） | § 2, § 3 |
+| 2b | **本憲法 § 6 を確認**（1ファイル方式・既存ドキュメント検証） | § 6 |
 | 3 | コード作成（`<図表名>.puml`） | - |
 | 4 | PNG + レビューログ生成 | § 5 `-Review` |
 | 5-7 | レビュー・対比確認・ログ更新 | § 4.3〜4.4 |
@@ -186,27 +242,38 @@ mcp__context7__get-library-docs   → topic: "<図表タイプ>"
 
 以下の行為は**絶対に禁止**する。違反した場合、図表は品質基準を満たさない。
 
+> **§2と§3の違い**:
+> - **§2 禁止事項**: あなた（AI）が「やってはいけない」プロセス違反
+> - **§3 技術的制限**: PlantUMLが「できない」ツールの制約
+
+### プロセス違反（9項目）
+
 | # | 禁止事項 | 理由 | 詳細 |
 |:-:|---------|------|:----:|
-| 1 | **if/fork/switch内でスイムレーン遷移するコードを書く** | 接続線が描画されない（孤立ノード発生） | § 3 |
+| 1 | **§3の技術的制限を無視してコードを書く** | 孤立ノード・接続消失が発生する | § 3 |
 | 2 | **SVGのXMLテキストを見て視覚確認したと判断する** | SVGは画像として認識されない | § 4.1 |
 | 3 | **ソース+PNG対比確認をスキップする** | 接続線の途切れを見落とす | § 4.3 |
 | 4 | **Context7確認なしでPlantUMLコードを作成する** | 構文エラー・非互換の見落とし | § 1.2 |
 | 5 | **レビューログ未更新でPublishする** | 品質保証の証跡がない | § 4.4 |
-| 6 | **レビュー後に.pumlを修正してPublishする** | ハッシュ不一致で品質担保不可 | § 5 |
+| 6 | **レビュー後にソースファイルを修正してPublishする** | ハッシュ不一致で品質担保不可 | § 5 |
 | 7 | **ソースコードから接続を推測して✅をつける** | 実際に描画されていない接続線を見落とす | § 4.3 |
-| 8 | **PNGと.pumlを同時に読み込む** | ソースの知識がPNG視覚確認に確証バイアスを与える | § 4.3 |
+| 8 | **PNGとソースファイルを同時に読み込む** | ソースの知識がPNG視覚確認に確証バイアスを与える | § 4.3 |
 | 9 | **同種の図表を複数ファイルに分割する** | 1ファイル方式違反、整合性確認が困難になる | § 6 |
 
 ---
 
-## 3. 既知の制限と回避策
+## 3. 技術的制限と回避策
 
-PlantUMLの既知の問題。**コード作成前に必ず確認せよ。**
+PlantUMLの技術的制約。**コード作成前に必ず確認せよ。**
 
-### 最重要：if/fork内でのスイムレーン遷移
+> **このセクションの内容**: PlantUMLの仕様・バグに起因する制限と、その回避策を記載。
+> 新しい制限を発見した場合は § 1.5 に従って追記すること。
 
-**if文/fork文の内部でスイムレーンを変更すると、接続線が描画されない。**
+### 3.1 アクティビティ図の制限
+
+#### 最重要：if/fork/switch内でのスイムレーン遷移
+
+**if文/fork文/switch文の内部でスイムレーンを変更すると、接続線が描画されない。**
 
 #### 禁止パターン1: if内で複数回スイムレーン遷移
 
@@ -324,17 +391,14 @@ endswitch
 | 10ステップ以上の大規模フロー | **回避策3** | 概要図+詳細図で階層化 |
 | 分岐内で異なる終了パスがある | **回避策1** | 各パスをif外で処理 |
 
-### その他の制限
-
-**※ 新たに発見した問題は、このテーブルに行を追加すること（§ 1.5 参照）**
+#### その他のアクティビティ図制限
 
 | 問題 | 回避策 | 発見日 |
 |------|--------|:------:|
 | **switch/case内でスイムレーン遷移すると孤立ノード発生** | switch全体を1スイムレーン内に収め、他レーンの処理はnoteで説明 | 2025-12-08 |
 | **if/else両方でスイムレーン遷移すると else側が孤立** | if全体を1スイムレーン内に収め、noteで説明 | 2025-12-08 |
-| endif直後のスイムレーン遷移で接続が切れる | endif後に1行アクションを入れてから遷移 | - |
-| ネストしたsplit/forkとスイムレーン ([Issue #2161](https://github.com/plantuml/plantuml/issues/2161)) | 構造を簡素化、detachで分岐を終端 | - |
-| シーケンス図で`note bottom of`使用不可 | `note over`を使用 | - |
+| endif直後のスイムレーン遷移で接続が切れる | endif後に1行アクションを入れてから遷移 | 2025-12-07 |
+| ネストしたsplit/forkとスイムレーン ([Issue #2161](https://github.com/plantuml/plantuml/issues/2161)) | 構造を簡素化、detachで分岐を終端 | 2025-12-07 |
 
 #### 問題パターンの発見統計（2025-12-08）
 
@@ -348,6 +412,44 @@ endswitch
 | **合計** | **7** | **70%** |
 
 > **教訓**: 分岐構造（if/switch/fork）内でのスイムレーン遷移は非常に頻繁に問題を引き起こす。**コード作成時に回避策を先に適用する**ことを推奨。
+
+### 3.2 シーケンス図の制限
+
+| 問題 | 回避策 | 発見日 |
+|------|--------|:------:|
+| `note bottom of` が使用不可 | `note over` または `note right of` を使用 | 2025-12-07 |
+| `ref over` が正しく描画されない場合がある | `box` + `note` で代用 | 2025-12-14 |
+| 長いメッセージテキストがはみ出す | `\n` で改行、または短縮形を使用 | 2025-12-14 |
+| `group` 内の `alt/else` でレイアウト崩れ | ネストを避け、フラットな構造に | 2025-12-14 |
+| 参加者名に特殊文字を使うとエラー | 英数字とアンダースコアのみ使用、表示名は `as` で指定 | 2025-12-14 |
+
+```plantuml
+' ❌ 禁止パターン: note bottom of
+note bottom of Alice: これはエラーになる
+
+' ✅ 回避策: note over または note right of
+note over Alice: これはOK
+note right of Alice: これもOK
+```
+
+```plantuml
+' ❌ 禁止パターン: 特殊文字を含む参加者名
+participant "Frontend Service" as Frontend
+
+' ✅ 回避策: asで表示名を指定
+participant FrontendService as "Frontend Service"
+```
+
+### 3.3 その他の図表タイプの制限
+
+| 図表タイプ | 問題 | 回避策 | 発見日 |
+|-----------|------|--------|:------:|
+| クラス図 | 長いメソッドシグネチャがはみ出す | 省略形を使用、詳細はnoteに | - |
+| クラス図 | 多重継承の矢印が交差 | レイアウト調整 `left to right direction` | - |
+| コンポーネント図 | ネストが深いと見づらい | 階層を2段階までに制限 | - |
+| 状態図 | 並行状態の描画が複雑 | フラットな構造に簡素化 | - |
+
+> **※ 新たに発見した問題は、該当する図表タイプのテーブルに行を追加すること（§ 1.5 参照）**
 
 ---
 
@@ -620,29 +722,7 @@ pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Review
 pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -DiagramType "<type>"
 ```
 
-**DiagramType一覧:**
-
-| DiagramType | 保存先 |
-|-------------|--------|
-| `business_flow` | `docs/proposals/diagrams/business_flow/` |
-| `sequence` | `docs/proposals/diagrams/sequence/` |
-| `usecase` | `docs/proposals/diagrams/usecase/` |
-| `context` | `docs/proposals/diagrams/context/` |
-| `component` | `docs/proposals/diagrams/component/` |
-| `class` | `docs/proposals/diagrams/class/` |
-| `dfd` | `docs/proposals/diagrams/dfd/` |
-
-**図表タイプとDiagramTypeの対応**:
-
-| 図表タイプ（§ 1.2 topic） | DiagramType |
-|--------------------------|-------------|
-| アクティビティ図（業務フロー） | `business_flow` |
-| シーケンス図 | `sequence` |
-| ユースケース図 | `usecase` |
-| コンテキスト図 | `context` |
-| コンポーネント図 | `component` |
-| クラス図 | `class` |
-| データフロー図 | `dfd` |
+**DiagramType一覧**: [付録B: DiagramType一覧](#付録b-diagramtype一覧) を参照
 
 **スクリプトの検証内容:**
 
@@ -726,15 +806,7 @@ PlantUML2_Opus4.5/
 
 ### DiagramTypeと保存先の対応
 
-| DiagramType | 保存先ディレクトリ |
-|-------------|-------------------|
-| `business_flow` | `docs/proposals/diagrams/business_flow/` |
-| `sequence` | `docs/proposals/diagrams/sequence/` |
-| `usecase` | `docs/proposals/diagrams/usecase/` |
-| `context` | `docs/proposals/diagrams/context/` |
-| `component` | `docs/proposals/diagrams/component/` |
-| `class` | `docs/proposals/diagrams/class/` |
-| `dfd` | `docs/proposals/diagrams/dfd/` |
+[付録B: DiagramType一覧](#付録b-diagramtype一覧) を参照
 
 ### 正式版ドキュメント構成ルール
 
@@ -943,12 +1015,35 @@ Grep: pattern="^\s*\|.*\|"
 Grep: pattern="^\s*(if |else|endif|fork|end fork|switch|case|endswitch)"
 ```
 
+### 付録B: DiagramType一覧
+
+`-Publish` コマンドで使用する DiagramType と保存先の対応表。
+
+| DiagramType | 保存先 | Context7 topic |
+|-------------|--------|----------------|
+| `business_flow` | `docs/proposals/diagrams/business_flow/` | `"activity diagram swimlane"` |
+| `sequence` | `docs/proposals/diagrams/sequence/` | `"sequence diagram"` |
+| `usecase` | `docs/proposals/diagrams/usecase/` | `"use case diagram"` |
+| `context` | `docs/proposals/diagrams/context/` | `"context diagram"` |
+| `component` | `docs/proposals/diagrams/component/` | `"component diagram"` |
+| `class` | `docs/proposals/diagrams/class/` | `"class diagram"` |
+| `dfd` | `docs/proposals/diagrams/dfd/` | `"data flow diagram"` |
+| `er` | `docs/proposals/diagrams/er/` | `"entity relationship diagram"` |
+| `state` | `docs/proposals/diagrams/state/` | `"state diagram"` |
+
+**使用例**:
+```powershell
+# 業務フロー図をSVGとして公開
+pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -DiagramType "business_flow"
+```
+
 ---
 
 ## 変更履歴
 
 | 日付 | バージョン | 変更内容 |
 |------|-----------|---------|
+| 2025-12-14 | 4.0 | **大規模構造改善**: ① 目次追加（ナビゲーション改善）、② §0用語定義セクション新設、③ §2/§3役割分担明確化（プロセス違反 vs 技術制限）、④ Step番号再編成（2.5→2a/2b）、⑤ §3.2シーケンス図制限追加、⑥ DiagramType一覧を付録Bに統合（DRY原則）、⑦ 禁止事項#1を具体例付きで書き換え |
 | 2025-12-14 | 3.5 | **§1.1/§2/§6 1ファイル方式強化**: 全体フローにStep 2.5「既存ドキュメント構成確認」追加、禁止事項#9「同種の図表を複数ファイルに分割」追加、§6に作業前チェックリスト・違反パターン・対処手順を追加（根本原因分析: 既存ファイルパターン踏襲による1ファイル方式違反防止） |
 | 2025-12-08 | 3.4 | **§2/§3 禁止パターン拡張**: if/fork → if/fork/switch に拡張、禁止パターン4（switch/case内スイムレーン遷移）追加、問題発見統計追加（3.9管理機能フロー10件中7件で修正必要） |
 | 2025-12-07 | 3.3 | **§4.3 記録形式改善**: 接続確認でノード名を記録する形式に変更（✅/❌ → ノード名/❌）、追跡を強制し見落とし防止 |
