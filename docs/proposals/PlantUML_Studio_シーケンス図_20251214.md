@@ -1,13 +1,24 @@
-# PlantUML Studio - シーケンス図: ログイン（OAuth）
+# PlantUML Studio - シーケンス図
 
-**作成日**: 2025-11-30
-**対象ユースケース**: UC 1-1 ログインする, UC 1-2 ログアウトする
-**基準ドキュメント**: PlantUML_Studio_ユースケース図_20251130.md
-**検証**: Context7 MCP（Supabase Auth公式ドキュメント）
+**作成日**: 2025-12-14（統合版）
+**初版作成日**: 2025-11-30
+**基準ドキュメント**: PlantUML_Studio_ユースケース図_20251130.md, PlantUML_Studio_業務フロー図_20251201.md
+**検証**: Context7 MCP, PlantUML開発憲法 v3.4 準拠
 
 ---
 
-## 概要
+## 目次
+
+1. [認証フロー（UC 1-1, 1-2）](#1-認証フローuc-1-1-1-2)
+2. [プロジェクトCRUD（UC 2-1〜2-4）](#2-プロジェクトcruduc-2-12-4)
+3. [技術仕様](#技術仕様)
+
+---
+
+## 1. 認証フロー（UC 1-1, 1-2）
+
+**対象ユースケース**: UC 1-1 ログインする, UC 1-2 ログアウトする
+**検証**: Context7 MCP（Supabase Auth公式ドキュメント）
 
 Supabase Authを使用したOAuth認証フロー（PKCE）を表現します。
 
@@ -19,7 +30,9 @@ Supabase Authを使用したOAuth認証フロー（PKCE）を表現します。
 
 ---
 
-## 1. OAuthログインフロー（PKCE）
+### 1.1. OAuthログインフロー（PKCE）
+
+![OAuthログインシーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Login_OAuth.svg)
 
 ```plantuml
 @startuml PlantUML_Studio_Sequence_Login_OAuth
@@ -135,7 +148,9 @@ deactivate browser
 
 ---
 
-## 2. セッション検証フロー（ページ遷移時）
+### 1.2. セッション検証フロー（ページ遷移時）
+
+![セッション検証シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Session_Check.svg)
 
 ```plantuml
 @startuml PlantUML_Studio_Sequence_Session_Check
@@ -234,9 +249,11 @@ end note
 
 ---
 
-## 3. ログアウトフロー
+### 1.3. ログアウトフロー
 
-### 3-A. クライアント側ログアウト
+#### 1.3-A. クライアント側ログアウト
+
+![ログアウト（クライアント）シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Logout_Client.svg)
 
 ```plantuml
 @startuml PlantUML_Studio_Sequence_Logout_Client
@@ -305,7 +322,9 @@ deactivate browser
 @enduml
 ```
 
-### 3-B. サーバー側ログアウト（推奨）
+#### 1.3-B. サーバー側ログアウト（推奨）
+
+![ログアウト（サーバー）シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Logout_Server.svg)
 
 ```plantuml
 @startuml PlantUML_Studio_Sequence_Logout_Server
@@ -382,6 +401,132 @@ deactivate browser
 |------|----------|------------|
 | クライアント側 | シンプル、即時反映 | キャッシュ管理が複雑 |
 | サーバー側（推奨） | 確実なキャッシュクリア | 追加のRoute Handler必要 |
+
+---
+
+## 2. プロジェクトCRUD（UC 2-1〜2-4）
+
+**対象ユースケース**: UC 2-1〜2-4（プロジェクト管理）
+**基準ドキュメント**: PlantUML_Studio_業務フロー図_20251201.md § 3.5
+
+プロジェクト管理機能（CRUD操作）のシーケンス図です。
+
+**参照技術決定**:
+- **TD-005**: プロジェクト選択状態のSupabase保存（`users.last_selected_project_id`）
+- **TD-006**: MVPはStorage Only構成（`/{user_id}/{project_name}/`）
+
+---
+
+### 2.1. プロジェクト作成フロー（UC 2-1）
+
+![プロジェクト作成シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Project_Create.svg)
+
+#### フロー説明
+
+| ステップ | 処理内容 | 担当 |
+|:--------:|---------|------|
+| 1 | 「新規作成」ボタンをクリック | エンドユーザー |
+| 2 | プロジェクト名入力ダイアログ表示 | ブラウザ |
+| 3 | プロジェクト名を入力 | エンドユーザー |
+| 4 | クライアントバリデーション | ブラウザ |
+| 5 | POST /api/projects リクエスト | API Routes |
+| 6 | フォルダ存在確認（同名チェック） | Storage |
+| 7 | フォルダ作成（RLS適用） | Storage |
+| 8 | プロジェクト一覧更新・完了表示 | ブラウザ |
+
+#### バリデーションルール
+
+| 項目 | ルール | エラーメッセージ |
+|------|--------|----------------|
+| 必須チェック | 空文字不可 | 「プロジェクト名を入力してください」 |
+| 文字数 | 1〜100文字 | 「100文字以内で入力してください」 |
+| 禁止文字 | `< > : " / \ | ? *` | 「使用できない文字が含まれています」 |
+| 重複チェック | 同一ユーザー内で一意 | 「同名のプロジェクトが存在します」 |
+
+---
+
+### 2.2. プロジェクト選択フロー（UC 2-2）
+
+![プロジェクト選択シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Project_Select.svg)
+
+#### フロー説明
+
+| ステップ | 処理内容 | 担当 |
+|:--------:|---------|------|
+| 1 | プロジェクトをクリック | エンドユーザー |
+| 2 | PUT /api/users/me/selected-project | API Routes |
+| 3 | users.last_selected_project_id 更新 | Database |
+| 4 | GET /api/projects/{projectId}/diagrams | API Routes |
+| 5 | フォルダ内ファイル一覧取得 | Storage |
+| 6 | Context/Store更新・画面遷移 | ブラウザ |
+
+#### TD-005準拠
+
+- 選択状態をSupabaseに保存
+- リロード後も維持
+- デバイス間で共有
+
+---
+
+### 2.3. プロジェクト編集フロー（UC 2-3）
+
+![プロジェクト編集シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Project_Edit.svg)
+
+#### フロー説明
+
+| ステップ | 処理内容 | 担当 |
+|:--------:|---------|------|
+| 1 | 編集ボタンをクリック | エンドユーザー |
+| 2 | 名前変更ダイアログ表示（現在値プリセット） | ブラウザ |
+| 3 | 新しいプロジェクト名を入力 | エンドユーザー |
+| 4 | クライアントバリデーション | ブラウザ |
+| 5 | PUT /api/projects/{projectId} | API Routes |
+| 6 | 新フォルダ存在確認（同名チェック） | Storage |
+| 7 | フォルダ名変更（配下ファイル移動） | Storage |
+| 8 | プロジェクト一覧更新・完了表示 | ブラウザ |
+
+#### Storage操作
+
+1. 配下ファイルを新フォルダへ移動
+2. 旧フォルダを削除
+3. Storage Policy適用
+
+---
+
+### 2.4. プロジェクト削除フロー（UC 2-4）
+
+![プロジェクト削除シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Project_Delete.svg)
+
+#### フロー説明
+
+| ステップ | 処理内容 | 担当 |
+|:--------:|---------|------|
+| 1 | 削除ボタンをクリック | エンドユーザー |
+| 2 | GET /api/projects/{projectId}/diagrams/count | API Routes |
+| 3 | 確認ダイアログ表示（配下図表数警告） | ブラウザ |
+| 4 | 削除を確認 or キャンセル | エンドユーザー |
+| 5 | DELETE /api/projects/{projectId} | API Routes |
+| 6 | フォルダ再帰削除 | Storage |
+| 7 | プロジェクト一覧更新・完了表示 | ブラウザ |
+
+#### カスケード削除
+
+プロジェクトフォルダ配下の全ファイルを再帰的に削除:
+- `.puml`
+- `.excalidraw.json`
+- `.preview.svg`
+
+---
+
+## エラーハンドリング
+
+| エラー種別 | HTTPステータス | 対応 |
+|-----------|:-------------:|------|
+| バリデーションエラー | 400 | リアルタイムでエラー表示 |
+| 同名プロジェクト | 409 | 「同名のプロジェクトが存在します」 |
+| 認証エラー | 401 | ログイン画面にリダイレクト |
+| ネットワークエラー | - | 「接続に失敗しました。再試行してください。」 |
+| 削除エラー | 500 | 「削除に失敗しました。再試行してください。」 |
 
 ---
 
@@ -674,6 +819,20 @@ project/
 
 ## 関連ドキュメント
 
-- [PlantUML_Studio_ユースケース図_20251130.md](./PlantUML_Studio_ユースケース図_20251130.md) - UC 1-1, 1-2
-- [PlantUML_Studio_コンテキスト図_20251130.md](./PlantUML_Studio_コンテキスト図_20251130.md) - Supabase連携
-- [Supabase SSR公式ドキュメント](https://github.com/supabase/supabase/blob/master/apps/docs/content/guides/auth/server-side/creating-a-client.mdx)
+| ドキュメント | 内容 |
+|-------------|------|
+| `PlantUML_Studio_ユースケース図_20251130.md` | UC 1-1〜1-2, 2-1〜2-4 |
+| `PlantUML_Studio_コンテキスト図_20251130.md` | Supabase連携 |
+| `PlantUML_Studio_業務フロー図_20251201.md` § 3.5 | 業務フロー詳細 |
+| `docs/context/technical_decisions.md` TD-005, TD-006 | 技術決定 |
+| `PlantUML_Studio_CRUD表_20251209.md` | CRUD操作一覧 |
+| [Supabase SSR公式ドキュメント](https://github.com/supabase/supabase/blob/master/apps/docs/content/guides/auth/server-side/creating-a-client.mdx) | 公式リファレンス |
+
+---
+
+## 更新履歴
+
+| 日付 | バージョン | 内容 |
+|------|:---------:|------|
+| 2025-11-30 | 1.0 | 初版作成（UC 1-1, 1-2 認証フロー） |
+| 2025-12-14 | 2.0 | 1ファイル方式に統合、UC 2-1〜2-4 追加 |
