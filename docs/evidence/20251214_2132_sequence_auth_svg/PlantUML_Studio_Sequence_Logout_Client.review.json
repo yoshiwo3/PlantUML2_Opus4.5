@@ -1,0 +1,17 @@
+{
+    "file": "PlantUML_Studio_Sequence_Logout_Client.puml",
+    "current": {
+        "hash": "17DE85520732BF60",
+        "timestamp": "2025-12-14T21:34:26",
+        "reviewed_at": "2025-12-14T21:51:00",
+        "status": "completed",
+        "review": {
+            "pass1_structure": true,
+            "pass2_connections": true,
+            "pass3_content": true,
+            "pass4_style": true
+        },
+        "issues": []
+    },
+    "history": []
+}

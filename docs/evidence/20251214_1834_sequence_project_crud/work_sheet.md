@@ -20,7 +20,7 @@
 ### 保存先
 
 - **SVG**: `docs/proposals/diagrams/sequence/`
-- **正式版ドキュメント**: `docs/proposals/PlantUML_Studio_シーケンス図_プロジェクトCRUD_20251214.md`
+- **正式版ドキュメント**: `docs/proposals/PlantUML_Studio_シーケンス図_20251214.md`（1ファイル方式統合版）
 
 ---
 
@@ -48,7 +48,7 @@
 
 | 項目 | 状態 |
 |------|:----:|
-| PlantUML開発憲法 v3.4 | ✅ |
+| PlantUML開発憲法 v4.2 | ✅ |
 | Context7仕様確認 | ✅ |
 | 業務フロー図 3.5 整合性 | ✅ |
 | TD-005（選択状態保存） | ✅ |
@@ -98,4 +98,4 @@
 
 - `docs/proposals/PlantUML_Studio_業務フロー図_20251201.md` § 3.5
 - `docs/context/technical_decisions.md` TD-005, TD-006
-- `docs/guides/PlantUML_Development_Constitution.md` v3.4
+- `docs/guides/PlantUML_Development_Constitution.md` v4.2

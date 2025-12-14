@@ -1,0 +1,132 @@
+@startuml PlantUML_Studio_Sequence_Template_Select
+'==================================================
+' シーケンス図: テンプレート選択フロー
+' UC 3-2 テンプレートを選択する
+' 基準: 業務フロー図 3.1, 機能一覧表 F-DGM-02
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title テンプレート選択フロー（UC 3-2）
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Next.js Client)"
+participant APIRoutes as "API Routes\n(/api/templates)"
+participant TemplateService as "TemplateService"
+participant DiagramService as "DiagramService"
+database Storage as "Supabase Storage"
+
+== 図表作成ダイアログで「テンプレートから作成」を選択 ==
+
+User -> Browser : 「テンプレートから作成」を選択
+activate Browser
+
+Browser -> APIRoutes : GET /api/templates\n?type={PlantUML|Excalidraw}
+activate APIRoutes
+
+APIRoutes -> TemplateService : getTemplates(type)
+activate TemplateService
+
+note over TemplateService
+  **テンプレートカテゴリ**
+  PlantUML:
+  - シーケンス図、クラス図、ユースケース図
+  - アクティビティ図、状態図、コンポーネント図
+  Excalidraw:
+  - ワイヤーフレーム、フローチャート、マインドマップ
+end note
+
+TemplateService --> APIRoutes : templates[]
+deactivate TemplateService
+
+APIRoutes --> Browser : 200 OK\n{ templates }
+deactivate APIRoutes
+
+Browser -> Browser : テンプレート一覧表示\n(グリッドレイアウト)
+
+note over Browser
+  **表示項目**
+  - サムネイル画像
+  - テンプレート名
+  - カテゴリ
+  - 説明文
+end note
+
+== テンプレート選択 ==
+
+User -> Browser : テンプレートをクリック
+Browser -> Browser : プレビュー表示\n(拡大プレビュー)
+
+User -> Browser : 「このテンプレートで作成」をクリック
+
+Browser -> Browser : 図表名入力を促す
+
+User -> Browser : 図表名を入力
+
+Browser -> Browser : クライアントバリデーション
+
+alt バリデーションエラー
+    Browser --> User : エラーメッセージ表示
+else バリデーションOK
+    Browser -> APIRoutes : POST /api/diagrams\n{ projectId, name, type,\n  templateId }
+    activate APIRoutes
+
+    APIRoutes -> TemplateService : getTemplate(templateId)
+    activate TemplateService
+    TemplateService --> APIRoutes : templateContent
+    deactivate TemplateService
+
+    APIRoutes -> DiagramService : createDiagram(dto, templateContent)
+    activate DiagramService
+
+    DiagramService -> Storage : list(path)\n重複チェック
+    activate Storage
+    Storage --> DiagramService : ファイル一覧
+    deactivate Storage
+
+    alt 同名ファイル存在
+        DiagramService --> APIRoutes : ConflictError(409)
+        APIRoutes --> Browser : 409 Conflict
+        Browser --> User : エラー表示
+    else 重複なし
+        DiagramService -> DiagramService : テンプレートコード適用\n+ ファイルパス生成
+
+        note over DiagramService
+          **テンプレート適用**
+          1. テンプレートコードをコピー
+          2. 図表名を反映（@startuml {name}）
+          3. 初期コメント追加
+        end note
+
+        DiagramService -> Storage : upload(path, templateContent)
+        activate Storage
+        Storage --> DiagramService : 保存成功
+        deactivate Storage
+
+        DiagramService --> APIRoutes : { id, name, type, path }
+        deactivate DiagramService
+
+        APIRoutes --> Browser : 201 Created\n{ diagram }
+        deactivate APIRoutes
+
+        Browser -> Browser : エディタ画面に遷移
+        Browser --> User : エディタ表示\n(テンプレートコード適用済み)
+    end
+end
+
+deactivate Browser
+
+@enduml

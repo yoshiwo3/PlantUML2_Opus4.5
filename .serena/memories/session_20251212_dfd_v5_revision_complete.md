@@ -12,7 +12,7 @@
 
 | ファイル | 内容 |
 |---------|------|
-| `docs/proposals/PlantUML_Studio_データフロー図_v5.0_20251212.md` | DFD v5.0（1586行、98点A評価） |
+| `docs/proposals/PlantUML_Studio_データフロー図_20251212.md` | DFD v5.0（1586行、98点A評価） |
 | `docs/evidence/20251212_2207_dfd_v5_revision/` | Evidence 3点セット |
 
 ### 主要変更点（v3.1→v5.0）

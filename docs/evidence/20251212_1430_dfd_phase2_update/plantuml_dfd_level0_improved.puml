@@ -1,0 +1,117 @@
+@startuml DFD_Level0_Improved
+' ============================================
+' DFD レベル0（コンテキスト図）- PlantUML改善版
+' レイアウト制御を強化
+' ============================================
+
+' 基本設定
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontName Meiryo
+skinparam defaultFontSize 11
+skinparam ArrowColor #333333
+skinparam ArrowThickness 1.5
+skinparam Padding 5
+skinparam Nodesep 60
+skinparam Ranksep 80
+
+' 外部エンティティスタイル
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+    BorderColor #333333
+    BorderThickness 2
+    RoundCorner 5
+}
+
+' プロセススタイル（楕円）
+skinparam usecase {
+    BackgroundColor #F0F0F0
+    BorderColor #333333
+    BorderThickness 3
+}
+
+' データストアスタイル
+skinparam storage {
+    BackgroundColor #F9F9F9
+    BorderColor #666666
+    BorderThickness 2
+}
+
+' 横方向レイアウト
+left to right direction
+
+' ========================================
+' 左側: 外部エンティティ（ユーザー）
+' ========================================
+rectangle "**エンドユーザー**\n//図表を作成する人//" as User
+
+rectangle "**開発者/管理者**\n//システムを管理する人//" as Dev
+
+' ========================================
+' 中央: メインプロセス
+' ========================================
+usecase "  **PlantUML**\n  **Studio**  " as P0 #E8E8E8
+
+' ========================================
+' 右側: データストア・外部API
+' ========================================
+storage "**D1** 図表ストレージ\n//ソースコード・画像//" as D1
+
+storage "**D2** 認証情報\n//ユーザー・セッション//" as D2
+
+rectangle "**OpenRouter**\n//LLMサービス//" as OpenRouter #FAFAFA
+
+rectangle "**OpenAI**\n//Embedding//" as OpenAI #FAFAFA
+
+' ========================================
+' レイアウト制御（隠し線）
+' ========================================
+User -[hidden]down- Dev
+D1 -[hidden]down- D2
+D2 -[hidden]down- OpenRouter
+OpenRouter -[hidden]down- OpenAI
+
+' ========================================
+' データフロー: ユーザー関連
+' ========================================
+User -right-> P0 : **DF-1** ログイン要求
+P0 -left-> User : **DF-2** 認証トークン
+
+User -right-> P0 : **DF-3** 図表操作
+P0 -left-> User : **DF-6** プレビュー結果
+
+User -right-> P0 : **DF-7** AI質問
+
+' ========================================
+' データフロー: 開発者関連
+' ========================================
+Dev -right-> P0 : **DF-17** ユーザー管理
+Dev -right-> P0 : **DF-18** LLM管理
+P0 -left-> Dev : **DF-22** 管理結果
+
+' ========================================
+' データフロー: データストア関連
+' ========================================
+P0 -right-> D1 : **DF-4** 保存
+D1 -left-> P0 : 読取
+
+P0 -right-> D2 : **DF-20** 問合
+D2 -left-> P0 : **DF-21** 応答
+
+' ========================================
+' データフロー: 外部API関連
+' ========================================
+P0 -right-> OpenRouter : **DF-8** LLM問合せ
+P0 -right-> OpenAI : **DF-9** ベクトル変換
+
+' ========================================
+' 凡例
+' ========================================
+legend bottom right
+  |= 記号 |= 意味 |
+  | (( )) | プロセス |
+  | [ ] | 外部エンティティ |
+  | {{ }} | データストア |
+  | → | データフロー |
+endlegend
+
+@enduml

@@ -1,0 +1,109 @@
+@startuml PlantUML_Studio_Sequence_Diagram_Create
+'==================================================
+' シーケンス図: 図表新規作成フロー
+' UC 3-1 図表を作成する
+' 基準: 業務フロー図 3.1, 機能一覧表 F-DGM-01
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title 図表新規作成フロー（UC 3-1）
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Next.js Client)"
+participant APIRoutes as "API Routes\n(/api/diagrams)"
+participant DiagramService as "DiagramService"
+database Storage as "Supabase Storage"
+
+== 前提: プロジェクト選択済み ==
+
+User -> Browser : 「新規図表」ボタンをクリック
+activate Browser
+
+Browser -> Browser : 図表作成ダイアログ表示
+
+note over Browser
+  **入力項目**
+  1. 図表名（必須）
+  2. 図表タイプ（PlantUML/Excalidraw）
+  3. 作成方法（空/テンプレート）
+end note
+
+User -> Browser : 図表名を入力\n+ タイプを選択
+
+Browser -> Browser : クライアントバリデーション
+
+note over Browser
+  **バリデーションルール**
+  - 空文字不可
+  - 1〜100文字
+  - 禁止文字: < > : " / \ | ? *
+end note
+
+alt バリデーションエラー
+    Browser --> User : エラーメッセージ表示
+else バリデーションOK
+    Browser -> APIRoutes : POST /api/diagrams\n{ projectId, name, type }
+    activate APIRoutes
+
+    APIRoutes -> DiagramService : createDiagram(dto)
+    activate DiagramService
+
+    DiagramService -> Storage : list(path)\n重複チェック
+    activate Storage
+    Storage --> DiagramService : ファイル一覧
+    deactivate Storage
+
+    alt 同名ファイル存在
+        DiagramService --> APIRoutes : ConflictError(409)
+        APIRoutes --> Browser : 409 Conflict\n「同名の図表が存在します」
+        Browser --> User : エラー表示
+    else 重複なし
+        DiagramService -> DiagramService : ファイルパス生成\n{user_id}/{project}/{name}.puml
+
+        note over DiagramService
+          **TD-006: Storage Only構成**
+          パス: /{user_id}/{project_name}/{diagram_name}
+          - PlantUML: .puml
+          - Excalidraw: .excalidraw.json
+        end note
+
+        DiagramService -> Storage : upload(path, initialContent)
+        activate Storage
+
+        note over Storage
+          **RLS Policy適用**
+          - user_id = auth.uid()
+          - 所有者のみ書き込み可
+        end note
+
+        Storage --> DiagramService : 保存成功
+        deactivate Storage
+
+        DiagramService --> APIRoutes : { id, name, type, path }
+        deactivate DiagramService
+
+        APIRoutes --> Browser : 201 Created\n{ diagram }
+        deactivate APIRoutes
+
+        Browser -> Browser : エディタ画面に遷移
+        Browser --> User : エディタ表示\n(空のMonaco Editor)
+    end
+end
+
+deactivate Browser
+
+@enduml

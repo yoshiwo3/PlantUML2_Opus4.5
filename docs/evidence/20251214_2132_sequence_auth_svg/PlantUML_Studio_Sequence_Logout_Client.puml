@@ -1,0 +1,64 @@
+@startuml PlantUML_Studio_Sequence_Logout_Client
+'==================================================
+' シーケンス図: ログアウトフロー（クライアント側）
+' UC 1-2 ログアウトする
+' 検証: Context7 MCP - Supabase SSR公式ドキュメント
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title ログアウトフロー（クライアント側）
+
+actor "エンドユーザー" as user
+participant "ブラウザ\n(Client Component)" as browser #E3F2FD
+participant "Supabase Auth\n(@supabase/ssr)" as supabase #E8F5E9
+participant "Next.js Router" as router #FFF3E0
+
+== ログアウト ==
+
+user -> browser : ログアウトボタンをクリック
+activate browser
+
+browser -> supabase : signOut()
+activate supabase
+
+supabase -> supabase : セッション無効化\n(Supabaseサーバー側)
+supabase -> supabase : Cookie削除指示
+
+supabase --> browser : 成功
+deactivate supabase
+
+browser -> browser : ローカルセッション削除\n- Cookie\n- localStorage(キャッシュ)
+
+browser -> router : router.push('/login')
+activate router
+router --> browser : ナビゲーション
+
+browser -> router : **router.refresh()**
+note right of router
+  **重要: router.refresh()**
+  サーバーコンポーネントを
+  再検証してキャッシュをクリア
+  これがないと古い認証状態が残る
+end note
+
+router --> browser : サーバーコンポーネント再検証
+deactivate router
+
+browser --> user : ログインページ表示
+
+deactivate browser
+
+@enduml

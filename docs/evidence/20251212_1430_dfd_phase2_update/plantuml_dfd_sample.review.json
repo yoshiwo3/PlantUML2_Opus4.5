@@ -1,0 +1,25 @@
+﻿{
+    "current":  {
+                    "hash":  "E67BBE00E71B52D0",
+                    "timestamp":  "2025-12-12T21:38:56",
+                    "reviewed_at":  null,
+                    "issues":  [
+                                   {
+                                       "pass":  null,
+                                       "symptom":  null,
+                                       "cause":  null
+                                   }
+                               ],
+                    "status":  "pending",
+                    "review":  {
+                                   "pass4_style":  false,
+                                   "pass1_structure":  false,
+                                   "pass3_content":  false,
+                                   "pass2_connections":  false
+                               }
+                },
+    "history":  [
+
+                ],
+    "file":  "plantuml_dfd_sample.puml"
+}

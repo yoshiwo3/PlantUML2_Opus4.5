@@ -3,7 +3,7 @@
 **作成日**: 2025-12-14（統合版）
 **初版作成日**: 2025-11-30
 **基準ドキュメント**: PlantUML_Studio_ユースケース図_20251130.md, PlantUML_Studio_業務フロー図_20251201.md
-**検証**: Context7 MCP, PlantUML開発憲法 v3.4 準拠
+**検証**: Context7 MCP, PlantUML開発憲法 v4.2 準拠
 
 ---
 
@@ -11,7 +11,8 @@
 
 1. [認証フロー（UC 1-1, 1-2）](#1-認証フローuc-1-1-1-2)
 2. [プロジェクトCRUD（UC 2-1〜2-4）](#2-プロジェクトcruduc-2-12-4)
-3. [技術仕様](#技術仕様)
+3. [図表作成・テンプレート（UC 3-1, 3-2）](#3-図表作成テンプレートuc-3-1-3-2)
+4. [技術仕様](#4-技術仕様)
 
 ---
 
@@ -530,7 +531,330 @@ deactivate browser
 
 ---
 
-## 技術仕様
+## 3. 図表作成・テンプレート（UC 3-1, 3-2）
+
+**対象ユースケース**: UC 3-1 図表を作成する, UC 3-2 テンプレートを選択する
+**基準ドキュメント**: PlantUML_Studio_業務フロー図_20251201.md § 3.1
+**検証**: Context7 MCP, PlantUML開発憲法 v4.2 準拠
+
+図表作成機能のシーケンス図です。
+
+**参照技術決定**:
+- **TD-006**: MVPはStorage Only構成（`/{user_id}/{project_name}/{diagram_name}.puml`）
+- **RLS Policy**: `user_id = auth.uid()` による所有者のみ書き込み可
+
+---
+
+### 3.1. 図表新規作成フロー（UC 3-1）
+
+![図表新規作成シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Diagram_Create.svg)
+
+```plantuml
+@startuml PlantUML_Studio_Sequence_Diagram_Create
+'==================================================
+' シーケンス図: 図表新規作成フロー
+' UC 3-1 図表を作成する
+' 基準: 業務フロー図 3.1, 機能一覧表 F-DGM-01
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title 図表新規作成フロー（UC 3-1）
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Next.js Client)"
+participant APIRoutes as "API Routes\n(/api/diagrams)"
+participant DiagramService as "DiagramService"
+database Storage as "Supabase Storage"
+
+== 前提: プロジェクト選択済み ==
+
+User -> Browser : 「新規図表」ボタンをクリック
+activate Browser
+
+Browser -> Browser : 図表作成ダイアログ表示
+
+note over Browser
+  **入力項目**
+  1. 図表名（必須）
+  2. 図表タイプ（PlantUML/Excalidraw）
+  3. 作成方法（空/テンプレート）
+end note
+
+User -> Browser : 図表名を入力\n+ タイプを選択
+
+Browser -> Browser : クライアントバリデーション
+
+note over Browser
+  **バリデーションルール**
+  - 空文字不可
+  - 1〜100文字
+  - 禁止文字: < > : " / \ | ? *
+end note
+
+alt バリデーションエラー
+    Browser --> User : エラーメッセージ表示
+else バリデーションOK
+    Browser -> APIRoutes : POST /api/diagrams\n{ projectId, name, type }
+    activate APIRoutes
+
+    APIRoutes -> DiagramService : createDiagram(dto)
+    activate DiagramService
+
+    DiagramService -> Storage : list(path)\n重複チェック
+    activate Storage
+    Storage --> DiagramService : ファイル一覧
+    deactivate Storage
+
+    alt 同名ファイル存在
+        DiagramService --> APIRoutes : ConflictError(409)
+        APIRoutes --> Browser : 409 Conflict\n「同名の図表が存在します」
+        Browser --> User : エラー表示
+    else 重複なし
+        DiagramService -> DiagramService : ファイルパス生成\n{user_id}/{project}/{name}.puml
+
+        note over DiagramService
+          **TD-006: Storage Only構成**
+          パス: /{user_id}/{project_name}/{diagram_name}
+          - PlantUML: .puml
+          - Excalidraw: .excalidraw.json
+        end note
+
+        DiagramService -> Storage : upload(path, initialContent)
+        activate Storage
+
+        note over Storage
+          **RLS Policy適用**
+          - user_id = auth.uid()
+          - 所有者のみ書き込み可
+        end note
+
+        Storage --> DiagramService : 保存成功
+        deactivate Storage
+
+        DiagramService --> APIRoutes : { id, name, type, path }
+        deactivate DiagramService
+
+        APIRoutes --> Browser : 201 Created\n{ diagram }
+        deactivate APIRoutes
+
+        Browser -> Browser : エディタ画面に遷移
+        Browser --> User : エディタ表示\n(空のMonaco Editor)
+    end
+end
+
+deactivate Browser
+
+@enduml
+```
+
+#### フロー説明
+
+| ステップ | 処理内容 | 担当 |
+|:--------:|---------|------|
+| 1 | 「新規図表」ボタンをクリック | エンドユーザー |
+| 2 | 図表作成ダイアログ表示（名前/タイプ/作成方法） | ブラウザ |
+| 3 | 図表名を入力 + タイプを選択 | エンドユーザー |
+| 4 | クライアントバリデーション | ブラウザ |
+| 5 | POST /api/diagrams リクエスト | API Routes |
+| 6 | ファイル存在確認（同名チェック） | Storage |
+| 7 | ファイル作成（RLS適用） | Storage |
+| 8 | エディタ画面に遷移 | ブラウザ |
+
+#### バリデーションルール
+
+| 項目 | ルール | エラーメッセージ |
+|------|--------|----------------|
+| 必須チェック | 空文字不可 | 「図表名を入力してください」 |
+| 文字数 | 1〜100文字 | 「100文字以内で入力してください」 |
+| 禁止文字 | `< > : " / \ | ? *` | 「使用できない文字が含まれています」 |
+| 重複チェック | 同一プロジェクト内で一意 | 「同名の図表が存在します」 |
+
+---
+
+### 3.2. テンプレート選択フロー（UC 3-2）
+
+![テンプレート選択シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Template_Select.svg)
+
+```plantuml
+@startuml PlantUML_Studio_Sequence_Template_Select
+'==================================================
+' シーケンス図: テンプレート選択フロー
+' UC 3-2 テンプレートを選択する
+' 基準: 業務フロー図 3.1, 機能一覧表 F-DGM-02
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title テンプレート選択フロー（UC 3-2）
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Next.js Client)"
+participant APIRoutes as "API Routes\n(/api/templates)"
+participant TemplateService as "TemplateService"
+participant DiagramService as "DiagramService"
+database Storage as "Supabase Storage"
+
+== 図表作成ダイアログで「テンプレートから作成」を選択 ==
+
+User -> Browser : 「テンプレートから作成」を選択
+activate Browser
+
+Browser -> APIRoutes : GET /api/templates\n?type={PlantUML|Excalidraw}
+activate APIRoutes
+
+APIRoutes -> TemplateService : getTemplates(type)
+activate TemplateService
+
+note over TemplateService
+  **テンプレートカテゴリ**
+  PlantUML:
+  - シーケンス図、クラス図、ユースケース図
+  - アクティビティ図、状態図、コンポーネント図
+  Excalidraw:
+  - ワイヤーフレーム、フローチャート、マインドマップ
+end note
+
+TemplateService --> APIRoutes : templates[]
+deactivate TemplateService
+
+APIRoutes --> Browser : 200 OK\n{ templates }
+deactivate APIRoutes
+
+Browser -> Browser : テンプレート一覧表示\n(グリッドレイアウト)
+
+note over Browser
+  **表示項目**
+  - サムネイル画像
+  - テンプレート名
+  - カテゴリ
+  - 説明文
+end note
+
+== テンプレート選択 ==
+
+User -> Browser : テンプレートをクリック
+Browser -> Browser : プレビュー表示\n(拡大プレビュー)
+
+User -> Browser : 「このテンプレートで作成」をクリック
+
+Browser -> Browser : 図表名入力を促す
+
+User -> Browser : 図表名を入力
+
+Browser -> Browser : クライアントバリデーション
+
+alt バリデーションエラー
+    Browser --> User : エラーメッセージ表示
+else バリデーションOK
+    Browser -> APIRoutes : POST /api/diagrams\n{ projectId, name, type,\n  templateId }
+    activate APIRoutes
+
+    APIRoutes -> TemplateService : getTemplate(templateId)
+    activate TemplateService
+    TemplateService --> APIRoutes : templateContent
+    deactivate TemplateService
+
+    APIRoutes -> DiagramService : createDiagram(dto, templateContent)
+    activate DiagramService
+
+    DiagramService -> Storage : list(path)\n重複チェック
+    activate Storage
+    Storage --> DiagramService : ファイル一覧
+    deactivate Storage
+
+    alt 同名ファイル存在
+        DiagramService --> APIRoutes : ConflictError(409)
+        APIRoutes --> Browser : 409 Conflict
+        Browser --> User : エラー表示
+    else 重複なし
+        DiagramService -> DiagramService : テンプレートコード適用\n+ ファイルパス生成
+
+        note over DiagramService
+          **テンプレート適用**
+          1. テンプレートコードをコピー
+          2. 図表名を反映（@startuml {name}）
+          3. 初期コメント追加
+        end note
+
+        DiagramService -> Storage : upload(path, templateContent)
+        activate Storage
+        Storage --> DiagramService : 保存成功
+        deactivate Storage
+
+        DiagramService --> APIRoutes : { id, name, type, path }
+        deactivate DiagramService
+
+        APIRoutes --> Browser : 201 Created\n{ diagram }
+        deactivate APIRoutes
+
+        Browser -> Browser : エディタ画面に遷移
+        Browser --> User : エディタ表示\n(テンプレートコード適用済み)
+    end
+end
+
+deactivate Browser
+
+@enduml
+```
+
+#### フロー説明
+
+| ステップ | 処理内容 | 担当 |
+|:--------:|---------|------|
+| 1 | 「テンプレートから作成」を選択 | エンドユーザー |
+| 2 | GET /api/templates でテンプレート一覧取得 | API Routes |
+| 3 | テンプレート一覧表示（グリッドレイアウト） | ブラウザ |
+| 4 | テンプレートをクリック → プレビュー表示 | ブラウザ |
+| 5 | 「このテンプレートで作成」をクリック | エンドユーザー |
+| 6 | 図表名入力 + バリデーション | ブラウザ |
+| 7 | POST /api/diagrams（templateId含む） | API Routes |
+| 8 | テンプレート取得 + 図表作成 | DiagramService |
+| 9 | エディタ画面に遷移（テンプレート適用済み） | ブラウザ |
+
+#### テンプレートカテゴリ
+
+| タイプ | カテゴリ | 説明 |
+|--------|---------|------|
+| PlantUML | シーケンス図 | オブジェクト間の相互作用 |
+| PlantUML | クラス図 | クラス構造と関係 |
+| PlantUML | ユースケース図 | システム機能の概要 |
+| PlantUML | アクティビティ図 | 処理フロー |
+| PlantUML | 状態図 | 状態遷移 |
+| PlantUML | コンポーネント図 | システムコンポーネント |
+| Excalidraw | ワイヤーフレーム | UI設計 |
+| Excalidraw | フローチャート | 処理フロー |
+| Excalidraw | マインドマップ | アイデア整理 |
+
+---
+
+## 4. 技術仕様
 
 ### 使用ライブラリ
 
@@ -836,3 +1160,4 @@ project/
 |------|:---------:|------|
 | 2025-11-30 | 1.0 | 初版作成（UC 1-1, 1-2 認証フロー） |
 | 2025-12-14 | 2.0 | 1ファイル方式に統合、UC 2-1〜2-4 追加 |
+| 2025-12-14 | 2.1 | UC 3-1, 3-2（図表作成・テンプレート選択）追加 |

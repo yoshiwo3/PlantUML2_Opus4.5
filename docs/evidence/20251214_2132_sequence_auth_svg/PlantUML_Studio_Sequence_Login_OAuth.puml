@@ -1,0 +1,109 @@
+@startuml PlantUML_Studio_Sequence_Login_OAuth
+'==================================================
+' シーケンス図: OAuthログインフロー（PKCE）
+' UC 1-1 ログインする
+' 検証: Context7 MCP - Supabase Auth公式ドキュメント
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+skinparam sequenceParticipant underline
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title OAuthログインフロー（GitHub/Google）- PKCE
+
+actor "エンドユーザー" as user
+participant "ブラウザ\n(Next.js Client)" as browser #E3F2FD
+participant "Next.js\nRoute Handler\n(/auth/callback)" as callback #FFF3E0
+participant "Supabase Auth" as supabase #E8F5E9
+participant "OAuth Provider\n(GitHub/Google)" as oauth #FCE4EC
+
+== 認証開始 ==
+
+user -> browser : ログインボタンをクリック
+activate browser
+
+browser -> browser : OAuth Provider選択\n(GitHub/Google)
+
+note right of browser
+  **PKCE準備（supabase-js内部）**
+  1. code_verifier生成（ランダム文字列）
+  2. code_challenge = SHA256(code_verifier)
+  3. state生成（CSRF対策）
+  4. code_verifierをlocalStorageに保存
+end note
+
+browser -> supabase : signInWithOAuth({\n  provider: 'github',\n  options: { redirectTo }\n})
+activate supabase
+
+supabase --> browser : { data: { url } }\nOAuth認証URL\n(含: code_challenge, state)
+deactivate supabase
+
+browser -> oauth : リダイレクト\n(OAuth認証画面)
+deactivate browser
+
+== OAuth認証（外部） ==
+
+activate oauth
+oauth -> user : 認証画面表示\n(ログイン/権限確認)
+user -> oauth : 認証情報入力\n+ アクセス許可
+
+oauth -> oauth : 認証検証\n+ 認証コード生成
+
+oauth --> browser : リダイレクト\n/auth/callback?code=xxx&state=yyy
+deactivate oauth
+
+== コールバック処理（サーバーサイド） ==
+
+activate browser
+browser -> callback : GET /auth/callback\n?code=xxx
+activate callback
+
+callback -> callback : URLからcode取得
+
+callback -> supabase : exchangeCodeForSession(code)
+activate supabase
+
+note right of supabase
+  **Supabase Auth内部処理**
+  1. codeをOAuth Providerに送信
+  2. access_token/refresh_token取得
+  3. ユーザー情報取得
+  4. auth.usersにユーザー作成/更新
+  5. JWTセッション生成
+end note
+
+supabase -> oauth : POST /oauth/token\n(code + code_verifier)
+activate oauth
+oauth --> supabase : access_token\n+ refresh_token\n+ user_info
+deactivate oauth
+
+supabase -> supabase : ユーザー作成/更新\n(auth.users)
+supabase -> supabase : JWTセッション生成
+
+supabase --> callback : セッション情報
+deactivate supabase
+
+callback -> callback : Set-Cookie\n(セッションCookie)
+
+callback --> browser : リダイレクト\n(ダッシュボード)
+deactivate callback
+
+== セッション確立 ==
+
+browser -> browser : 認証状態更新\n(Context/Store)
+browser --> user : ダッシュボード表示
+
+deactivate browser
+
+@enduml

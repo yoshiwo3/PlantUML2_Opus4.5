@@ -1,0 +1,66 @@
+@startuml PlantUML_Studio_Sequence_Logout_Server
+'==================================================
+' シーケンス図: ログアウトフロー（サーバー側 - 推奨）
+' UC 1-2 ログアウトする
+' 検証: Context7 MCP - Supabase SSR公式ドキュメント
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title ログアウトフロー（サーバー側 - 推奨）
+
+actor "エンドユーザー" as user
+participant "ブラウザ" as browser #E3F2FD
+participant "Route Handler\n(/auth/signout)" as handler #FFF3E0
+participant "Supabase Auth\n(@supabase/ssr)" as supabase #E8F5E9
+
+== ログアウト ==
+
+user -> browser : ログアウトボタンをクリック
+activate browser
+
+browser -> handler : POST /auth/signout
+activate handler
+
+handler -> handler : createClient()
+
+handler -> supabase : getUser()
+activate supabase
+supabase --> handler : { user }
+deactivate supabase
+
+alt ユーザーが存在
+    handler -> supabase : signOut()
+    activate supabase
+    supabase -> supabase : セッション無効化
+    supabase --> handler : 成功
+    deactivate supabase
+end
+
+handler -> handler : **revalidatePath('/', 'layout')**
+note right of handler
+  **重要: revalidatePath()**
+  サーバー側でキャッシュを
+  無効化してデータを再取得
+end note
+
+handler --> browser : NextResponse.redirect\n('/login', 302)
+deactivate handler
+
+browser --> user : ログインページ表示
+
+deactivate browser
+
+@enduml

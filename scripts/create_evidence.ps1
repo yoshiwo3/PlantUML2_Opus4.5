@@ -1,6 +1,7 @@
 # Evidence 3点セット自動作成スクリプト（Windows PowerShell）
-# 使用方法: pwsh scripts/create_evidence.ps1 <work_type>
-# 例: pwsh scripts/create_evidence.ps1 feature_http_mcp
+# 使用方法: pwsh scripts/create_evidence.ps1 <evidence_name>
+# 命名規則: yyyyMMdd_HHmm_<work_type>
+# 例: pwsh scripts/create_evidence.ps1 20251214_2100_sequence_diagram_analysis
 
 param(
     [Parameter(Mandatory=$true)]
@@ -16,7 +17,9 @@ $TimeStr = Get-Date -Format "HHmm"
 $DateTimeStr = Get-Date -Format "yyyy-MM-dd HH:mm"
 
 # Evidenceディレクトリパス
-$EvidenceDir = "docs/poc/evidence/$DateStr/$WorkType"
+# 命名規則: yyyyMMdd_HHmm_<work_type> (例: 20251207_0902_admin_flow_mvp)
+# ユーザーがフルネームを渡す想定（日時を含む）
+$EvidenceDir = "docs/evidence/$WorkType"
 
 # ディレクトリ作成
 Write-Host "Evidenceディレクトリ作成: $EvidenceDir" -ForegroundColor Cyan

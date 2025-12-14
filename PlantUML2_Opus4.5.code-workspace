@@ -7,5 +7,7 @@
 			"path": "../PlantUML2_Codex/docs/proposals"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "PlantUML2_Opus4.5"
+	}
 }

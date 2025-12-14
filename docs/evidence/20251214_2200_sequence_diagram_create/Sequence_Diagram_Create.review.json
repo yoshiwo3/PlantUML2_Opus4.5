@@ -1,0 +1,18 @@
+{
+    "current": {
+        "hash": "769BFD6591C8D638",
+        "timestamp": "2025-12-14T22:04:09",
+        "reviewed_at": "2025-12-14T22:10:00",
+        "issues": [],
+        "status": "completed",
+        "review": {
+            "pass1_structure": true,
+            "pass2_connections": true,
+            "pass3_content": true,
+            "pass4_style": true
+        },
+        "notes": "4パスレビュー完了: 5参加者正常、altブロック2つ正常、全矢印途切れなし、TD-006/RLS Policy note正常表示、skinparam適用済み"
+    },
+    "history": [],
+    "file": "Sequence_Diagram_Create.puml"
+}

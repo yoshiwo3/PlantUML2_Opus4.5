@@ -1,0 +1,92 @@
+@startuml PlantUML_Studio_Sequence_Session_Check
+'==================================================
+' シーケンス図: セッション検証フロー
+' 保護ページアクセス時
+' 検証: Context7 MCP - Supabase SSR公式ドキュメント
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title セッション検証フロー（Middleware）
+
+actor "エンドユーザー" as user
+participant "ブラウザ" as browser #E3F2FD
+participant "Middleware\n(updateSession)" as middleware #FFF3E0
+participant "Supabase Auth\n(@supabase/ssr)" as supabase #E8F5E9
+
+== ページリクエスト ==
+
+user -> browser : 保護ページにアクセス
+activate browser
+
+browser -> middleware : リクエスト\n+ Cookie
+activate middleware
+
+middleware -> middleware : createServerClient()\n+ cookies設定\n(getAll/setAll)
+
+note right of middleware
+  **重要: この間にコードを入れない**
+  createServerClient()と
+  getUser()の間に他の処理を
+  入れると予期せぬログアウトが発生
+end note
+
+middleware -> supabase : **getUser()**
+activate supabase
+
+note right of supabase
+  **getUser()の内部処理**
+  1. Cookieからセッション取得
+  2. JWT期限切れなら自動更新
+  3. refresh_tokenでトークン再取得
+  4. 新Cookieをレスポンスに設定
+end note
+
+supabase -> supabase : JWT検証\n+ 自動トークン更新
+
+alt ユーザー認証済み
+    supabase --> middleware : { data: { user } }
+    deactivate supabase
+
+    middleware --> browser : supabaseResponse\n(元のレスポンス + 更新Cookie)
+    browser --> user : 保護ページ表示
+
+else ユーザー未認証（user: null）
+    supabase --> middleware : { data: { user: null } }
+    deactivate supabase
+
+    middleware -> middleware : パス確認\n(/login, /auth は除外)
+
+    alt 保護ページへのアクセス
+        middleware --> browser : NextResponse.redirect\n(/login)
+        browser --> user : ログインページへ
+    else 公開ページへのアクセス
+        middleware --> browser : supabaseResponse
+        browser --> user : ページ表示
+    end
+end
+
+deactivate middleware
+deactivate browser
+
+note over middleware
+  **重要: supabaseResponseをそのまま返す**
+  新しいNextResponse.next()を作る場合:
+  1. request を渡す
+  2. cookiesをコピー
+  これを怠るとセッション同期が壊れる
+end note
+
+@enduml
