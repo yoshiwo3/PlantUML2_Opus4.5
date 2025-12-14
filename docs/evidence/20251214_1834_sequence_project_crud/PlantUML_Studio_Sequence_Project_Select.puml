@@ -1,0 +1,90 @@
+@startuml PlantUML_Studio_Sequence_Project_Select
+'==================================================
+' シーケンス図: プロジェクト選択フロー
+' UC 2-2 プロジェクトを選択する
+' 参照: 業務フロー図 3.5.2, TD-005
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+skinparam sequenceParticipant underline
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title プロジェクト選択フロー（UC 2-2）
+
+actor "エンドユーザー" as user
+participant "ブラウザ\n(Next.js Client)" as browser #E3F2FD
+participant "Next.js\nAPI Routes" as api #FFF3E0
+participant "ProjectService" as service #E8F5E9
+database "Supabase\nDatabase" as db #FCE4EC
+database "Supabase\nStorage" as storage #E1BEE7
+
+== プロジェクト選択 ==
+
+user -> browser : プロジェクトをクリック
+activate browser
+
+browser -> api : PUT /api/users/me/selected-project\n{ projectId: "xxx" }
+activate api
+
+api -> service : updateSelectedProject(userId, projectId)
+activate service
+
+service -> db : UPDATE users\nSET last_selected_project_id = ?
+activate db
+
+note right of db
+  **TD-005準拠**
+  選択状態をSupabaseに保存
+  - リロード後も維持
+  - デバイス間で共有
+end note
+
+db --> service : 更新完了
+deactivate db
+
+service --> api : 更新成功
+deactivate service
+
+api --> browser : 200 OK
+deactivate api
+
+== 図表一覧取得 ==
+
+browser -> api : GET /api/projects/{projectId}/diagrams
+activate api
+
+api -> service : getDiagrams(projectId)
+activate service
+
+service -> storage : フォルダ内ファイル一覧取得\n/{user_id}/{project_name}/
+activate storage
+
+storage --> service : ファイル一覧\n(.puml, .excalidraw.json)
+deactivate storage
+
+service --> api : Diagram[]
+deactivate service
+
+api --> browser : 200 OK\n{ diagrams: [...] }
+deactivate api
+
+browser -> browser : Context/Store更新\n（選択プロジェクト）
+
+browser -> browser : エディタ画面へ遷移
+
+browser --> user : 図表一覧表示
+
+deactivate browser
+
+@enduml

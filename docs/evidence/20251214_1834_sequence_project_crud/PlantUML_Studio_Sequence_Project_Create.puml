@@ -1,0 +1,94 @@
+@startuml PlantUML_Studio_Sequence_Project_Create
+'==================================================
+' シーケンス図: プロジェクト作成フロー
+' UC 2-1 プロジェクトを作成する
+' 参照: 業務フロー図 3.5.1, TD-006
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+skinparam sequenceParticipant underline
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title プロジェクト作成フロー（UC 2-1）
+
+actor "エンドユーザー" as user
+participant "ブラウザ\n(Next.js Client)" as browser #E3F2FD
+participant "Next.js\nAPI Routes" as api #FFF3E0
+participant "ProjectService" as service #E8F5E9
+database "Supabase\nStorage" as storage #FCE4EC
+
+== プロジェクト作成開始 ==
+
+user -> browser : 「新規作成」ボタンをクリック
+activate browser
+
+browser -> browser : プロジェクト名入力\nダイアログ表示
+
+user -> browser : プロジェクト名を入力
+
+browser -> browser : クライアントバリデーション
+
+note right of browser
+  **バリデーションルール**
+  - 必須チェック（空文字不可）
+  - 文字数制限（1〜100文字）
+  - 禁止文字チェック
+    < > : " / \ | ? *
+end note
+
+alt バリデーションNG
+    browser --> user : バリデーションエラー表示
+else バリデーションOK
+    browser -> api : POST /api/projects\n{ name: "プロジェクト名" }
+    activate api
+
+    api -> service : createProject(name)
+    activate service
+
+    service -> storage : フォルダ存在確認\n/{user_id}/{project_name}/
+    activate storage
+    storage --> service : 存在有無
+    deactivate storage
+
+    alt 同名プロジェクト存在
+        service --> api : Error: DUPLICATE_NAME
+        api --> browser : 409 Conflict\n"同名のプロジェクトが存在します"
+        browser --> user : エラーメッセージ表示
+    else 同名なし
+        service -> storage : フォルダ作成\n/{user_id}/{project_name}/
+        activate storage
+
+        note right of storage
+          **Storage Policy適用**
+          RLSにより自ユーザーの
+          フォルダのみ作成可能
+        end note
+
+        storage --> service : 作成成功
+        deactivate storage
+
+        service --> api : Project作成完了
+        deactivate service
+
+        api --> browser : 201 Created\n{ project }
+        deactivate api
+
+        browser -> browser : プロジェクト一覧更新
+        browser --> user : 完了メッセージ表示
+    end
+end
+
+deactivate browser
+
+@enduml

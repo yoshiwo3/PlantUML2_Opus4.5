@@ -1,0 +1,88 @@
+@startuml PlantUML_Studio_Sequence_Project_Delete
+'==================================================
+' シーケンス図: プロジェクト削除フロー
+' UC 2-4 プロジェクトを削除する
+' 参照: 業務フロー図 3.5.4, TD-006
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+skinparam sequenceParticipant underline
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title プロジェクト削除フロー（UC 2-4）
+
+actor "エンドユーザー" as user
+participant "ブラウザ\n(Next.js Client)" as browser #E3F2FD
+participant "Next.js\nAPI Routes" as api #FFF3E0
+participant "ProjectService" as service #E8F5E9
+database "Supabase\nStorage" as storage #FCE4EC
+
+== プロジェクト削除開始 ==
+
+user -> browser : 削除ボタンをクリック
+activate browser
+
+browser -> api : GET /api/projects/{projectId}/diagrams/count
+activate api
+api --> browser : { count: N }
+deactivate api
+
+browser -> browser : 確認ダイアログ表示
+
+note over browser
+  **削除確認ダイアログ**
+  「このプロジェクトを削除すると
+  　含まれるN件の図表も削除されます。
+  　この操作は取り消せません。」
+end note
+
+user -> browser : 削除を確認 or キャンセル
+
+alt キャンセル
+    browser --> user : 一覧画面に戻る
+else 確認
+    browser -> api : DELETE /api/projects/{projectId}
+    activate api
+
+    api -> service : deleteProject(projectId)
+    activate service
+
+    service -> storage : フォルダ再帰削除\n/{user_id}/{project_name}/
+    activate storage
+
+    note over storage
+      **カスケード削除**
+      プロジェクトフォルダ配下の
+      全ファイルを再帰的に削除
+      - .puml
+      - .excalidraw.json
+      - .preview.svg
+    end note
+
+    storage --> service : 削除成功
+    deactivate storage
+
+    service --> api : 削除完了
+    deactivate service
+
+    api --> browser : 204 No Content
+    deactivate api
+
+    browser -> browser : プロジェクト一覧更新
+    browser --> user : 完了メッセージ表示
+end
+
+deactivate browser
+
+@enduml

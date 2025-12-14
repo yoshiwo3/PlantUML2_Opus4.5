@@ -1,0 +1,95 @@
+@startuml PlantUML_Studio_Sequence_Project_Edit
+'==================================================
+' シーケンス図: プロジェクト編集（名前変更）フロー
+' UC 2-3 プロジェクトを編集する
+' 参照: 業務フロー図 3.5.3, TD-006
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+skinparam sequenceParticipant underline
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title プロジェクト編集フロー（UC 2-3）
+
+actor "エンドユーザー" as user
+participant "ブラウザ\n(Next.js Client)" as browser #E3F2FD
+participant "Next.js\nAPI Routes" as api #FFF3E0
+participant "ProjectService" as service #E8F5E9
+database "Supabase\nStorage" as storage #FCE4EC
+
+== プロジェクト編集開始 ==
+
+user -> browser : 編集ボタンをクリック
+activate browser
+
+browser -> browser : 名前変更ダイアログ表示\n（現在の名前をプリセット）
+
+user -> browser : 新しいプロジェクト名を入力
+
+browser -> browser : クライアントバリデーション
+
+note right of browser
+  **バリデーションルール**
+  - 必須チェック（空文字不可）
+  - 文字数制限（1〜100文字）
+  - 禁止文字チェック
+    < > : " / \ | ? *
+end note
+
+alt バリデーションNG
+    browser --> user : バリデーションエラー表示
+else バリデーションOK
+    browser -> api : PUT /api/projects/{projectId}\n{ name: "新しい名前" }
+    activate api
+
+    api -> service : updateProject(projectId, newName)
+    activate service
+
+    service -> storage : 新フォルダ存在確認\n/{user_id}/{new_name}/
+    activate storage
+    storage --> service : 存在有無
+    deactivate storage
+
+    alt 同名プロジェクト存在
+        service --> api : Error: DUPLICATE_NAME
+        api --> browser : 409 Conflict\n"同名のプロジェクトが存在します"
+        browser --> user : エラーメッセージ表示
+    else 同名なし
+        service -> storage : フォルダ名変更\n/{user_id}/{old_name}/ → /{user_id}/{new_name}/
+        activate storage
+
+        note right of storage
+          **Storage操作**
+          1. 配下ファイルを新フォルダへ移動
+          2. 旧フォルダを削除
+          Storage Policy適用
+        end note
+
+        storage --> service : 変更成功
+        deactivate storage
+
+        service --> api : Project更新完了
+        deactivate service
+
+        api --> browser : 200 OK\n{ project }
+        deactivate api
+
+        browser -> browser : プロジェクト一覧更新
+        browser --> user : 完了メッセージ表示
+    end
+end
+
+deactivate browser
+
+@enduml
