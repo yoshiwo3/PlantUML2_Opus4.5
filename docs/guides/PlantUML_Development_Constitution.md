@@ -1,6 +1,6 @@
 # PlantUML開発憲法
 
-**バージョン**: 4.0
+**バージョン**: 4.1
 **最終更新**: 2025-12-14
 
 ClaudeCodeが高品質なPlantUML図表を作成するための行動規範。
@@ -41,8 +41,13 @@ ClaudeCodeが高品質なPlantUML図表を作成するための行動規範。
 |------|------|-----|
 | **ソースファイル** | PlantUMLコードを記述した`.puml`ファイル | `admin_flow.puml` |
 | **レビューログ** | レビュー結果を記録する`.review.json`ファイル | `admin_flow.review.json` |
-| **正式版** | Publish済みの`docs/proposals/diagrams/`内SVG | `admin_flow.svg` |
+| **正式版（SVG）** | Publish済みの`docs/proposals/diagrams/`内SVG図表 | `admin_flow.svg` |
+| **正式版（Markdown）** | レビュー済みの`docs/proposals/`内Markdownドキュメント | `PlantUML_Studio_シーケンス図_20251214.md` |
 | **Evidence** | 作業証跡を保存する`docs/evidence/`内ディレクトリ | `20251214_1800_admin_flow/` |
+
+> **正式版の2種類**:
+> - **SVG正式版**: 図表画像（`-Publish`で生成）
+> - **Markdown正式版**: 図表を含むドキュメント（1ファイル方式で作成）
 
 ### 図表用語
 
@@ -102,7 +107,7 @@ ClaudeCodeが高品質なPlantUML図表を作成するための行動規範。
 │  1. Context7で仕様確認                                           │
 │           ↓                                                     │
 │  2a. 本憲法 § 2, § 3 を確認（禁止事項・技術的制限）              │
-│           ↓                                                     │
+│           ↓ （順次実行）                                        │
 │  2b. 本憲法 § 6 を確認（1ファイル方式・既存ドキュメント検証）    │
 │           ↓                                                     │
 │  3. コード作成（.puml）                                          │
@@ -130,7 +135,7 @@ ClaudeCodeが高品質なPlantUML図表を作成するための行動規範。
 |:----:|------|:----:|
 | 1 | Context7で仕様確認 | 下記参照 |
 | 2a | 本憲法 § 2, § 3 を確認（禁止事項・技術的制限） | § 2, § 3 |
-| 2b | **本憲法 § 6 を確認**（1ファイル方式・既存ドキュメント検証） | § 6 |
+| 2b | **本憲法 § 6 を確認**（1ファイル方式・既存ドキュメント検証）※2a完了後に実行 | § 6 |
 | 3 | コード作成（`<図表名>.puml`） | - |
 | 4 | PNG + レビューログ生成 | § 5 `-Review` |
 | 5-7 | レビュー・対比確認・ログ更新 | § 4.3〜4.4 |
@@ -157,14 +162,7 @@ mcp__context7__resolve-library-id → libraryName: "plantuml"
 mcp__context7__get-library-docs   → topic: "<図表タイプ>"
 ```
 
-| 図表タイプ | topic |
-|-----------|-------|
-| アクティビティ図 | `"activity diagram swimlane"` |
-| シーケンス図 | `"sequence diagram"` |
-| ユースケース図 | `"use case diagram"` |
-| クラス図 | `"class diagram"` |
-| コンポーネント図 | `"component diagram"` |
-| 状態図 | `"state diagram"` |
+**topic一覧**: [付録B: DiagramType一覧](#付録b-diagramtype一覧) の「Context7 topic」列を参照
 
 ##### 反復照会パターン（重要）
 
@@ -440,6 +438,44 @@ participant "Frontend Service" as Frontend
 participant FrontendService as "Frontend Service"
 ```
 
+#### 完全な回避策例（シーケンス図）
+
+以下は上記の制限を回避した正しいシーケンス図の例：
+
+```plantuml
+@startuml login_sequence
+!theme plain
+
+' ✅ 参加者名は英数字、表示名はasで指定
+actor User as "ユーザー"
+participant Frontend as "Frontend"
+participant AuthService as "Auth Service"
+database Supabase as "Supabase"
+
+User -> Frontend: ログインボタンクリック
+Frontend -> AuthService: signInWithOAuth(provider)
+
+' ✅ note over を使用（note bottom of は禁止）
+note over AuthService
+  PKCE フロー開始
+  code_verifier 生成
+end note
+
+AuthService -> Supabase: OAuth認証リクエスト
+Supabase --> AuthService: 認証結果
+
+alt 認証成功
+  AuthService --> Frontend: session
+  Frontend --> User: ダッシュボード表示
+else 認証失敗
+  AuthService --> Frontend: error
+  ' ✅ 長いメッセージは改行
+  Frontend --> User: エラー表示\n（再試行を促す）
+end
+
+@enduml
+```
+
 ### 3.3 その他の図表タイプの制限
 
 | 図表タイプ | 問題 | 回避策 | 発見日 |
@@ -448,8 +484,14 @@ participant FrontendService as "Frontend Service"
 | クラス図 | 多重継承の矢印が交差 | レイアウト調整 `left to right direction` | - |
 | コンポーネント図 | ネストが深いと見づらい | 階層を2段階までに制限 | - |
 | 状態図 | 並行状態の描画が複雑 | フラットな構造に簡素化 | - |
+| ユースケース図 | *現時点で既知の制限なし* | - | - |
+| データフロー図 | *現時点で既知の制限なし* | - | - |
+| コンテキスト図 | *現時点で既知の制限なし* | - | - |
+| ER図 | *現時点で既知の制限なし* | - | - |
 
 > **※ 新たに発見した問題は、該当する図表タイプのテーブルに行を追加すること（§ 1.5 参照）**
+>
+> **「既知の制限なし」の意味**: 本プロジェクトで該当図表タイプを使用した際に問題が発見されていない状態。PlantUML自体に制限がないことを保証するものではない。
 
 ---
 
@@ -835,7 +877,7 @@ PlantUML2_Opus4.5/
 | `シーケンス図_プロジェクトCRUD_20251214.md` | 同上 |
 | `業務フロー図_認証_20251201.md` | `業務フロー図_20251201.md`（全フローを統合） |
 
-#### 作業前チェックリスト（Step 2.5）
+#### 作業前チェックリスト（Step 2b）
 
 コード作成（Step 3）前に、以下を確認すること：
 
@@ -954,11 +996,11 @@ PlantUMLには既知のレンダリングバグがあり、ソースコードで
 
 #### A.2 用語定義
 
+> 基本用語は [§0 用語定義](#0-用語定義) を参照。本セクションでは対比確認固有の用語を定義する。
+
 | 用語 | 定義 |
 |------|------|
-| 直接接続 | 線がノードからノードへ途切れなく繋がっている |
-| 上位ノード | フロー上で前にあるノード（入力元） |
-| 下位ノード | フロー上で後にあるノード（出力先） |
+| 直接接続 | 線がノードからノードへ途切れなく繋がっている状態 |
 
 #### A.3 危険パターン
 
@@ -1043,6 +1085,7 @@ pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -Diagram
 
 | 日付 | バージョン | 変更内容 |
 |------|-----------|---------|
+| 2025-12-14 | 4.1 | **評価80点→90点改善**: ① Step 2.5→2b統一（§6残存修正）、② 付録A.2を§0参照に変更（重複削除）、③ §3.3に全図表タイプの制限状況追加（「既知の制限なし」含む）、④ §3.2に完全なシーケンス図回避策例追加、⑤ §0「正式版」定義拡張（SVG/Markdown区別）、⑥ Step 2a/2bに「順次実行」明記、⑦ §1.2 topic表を付録B参照に統合 |
 | 2025-12-14 | 4.0 | **大規模構造改善**: ① 目次追加（ナビゲーション改善）、② §0用語定義セクション新設、③ §2/§3役割分担明確化（プロセス違反 vs 技術制限）、④ Step番号再編成（2.5→2a/2b）、⑤ §3.2シーケンス図制限追加、⑥ DiagramType一覧を付録Bに統合（DRY原則）、⑦ 禁止事項#1を具体例付きで書き換え |
 | 2025-12-14 | 3.5 | **§1.1/§2/§6 1ファイル方式強化**: 全体フローにStep 2.5「既存ドキュメント構成確認」追加、禁止事項#9「同種の図表を複数ファイルに分割」追加、§6に作業前チェックリスト・違反パターン・対処手順を追加（根本原因分析: 既存ファイルパターン踏襲による1ファイル方式違反防止） |
 | 2025-12-08 | 3.4 | **§2/§3 禁止パターン拡張**: if/fork → if/fork/switch に拡張、禁止パターン4（switch/case内スイムレーン遷移）追加、問題発見統計追加（3.9管理機能フロー10件中7件で修正必要） |
