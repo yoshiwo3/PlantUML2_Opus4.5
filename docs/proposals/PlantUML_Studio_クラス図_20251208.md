@@ -1,8 +1,8 @@
 # PlantUML Studio - クラス図
 
 **作成日**: 2025-12-08
-**バージョン**: v1.6
-**ステータス**: PRD採用版（評価97点→100点、Aランク）
+**バージョン**: v1.7
+**ステータス**: PRD採用版（評価94点、Aランク）
 
 ---
 
@@ -43,7 +43,7 @@
 
 1. **TD-006準拠**: MVPはStorage Only構成、Repository Patternで抽象化
 2. **TD-007準拠**: AI機能をLLM（OpenRouter）とEmbedding（OpenAI）に分離
-3. **機能一覧表v1.5 §9との整合性**: エンティティ候補、サービス候補を反映
+3. **機能一覧表v3.12 §12との整合性**: エンティティ、サービス、Repository、外部クライアント、Value Object（計41件）を反映
 
 ---
 
@@ -86,7 +86,7 @@
 
 ### 2.2 属性制約・バリデーションルール
 
-機能一覧表§9.2に基づく主要エンティティの属性制約を定義する。
+機能一覧表v3.12 §12.1に基づく主要エンティティの属性制約を定義する。
 
 #### Project
 
@@ -728,7 +728,7 @@ DFDで定義されたデータフローと、クラス図のDTOの対応を明�
 
 ## 5. 機能一覧表との対応
 
-機能一覧表v1.5 §9「クラス図への橋渡し」との対応:
+機能一覧表v3.12 §12「クラス図への橋渡し」との対応:
 
 ### エンティティ候補
 
@@ -769,11 +769,12 @@ DFDで定義されたデータフローと、クラス図のDTOの対応を明�
 |:----------:|:----:|---------|
 | v1.0 | 2025-12-08 | 初版作成（ドメインモデル図、サービス層図） |
 | v1.1 | 2025-12-08 | 評価後修正: LLMModel-Prompt関連N:M化、FeatureModelAssignment/UsageLog追加、Repository/DTO追加、属性制約追記 |
-| v1.2 | 2025-12-08 | **属性制約・ビジネスルール完全版**: 6エンティティ（Session, Template, SystemConfig, UsageLog, FeatureModelAssignment, LearningContent）の属性制約追加、Project/Diagramのビジネスルール（予約語禁止、正規化処理、バリデーションエラー一覧）追加、機能一覧表§9.2との完全整合 |
+| v1.2 | 2025-12-08 | **属性制約・ビジネスルール完全版**: 6エンティティ（Session, Template, SystemConfig, UsageLog, FeatureModelAssignment, LearningContent）の属性制約追加、Project/Diagramのビジネスルール（予約語禁止、正規化処理、バリデーションエラー一覧）追加 |
 | v1.3 | 2025-12-08 | **PRD採用版（評価87点→改善）**: (1)循環依存解消（DI/イベント駆動/ファサードパターン追加）、(2)User→Project(last_selected)関連に自己所有限定制約明記、(3)ILearningContentRepository追加、(4)Response DTO追加（ProjectResponse, DiagramResponse等7種）、(5)SystemConfig.config_valueをJSONBに変更、(6)FeatureModelAssignment.updated_at追加（監査証跡） |
 | v1.4 | 2025-12-08 | **評価91点→改善（6項目対応）**: (1)ServiceException例外クラス階層追加（§2.4、機能一覧表§0.1対応）、(2)ValidationError.ai_explanation属性追加、(3)ValidationService→AIService直接依存削除（完全イベント駆動化）、(4)DFDデータストア対応表追加（§4.1）、(5)AdminService→UserService+SystemConfigService分離（SRP準拠）、(6)generateEmbedding()をRepositoryからEmbeddingServiceに移動 |
 | v1.5 | 2025-12-08 | **厳格評価85点→改善（PlantUMLコード不整合修正・詳細追加）**: (1)ValidationService→AIService依存線をPlantUMLコードから削除、(2)ILearningContentRepository.generateEmbedding()をPlantUMLコードから削除、(3)User→Project(last_selected)制約をPlantUMLコードに明記、(4)FeatureModelAssignment.is_primary制約の実装方法（部分一意インデックス）追記、(5)UsageLog.cost自動計算タイミング（アプリケーション層）明記、(6)DFD DF番号とDTO対応表追加（§4.2）、(7)EmbeddingServiceクラス定義を独立化（メソッド詳細・PlantUMLコード追加） |
 | v1.6 | 2025-12-08 | **評価97点→100点（AdminService分離完了）**: PlantUMLコード内のAdminServiceをUserService+SystemConfigServiceに分離。ドキュメント記述とPlantUMLコードの完全整合を達成 |
+| v1.7 | 2025-12-14 | **厳格評価83点→修正（PlantUMLコード完全整合）**: (1)ValidationService.aiService依存を削除しeventEmitterに変更（イベント駆動完全化）、(2)EventEmitterインターフェース追加、(3)DiagramFacadeクラス追加（ファサードパターン実装）、(4)関連ドキュメント参照を最新版に更新（機能一覧表20251213、DFD20251212） |
 
 ---
 
@@ -781,8 +782,8 @@ DFDで定義されたデータフローと、クラス図のDTOの対応を明�
 
 | ドキュメント | 内容 |
 |-------------|------|
-| `PlantUML_Studio_機能一覧表_20251208.md` | 機能一覧、クラス図への橋渡し（§9） |
-| `PlantUML_Studio_データフロー図_20251208.md` | データフロー定義 |
+| `PlantUML_Studio_機能一覧表_20251213.md` | 機能一覧、クラス図への橋渡し（§12） |
+| `PlantUML_Studio_データフロー図_20251212.md` | データフロー定義 |
 | `PlantUML_Studio_業務フロー図_20251201.md` | 業務フロー定義 |
 | `docs/context/technical_decisions.md` | TD-005〜007 |
 
@@ -1183,6 +1184,10 @@ skinparam class {
   BorderColor<<interface>> #EF6C00
   BackgroundColor<<client>> #F3E5F5
   BorderColor<<client>> #7B1FA2
+  BackgroundColor<<facade>> #E1F5FE
+  BorderColor<<facade>> #0277BD
+  BackgroundColor<<infrastructure>> #ECEFF1
+  BorderColor<<infrastructure>> #546E7A
 }
 
 skinparam groupInheritance 2
@@ -1407,14 +1412,14 @@ package "プロジェクト・図表サービス" <<Rectangle>> {
 package "検証・エクスポートサービス" <<Rectangle>> {
   class ValidationService <<service>> {
     -plantUMLValidator: PlantUMLValidator
-    -aiService: AIService
+    -eventEmitter: EventEmitter
     --
     +validate(code: String): ValidationResult
     +validateWithAutoFix(code: String, maxRetries: Number): ValidationResult
     +render(code: String): SVG
     --
     -parseErrors(output: String): ValidationError[]
-    -suggestFix(error: ValidationError, code: String): String
+    -emitValidationError(error: ValidationError, code: String): void
   }
 
   class ExportService <<service>> {
@@ -1517,6 +1522,38 @@ package "Phase 2: 学習コンテンツサービス" <<Rectangle>> #FFFDE7 {
     -handleRateLimit(): void
   }
 }
+
+' ============================================
+' イベント駆動インフラ（v1.7追加）
+' ============================================
+
+package "イベント駆動インフラ" <<Rectangle>> {
+  interface EventEmitter <<infrastructure>> {
+    +emit(event: String, payload: any): void
+    +on(event: String, handler: Function): void
+    +off(event: String, handler: Function): void
+  }
+
+  class DiagramFacade <<facade>> {
+    -diagramService: DiagramService
+    -validationService: ValidationService
+    -aiService: AIService
+    -eventEmitter: EventEmitter
+    --
+    +createWithValidation(dto: CreateDiagramDto): Diagram
+    +updateWithValidation(dto: UpdateDiagramDto): Diagram
+    +validateAndSuggestFix(code: String): ValidationResult
+    --
+    -handleAiFixSuggested(payload: AiFixPayload): void
+    -notifyDiagramUpdated(diagramName: String): void
+  }
+}
+
+note bottom of DiagramFacade
+  **ファサードパターン**
+  複合操作を調整し、
+  イベント駆動で疎結合化
+end note
 
 ' ============================================
 ' 外部クライアント
@@ -1659,4 +1696,4 @@ end note
 
 ---
 
-**作成完了**: 2025-12-08 v1.2（属性制約・ビジネスルール完全版）
+**作成完了**: 2025-12-14 v1.7（PlantUMLコード完全整合版）
