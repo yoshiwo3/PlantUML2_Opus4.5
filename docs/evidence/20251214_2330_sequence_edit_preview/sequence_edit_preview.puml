@@ -1,0 +1,111 @@
+@startuml PlantUML_Studio_Sequence_Edit
+'==================================================
+' シーケンス図: 図表編集フロー（PlantUML）
+' UC 3-3 図表を編集する
+' 基準: 業務フロー図 3.1, 機能一覧表 F-DGM-03
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title 図表編集フロー（UC 3-3）- PlantUML
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Monaco Editor)"
+participant Debouncer as "入力待機処理\n(500ms)"
+participant APIRoutes as "API Routes\n(/api/diagrams)"
+participant ValidationService as "ValidationService"
+participant PlantUMLService as "PlantUML Service\n(node-plantuml)"
+
+== 前提: 図表を開いている ==
+
+User -> Browser : コードを入力/編集
+activate Browser
+
+Browser -> Browser : シンタックスハイライト\n（PlantUML構文）
+
+note over Browser
+  **Monaco Editor機能**
+  シンタックスハイライト
+  オートコンプリート
+  行番号表示
+  折りたたみ対応
+end note
+
+Browser -> Browser : 未保存マーク表示\n（タイトルに「*」）
+
+== デバウンス処理（自動プレビュー） ==
+
+Browser -> Debouncer : 入力イベント発火
+activate Debouncer
+
+note right of Debouncer
+  **デバウンス処理**
+  500ms間入力がなければ実行
+  連続入力中はリセット
+  CPU負荷軽減
+end note
+
+Debouncer -> Debouncer : 500ms待機
+Debouncer -> APIRoutes : POST /api/diagrams/preview\n{ source_code }
+activate APIRoutes
+
+APIRoutes -> ValidationService : validate(source)
+activate ValidationService
+
+ValidationService -> PlantUMLService : checkSyntax(source)
+activate PlantUMLService
+
+PlantUMLService -> PlantUMLService : node-plantuml実行\n（Java 17 + Graphviz）
+
+alt 構文エラーあり
+    PlantUMLService --> ValidationService : { errors: [...] }
+    deactivate PlantUMLService
+    ValidationService --> APIRoutes : { is_valid: false, errors }
+    deactivate ValidationService
+    APIRoutes --> Debouncer : 400 Bad Request\n{ errors }
+    deactivate APIRoutes
+    Debouncer --> Browser : エラー情報
+    deactivate Debouncer
+    Browser -> Browser : エラーマーカー表示\n（該当行に赤下線）
+    Browser --> User : エラー表示\n（行番号 + メッセージ）
+
+else 構文OK
+    PlantUMLService -> PlantUMLService : SVG生成
+    PlantUMLService --> ValidationService : { svg, warnings }
+    deactivate PlantUMLService
+    ValidationService --> APIRoutes : { is_valid: true, svg }
+    deactivate ValidationService
+    APIRoutes --> Debouncer : 200 OK\n{ preview_svg }
+    deactivate APIRoutes
+    Debouncer --> Browser : プレビュー画像
+    deactivate Debouncer
+    Browser -> Browser : プレビューパネル更新
+    Browser --> User : プレビュー表示
+end
+
+== 手動保存（Ctrl+S） ==
+
+User -> Browser : Ctrl+S（または保存ボタン）
+Browser -> APIRoutes : PUT /api/diagrams/{id}\n{ source_code }
+activate APIRoutes
+APIRoutes --> Browser : 200 OK
+deactivate APIRoutes
+Browser -> Browser : 未保存マーク消去
+Browser --> User : 「保存しました」トースト
+
+deactivate Browser
+
+@enduml

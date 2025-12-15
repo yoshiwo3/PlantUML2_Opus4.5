@@ -1,0 +1,31 @@
+{
+  "file": "sequence_edit_preview.puml",
+  "current": {
+    "hash": "D985B7B580FA9125",
+    "timestamp": "2025-12-14T23:32:10",
+    "reviewed_at": "2025-12-15T00:35:00",
+    "status": "completed",
+    "review": {
+      "pass1_structure": true,
+      "pass2_connections": true,
+      "pass3_content": true,
+      "pass4_style": true
+    },
+    "issues": []
+  },
+  "history": [
+    {
+      "hash": "B8675A11A74B87F5",
+      "timestamp": "2025-12-14T23:20:44",
+      "status": "failed",
+      "issues": [
+        {
+          "pass": 2,
+          "symptom": "[構文エラーあり]分岐内でdeactivateが抜けていた",
+          "cause": "行73-79でdeactivateが未記述",
+          "fix": "行74-81にdeactivate 4箇所追加"
+        }
+      ]
+    }
+  ]
+}

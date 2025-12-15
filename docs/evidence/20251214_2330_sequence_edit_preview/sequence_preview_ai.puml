@@ -1,0 +1,141 @@
+@startuml PlantUML_Studio_Sequence_Preview
+'==================================================
+' シーケンス図: 図表プレビュー・AI修正提案フロー
+' UC 3-4 図表をプレビューする
+' 基準: 業務フロー図 3.1, 機能一覧表 F-DGM-04
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title 図表プレビュー・AI修正提案フロー（UC 3-4）
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Next.js Client)"
+participant APIRoutes as "API Routes\n(/api/validate)"
+participant ValidationService as "ValidationService"
+participant PlantUMLService as "PlantUML Service\n(node-plantuml)"
+participant AIService as "AI Service\n(OpenRouter)"
+
+== プレビュー生成 ==
+
+User -> Browser : コード編集完了\n（デバウンス500ms経過）
+activate Browser
+
+Browser -> APIRoutes : POST /api/validate\n{ source_code }
+activate APIRoutes
+
+APIRoutes -> ValidationService : validateAndRender(source)
+activate ValidationService
+
+ValidationService -> PlantUMLService : render(source)
+activate PlantUMLService
+
+note over PlantUMLService
+  **node-plantuml処理**
+  Java 17 + Graphviz
+  複数ブロック対応
+  目標: 500ms以内
+end note
+
+PlantUMLService -> PlantUMLService : 構文チェック
+
+alt 構文エラーあり
+    PlantUMLService --> ValidationService : { error, line, message }
+    deactivate PlantUMLService
+
+    ValidationService --> APIRoutes : 400\n{ is_valid: false,\n  errors: [...] }
+    deactivate ValidationService
+
+    APIRoutes --> Browser : 400 Bad Request\n{ errors }
+    deactivate APIRoutes
+
+    Browser -> Browser : エラーメッセージ表示\n（行番号ハイライト）
+
+    Browser --> User : 「構文エラー: ...（行X）」
+
+    == AI修正提案（オプション） ==
+
+    User -> Browser : 「AI修正提案」ボタンをクリック
+
+    Browser -> APIRoutes : POST /api/ai/fix\n{ source_code, errors }
+    activate APIRoutes
+
+    APIRoutes -> AIService : generateFix(source, errors)
+    activate AIService
+
+    note over AIService
+      **OpenRouter経由**
+      モデル: Claude/GPT-4等
+      プロンプト: エラー修正特化
+      TD-007準拠
+    end note
+
+    AIService -> AIService : LLMにリクエスト\n（ストリーミング）
+
+    AIService --> APIRoutes : { suggested_code,\n  explanation }
+    deactivate AIService
+
+    APIRoutes --> Browser : 200 OK\n{ suggested_fix }
+    deactivate APIRoutes
+
+    Browser -> Browser : 差分表示\n（修正前/修正後）
+
+    Browser --> User : AI修正提案表示
+
+    alt 修正を適用
+        User -> Browser : 「適用」をクリック
+        Browser -> Browser : エディタ内容を更新
+        Browser -> Browser : 再度プレビュー生成トリガー
+    else 修正を却下
+        User -> Browser : 「キャンセル」をクリック
+        Browser --> User : 元のコードのまま
+    end
+
+else 構文OK（警告あり）
+    PlantUMLService -> PlantUMLService : SVG生成
+    PlantUMLService --> ValidationService : { svg, warnings }
+    deactivate PlantUMLService
+
+    ValidationService --> APIRoutes : 200\n{ is_valid: true,\n  svg, warnings }
+    deactivate ValidationService
+
+    APIRoutes --> Browser : 200 OK\n{ preview_svg, warnings }
+    deactivate APIRoutes
+
+    Browser -> Browser : プレビューパネル更新
+    Browser -> Browser : 警告トースト表示
+
+    Browser --> User : プレビュー表示\n+ 警告メッセージ
+
+else 構文OK（警告なし）
+    PlantUMLService -> PlantUMLService : SVG生成
+    PlantUMLService --> ValidationService : { svg }
+    deactivate PlantUMLService
+
+    ValidationService --> APIRoutes : 200\n{ is_valid: true, svg }
+    deactivate ValidationService
+
+    APIRoutes --> Browser : 200 OK\n{ preview_svg }
+    deactivate APIRoutes
+
+    Browser -> Browser : プレビューパネル更新
+
+    Browser --> User : プレビュー表示
+end
+
+deactivate Browser
+
+@enduml
