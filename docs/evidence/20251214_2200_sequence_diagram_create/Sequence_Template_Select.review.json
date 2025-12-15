@@ -1,18 +1,47 @@
 {
-    "current": {
-        "hash": "2383E3D0D8B854DE",
-        "timestamp": "2025-12-14T22:04:12",
-        "reviewed_at": "2025-12-14T22:10:00",
-        "issues": [],
-        "status": "completed",
-        "review": {
-            "pass1_structure": true,
-            "pass2_connections": true,
-            "pass3_content": true,
-            "pass4_style": true
-        },
-        "notes": "4パスレビュー完了: 6参加者（+TemplateService）正常、セパレータ2つ正常、GET/POST両API接続正常、テンプレートカテゴリ/適用note正常表示"
+  "file": "Sequence_Template_Select.puml",
+  "current": {
+    "hash": "A03B89962265A895",
+    "timestamp": "2025-12-16T00:30:00",
+    "reviewed_at": "2025-12-16T00:30:00",
+    "status": "completed",
+    "review": {
+      "pass1_structure": true,
+      "pass2_connections": true,
+      "pass3_content": true,
+      "pass4_style": true
     },
-    "history": [],
-    "file": "Sequence_Template_Select.puml"
+    "issues": [],
+    "notes": "UTF-8再書き込み後の検証完了。deactivate追加済み、アクティベーションバー正常終端確認。"
+  },
+  "history": [
+    {
+      "hash": "A03B89962265A895",
+      "timestamp": "2025-12-15T19:40:10",
+      "reviewed_at": "2025-12-15T23:55:00",
+      "status": "completed",
+      "review": {
+        "pass1_structure": true,
+        "pass2_connections": true,
+        "pass3_content": true,
+        "pass4_style": true
+      },
+      "issues": [],
+      "notes": "deactivate追加修正後の再レビュー完了"
+    },
+    {
+      "hash": "2383E3D0D8B854DE",
+      "timestamp": "2025-12-14T22:04:12",
+      "reviewed_at": "2025-12-14T22:10:00",
+      "status": "completed",
+      "review": {
+        "pass1_structure": true,
+        "pass2_connections": true,
+        "pass3_content": true,
+        "pass4_style": true
+      },
+      "issues": [],
+      "notes": "初回レビュー完了"
+    }
+  ]
 }

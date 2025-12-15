@@ -99,7 +99,9 @@ else バリデーションOK
 
     alt 同名ファイル存在
         DiagramService --> APIRoutes : ConflictError(409)
+        deactivate DiagramService
         APIRoutes --> Browser : 409 Conflict
+        deactivate APIRoutes
         Browser --> User : エラー表示
     else 重複なし
         DiagramService -> DiagramService : テンプレートコード適用\n+ ファイルパス生成
