@@ -12,7 +12,8 @@
 1. [認証フロー（UC 1-1, 1-2）](#1-認証フローuc-1-1-1-2)
 2. [プロジェクトCRUD（UC 2-1〜2-4）](#2-プロジェクトcruduc-2-12-4)
 3. [図表作成・テンプレート（UC 3-1, 3-2）](#3-図表作成テンプレートuc-3-1-3-2)
-4. [技術仕様](#4-技術仕様)
+4. [編集・プレビュー（UC 3-3, 3-4）](#4-編集プレビューuc-3-3-3-4)
+5. [技術仕様](#5-技術仕様)
 
 ---
 
@@ -422,6 +423,124 @@ deactivate browser
 
 ![プロジェクト作成シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Project_Create.svg)
 
+```plantuml
+@startuml PlantUML_Studio_Sequence_Project_Create
+'==================================================
+' シーケンス図: プロジェクト作成フロー
+' UC 2-1 プロジェクトを作成する
+' 基準: 業務フロー図 3.5, CRUD表 §6, クラス図 v1.7
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title プロジェクト作成フロー（UC 2-1）
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Next.js Client)"
+participant APIRoutes as "API Routes\n(/api/projects)"
+participant ProjectService as "ProjectService"
+participant ProjectRepo as "IProjectRepository\n(Storage実装)"
+database Storage as "Supabase Storage"
+
+== プロジェクト作成 ==
+
+User -> Browser : 「新規プロジェクト」ボタンをクリック
+activate Browser
+
+Browser -> Browser : プロジェクト名入力ダイアログ表示
+
+User -> Browser : プロジェクト名を入力
+
+Browser -> Browser : クライアントバリデーション
+
+note over Browser
+  **バリデーションルール**
+  - 空文字不可
+  - 1〜100文字
+  - 禁止文字: \ / : * ? " < > |
+  - 予約語禁止: admin, system, api...
+end note
+
+alt バリデーションエラー
+    Browser --> User : エラーメッセージ表示
+else バリデーションOK
+    Browser -> APIRoutes : POST /api/projects\n{ name }
+    activate APIRoutes
+
+    APIRoutes -> ProjectService : createProject(dto)
+    activate ProjectService
+
+    ProjectService -> ProjectRepo : exists(userId, projectName)
+    activate ProjectRepo
+
+    ProjectRepo -> Storage : list(path)\n/{user_id}/
+    activate Storage
+    Storage --> ProjectRepo : フォルダ一覧
+    deactivate Storage
+
+    ProjectRepo --> ProjectService : boolean
+    deactivate ProjectRepo
+
+    alt 同名プロジェクト存在
+        ProjectService --> APIRoutes : ConflictError(409)
+        APIRoutes --> Browser : 409 Conflict\n{ error: "PROJECT_NAME_DUPLICATE" }
+        Browser --> User : 「同名のプロジェクトが存在します」
+    else 重複なし
+        ProjectService -> ProjectService : storagePath生成\n/{user_id}/{project_name}/
+
+        note over ProjectService
+          **TD-006: Storage Only構成**
+          パス: /{user_id}/{project_name}/
+          フォルダ作成 = プロジェクト作成
+        end note
+
+        ProjectService -> ProjectRepo : create(project)
+        activate ProjectRepo
+
+        ProjectRepo -> Storage : createSignedUploadUrl(path)\n+ upload(.gitkeep)
+        activate Storage
+
+        note over Storage
+          **RLS Policy適用**
+          - user_id = auth.uid()
+          - 所有者のみ書き込み可
+        end note
+
+        Storage --> ProjectRepo : 作成成功
+        deactivate Storage
+
+        ProjectRepo --> ProjectService : Project
+        deactivate ProjectRepo
+
+        ProjectService --> APIRoutes : { project }
+        deactivate ProjectService
+
+        APIRoutes --> Browser : 201 Created\n{ project }
+        deactivate APIRoutes
+
+        Browser -> Browser : プロジェクト一覧更新
+        Browser --> User : 「プロジェクトを作成しました」\nトースト表示
+    end
+end
+
+deactivate Browser
+
+@enduml
+```
+
 #### フロー説明
 
 | ステップ | 処理内容 | 担当 |
@@ -450,6 +569,125 @@ deactivate browser
 
 ![プロジェクト選択シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Project_Select.svg)
 
+```plantuml
+@startuml PlantUML_Studio_Sequence_Project_Select
+'==================================================
+' シーケンス図: プロジェクト選択フロー
+' UC 2-2 プロジェクトを選択する
+' 基準: 業務フロー図 3.5, TD-005, クラス図 v1.7
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title プロジェクト選択フロー（UC 2-2）- TD-005準拠
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Next.js Client)"
+participant APIRoutes as "API Routes"
+participant UserService as "UserService"
+participant ProjectService as "ProjectService"
+participant ProjectRepo as "IProjectRepository\n(Storage実装)"
+database Supabase as "Supabase\n(Auth/Storage)"
+
+== プロジェクト選択 ==
+
+User -> Browser : プロジェクトをクリック
+activate Browser
+
+Browser -> APIRoutes : PUT /api/users/me/selected-project\n{ projectId }
+activate APIRoutes
+
+APIRoutes -> ProjectService : getProject(userId, projectId)
+activate ProjectService
+
+ProjectService -> ProjectRepo : get(userId, projectId)
+activate ProjectRepo
+
+ProjectRepo -> Supabase : list(path)\n/{user_id}/{project_name}/
+activate Supabase
+Supabase --> ProjectRepo : フォルダ情報
+deactivate Supabase
+
+ProjectRepo --> ProjectService : Project | null
+deactivate ProjectRepo
+
+alt プロジェクトが存在しない
+    ProjectService --> APIRoutes : NotFoundError(404)
+    APIRoutes --> Browser : 404 Not Found\n{ error: "PROJECT_NOT_FOUND" }
+    Browser --> User : 「プロジェクトが見つかりません」
+else プロジェクト存在
+    ProjectService --> APIRoutes : Project
+    deactivate ProjectService
+
+    APIRoutes -> UserService : updateSelectedProject(userId, projectId)
+    activate UserService
+
+    note over UserService
+      **TD-005: Supabase保存**
+      users.last_selected_project_id
+      - リロード後も維持
+      - デバイス間で共有
+    end note
+
+    UserService -> Supabase : update auth.users\nSET last_selected_project_id
+    activate Supabase
+    Supabase --> UserService : 更新成功
+    deactivate Supabase
+
+    UserService --> APIRoutes : success
+    deactivate UserService
+
+    APIRoutes --> Browser : 200 OK\n{ project }
+    deactivate APIRoutes
+
+    == 図表一覧取得 ==
+
+    Browser -> APIRoutes : GET /api/projects/{projectId}/diagrams
+    activate APIRoutes
+
+    APIRoutes -> ProjectService : listDiagrams(projectId)
+    activate ProjectService
+
+    ProjectService -> ProjectRepo : listDiagrams(projectId)
+    activate ProjectRepo
+
+    ProjectRepo -> Supabase : list(path)\n/{user_id}/{project_name}/*.puml
+    activate Supabase
+    Supabase --> ProjectRepo : ファイル一覧
+    deactivate Supabase
+
+    ProjectRepo --> ProjectService : Diagram[]
+    deactivate ProjectRepo
+
+    ProjectService --> APIRoutes : { diagrams }
+    deactivate ProjectService
+
+    APIRoutes --> Browser : 200 OK\n{ diagrams }
+    deactivate APIRoutes
+
+    Browser -> Browser : Context/Store更新\n+ 画面遷移
+
+    Browser --> User : 図表一覧表示
+end
+
+deactivate Browser
+
+@enduml
+```
+
 #### フロー説明
 
 | ステップ | 処理内容 | 担当 |
@@ -472,6 +710,129 @@ deactivate browser
 ### 2.3. プロジェクト編集フロー（UC 2-3）
 
 ![プロジェクト編集シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Project_Edit.svg)
+
+```plantuml
+@startuml PlantUML_Studio_Sequence_Project_Edit
+'==================================================
+' シーケンス図: プロジェクト編集（名前変更）フロー
+' UC 2-3 プロジェクトを編集する
+' 基準: 業務フロー図 3.5, TD-006, クラス図 v1.7
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title プロジェクト編集フロー（UC 2-3）
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Next.js Client)"
+participant APIRoutes as "API Routes\n(/api/projects)"
+participant ProjectService as "ProjectService"
+participant ProjectRepo as "IProjectRepository\n(Storage実装)"
+database Storage as "Supabase Storage"
+
+== プロジェクト名変更 ==
+
+User -> Browser : 編集ボタンをクリック
+activate Browser
+
+Browser -> Browser : 名前変更ダイアログ表示\n（現在値プリセット）
+
+User -> Browser : 新しいプロジェクト名を入力
+
+Browser -> Browser : クライアントバリデーション
+
+note over Browser
+  **バリデーションルール**
+  - 空文字不可
+  - 1〜100文字
+  - 禁止文字: \ / : * ? " < > |
+  - 予約語禁止
+  - 現在の名前と異なること
+end note
+
+alt バリデーションエラー
+    Browser --> User : エラーメッセージ表示
+else バリデーションOK
+    Browser -> APIRoutes : PUT /api/projects/{projectId}\n{ name: newName }
+    activate APIRoutes
+
+    APIRoutes -> ProjectService : updateProject(userId, projectId, dto)
+    activate ProjectService
+
+    ProjectService -> ProjectRepo : exists(userId, newName)
+    activate ProjectRepo
+
+    ProjectRepo -> Storage : list(path)\n/{user_id}/
+    activate Storage
+    Storage --> ProjectRepo : フォルダ一覧
+    deactivate Storage
+
+    ProjectRepo --> ProjectService : boolean
+    deactivate ProjectRepo
+
+    alt 新しい名前が既存プロジェクトと重複
+        ProjectService --> APIRoutes : ConflictError(409)
+        APIRoutes --> Browser : 409 Conflict\n{ error: "PROJECT_NAME_DUPLICATE" }
+        Browser --> User : 「同名のプロジェクトが存在します」
+    else 重複なし
+        ProjectService -> ProjectRepo : rename(oldPath, newPath)
+        activate ProjectRepo
+
+        note over ProjectRepo
+          **Storage操作手順**
+          1. 新フォルダパス生成
+          2. 配下ファイルを新パスへ移動
+          3. 旧フォルダを削除
+        end note
+
+        ProjectRepo -> Storage : list(oldPath)\n配下ファイル一覧取得
+        activate Storage
+        Storage --> ProjectRepo : files[]
+        deactivate Storage
+
+        loop 配下ファイル毎
+            ProjectRepo -> Storage : move(oldFilePath, newFilePath)
+            activate Storage
+            Storage --> ProjectRepo : 移動成功
+            deactivate Storage
+        end
+
+        ProjectRepo -> Storage : remove(oldPath)
+        activate Storage
+        Storage --> ProjectRepo : 削除成功
+        deactivate Storage
+
+        ProjectRepo --> ProjectService : Project(updated)
+        deactivate ProjectRepo
+
+        ProjectService --> APIRoutes : { project }
+        deactivate ProjectService
+
+        APIRoutes --> Browser : 200 OK\n{ project }
+        deactivate APIRoutes
+
+        Browser -> Browser : プロジェクト一覧更新
+        Browser --> User : 「プロジェクト名を変更しました」\nトースト表示
+    end
+end
+
+deactivate Browser
+
+@enduml
+```
 
 #### フロー説明
 
@@ -497,6 +858,174 @@ deactivate browser
 ### 2.4. プロジェクト削除フロー（UC 2-4）
 
 ![プロジェクト削除シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Project_Delete.svg)
+
+```plantuml
+@startuml PlantUML_Studio_Sequence_Project_Delete
+'==================================================
+' シーケンス図: プロジェクト削除フロー
+' UC 2-4 プロジェクトを削除する
+' 基準: 業務フロー図 3.5, 3.8, TD-006, クラス図 v1.7
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+skinparam note {
+    BackgroundColor<<warning>> #FFEBEE
+    BorderColor<<warning>> #C62828
+}
+
+title プロジェクト削除フロー（UC 2-4）
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Next.js Client)"
+participant APIRoutes as "API Routes\n(/api/projects)"
+participant ProjectService as "ProjectService"
+participant ProjectRepo as "IProjectRepository\n(Storage実装)"
+database Storage as "Supabase Storage"
+
+== 削除確認フェーズ ==
+
+User -> Browser : 削除ボタンをクリック
+activate Browser
+
+Browser -> APIRoutes : GET /api/projects/{projectId}/diagrams/count
+activate APIRoutes
+
+APIRoutes -> ProjectService : countDiagrams(userId, projectId)
+activate ProjectService
+
+ProjectService -> ProjectRepo : countDiagrams(projectId)
+activate ProjectRepo
+
+ProjectRepo -> Storage : list(path)\n/{user_id}/{project_name}/
+activate Storage
+Storage --> ProjectRepo : files[]
+deactivate Storage
+
+ProjectRepo --> ProjectService : count
+deactivate ProjectRepo
+
+ProjectService --> APIRoutes : { count }
+deactivate ProjectService
+
+APIRoutes --> Browser : 200 OK\n{ diagramCount }
+deactivate APIRoutes
+
+Browser -> Browser : 確認ダイアログ表示
+
+note over Browser <<warning>>
+  **削除確認ダイアログ**
+  「{project_name}」を削除しますか？
+
+  ⚠️ 警告: このプロジェクトには
+  {count}件の図表があります。
+  削除すると復元できません。
+
+  [キャンセル] [削除する]
+end note
+
+== 削除実行フェーズ ==
+
+alt キャンセル
+    User -> Browser : 「キャンセル」をクリック
+    Browser --> User : ダイアログを閉じる
+else 削除確認
+    User -> Browser : 「削除する」をクリック
+
+    Browser -> APIRoutes : DELETE /api/projects/{projectId}
+    activate APIRoutes
+
+    APIRoutes -> ProjectService : deleteProject(userId, projectId)
+    activate ProjectService
+
+    ProjectService -> ProjectRepo : get(userId, projectId)
+    activate ProjectRepo
+
+    ProjectRepo -> Storage : list(path)
+    activate Storage
+    Storage --> ProjectRepo : project info
+    deactivate Storage
+
+    ProjectRepo --> ProjectService : Project | null
+    deactivate ProjectRepo
+
+    alt プロジェクトが存在しない
+        ProjectService --> APIRoutes : NotFoundError(404)
+        APIRoutes --> Browser : 404 Not Found\n{ error: "PROJECT_NOT_FOUND" }
+        Browser --> User : 「プロジェクトが見つかりません」
+    else プロジェクト存在
+        ProjectService -> ProjectRepo : delete(projectId)
+        activate ProjectRepo
+
+        note over ProjectRepo
+          **カスケード削除**
+          フォルダ配下の全ファイルを
+          再帰的に削除
+          - *.puml
+          - *.excalidraw.json
+          - *.preview.svg
+        end note
+
+        ProjectRepo -> Storage : list(path)\n配下ファイル一覧
+        activate Storage
+        Storage --> ProjectRepo : files[]
+        deactivate Storage
+
+        loop 配下ファイル毎
+            ProjectRepo -> Storage : remove(filePath)
+            activate Storage
+            Storage --> ProjectRepo : 削除成功
+            deactivate Storage
+        end
+
+        ProjectRepo -> Storage : remove(folderPath)
+        activate Storage
+
+        alt 削除失敗（Storage エラー）
+            Storage --> ProjectRepo : StorageError
+            deactivate Storage
+            ProjectRepo --> ProjectService : StorageError
+            deactivate ProjectRepo
+            ProjectService --> APIRoutes : InternalError(500)
+            APIRoutes --> Browser : 500 Internal Server Error\n{ error: "DELETE_FAILED" }
+            Browser --> User : 「削除に失敗しました。\n再試行してください。」
+        else 削除成功
+            Storage --> ProjectRepo : 削除成功
+            deactivate Storage
+
+            ProjectRepo --> ProjectService : void
+            deactivate ProjectRepo
+
+            ProjectService --> APIRoutes : success
+            deactivate ProjectService
+
+            APIRoutes --> Browser : 204 No Content
+            deactivate APIRoutes
+
+            Browser -> Browser : プロジェクト一覧更新\n+ 選択状態クリア
+
+            Browser --> User : 「プロジェクトを削除しました」\nトースト表示
+        end
+    end
+end
+
+deactivate Browser
+
+@enduml
+```
 
 #### フロー説明
 
@@ -524,10 +1053,47 @@ deactivate browser
 | エラー種別 | HTTPステータス | 対応 |
 |-----------|:-------------:|------|
 | バリデーションエラー | 400 | リアルタイムでエラー表示 |
-| 同名プロジェクト | 409 | 「同名のプロジェクトが存在します」 |
 | 認証エラー | 401 | ログイン画面にリダイレクト |
+| **権限エラー** | **403** | **「このリソースにアクセスする権限がありません」** |
+| プロジェクト未存在 | 404 | 「プロジェクトが見つかりません」 |
+| 図表未存在 | 404 | 「図表が見つかりません」 |
+| 同名プロジェクト | 409 | 「同名のプロジェクトが存在します」 |
+| 同名図表 | 409 | 「同名の図表が存在します」 |
 | ネットワークエラー | - | 「接続に失敗しました。再試行してください。」 |
-| 削除エラー | 500 | 「削除に失敗しました。再試行してください。」 |
+| サーバーエラー | 500 | 「サーバーエラーが発生しました。再試行してください。」 |
+
+---
+
+## CRUD表との整合性検証
+
+**参照**: `PlantUML_Studio_CRUD表_20251213.md` v2.2
+
+### プロジェクトCRUD（§2）
+
+| UC | シーケンス図 | CRUD表 | エンティティ | 操作 | 整合性 |
+|:--:|:----------:|:------:|:----------:|:----:|:------:|
+| 2-1 | §2.1 | F-PRJ-01 | Project | **C** | ✅ |
+| 2-2 | §2.2 | F-PRJ-02 | Project, User | **R**, U | ✅ |
+| 2-3 | §2.3 | F-PRJ-03 | Project | **U** | ✅ |
+| 2-4 | §2.4 | F-PRJ-04 | Project, Diagram | **D** | ✅ |
+
+### 図表操作（§3, §4）
+
+| UC | シーケンス図 | CRUD表 | エンティティ | 操作 | 整合性 |
+|:--:|:----------:|:------:|:----------:|:----:|:------:|
+| 3-1 | §3.1 | F-DGM-01 | Diagram | **C** | ✅ |
+| 3-2 | §3.2 | F-DGM-02 | Template, Diagram | R, **C** | ✅ |
+| 3-3 | §4.1 | F-DGM-03 | Diagram | **U** | ✅ |
+| 3-4 | §4.2 | F-DGM-04 | Diagram | R | ✅ |
+
+### 認証フロー（§1）
+
+| UC | シーケンス図 | CRUD表 | エンティティ | 操作 | 整合性 |
+|:--:|:----------:|:------:|:----------:|:----:|:------:|
+| 1-1 | §1.1, §1.2 | F-AUTH-01 | User, Session | R, U, **C** | ✅ |
+| 1-2 | §1.3 | F-AUTH-02 | Session | **D** | ✅ |
+
+**凡例**: C=Create, R=Read, U=Update, D=Delete（太字=主要操作）
 
 ---
 
@@ -578,6 +1144,7 @@ actor User as "エンドユーザー"
 participant Browser as "ブラウザ\n(Next.js Client)"
 participant APIRoutes as "API Routes\n(/api/diagrams)"
 participant DiagramService as "DiagramService"
+participant DiagramRepo as "IDiagramRepository\n(Storage実装)"
 database Storage as "Supabase Storage"
 
 == 前提: プロジェクト選択済み ==
@@ -614,10 +1181,16 @@ else バリデーションOK
     APIRoutes -> DiagramService : createDiagram(dto)
     activate DiagramService
 
-    DiagramService -> Storage : list(path)\n重複チェック
+    DiagramService -> DiagramRepo : exists(projectId, diagramName)
+    activate DiagramRepo
+
+    DiagramRepo -> Storage : list(path)\n重複チェック
     activate Storage
-    Storage --> DiagramService : ファイル一覧
+    Storage --> DiagramRepo : ファイル一覧
     deactivate Storage
+
+    DiagramRepo --> DiagramService : boolean
+    deactivate DiagramRepo
 
     alt 同名ファイル存在
         DiagramService --> APIRoutes : ConflictError(409)
@@ -633,7 +1206,10 @@ else バリデーションOK
           - Excalidraw: .excalidraw.json
         end note
 
-        DiagramService -> Storage : upload(path, initialContent)
+        DiagramService -> DiagramRepo : create(diagram)
+        activate DiagramRepo
+
+        DiagramRepo -> Storage : upload(path, initialContent)
         activate Storage
 
         note over Storage
@@ -642,8 +1218,11 @@ else バリデーションOK
           - 所有者のみ書き込み可
         end note
 
-        Storage --> DiagramService : 保存成功
+        Storage --> DiagramRepo : 保存成功
         deactivate Storage
+
+        DiagramRepo --> DiagramService : Diagram
+        deactivate DiagramRepo
 
         DiagramService --> APIRoutes : { id, name, type, path }
         deactivate DiagramService
@@ -719,6 +1298,7 @@ participant Browser as "ブラウザ\n(Next.js Client)"
 participant APIRoutes as "API Routes\n(/api/templates)"
 participant TemplateService as "TemplateService"
 participant DiagramService as "DiagramService"
+participant DiagramRepo as "IDiagramRepository\n(Storage実装)"
 database Storage as "Supabase Storage"
 
 == 図表作成ダイアログで「テンプレートから作成」を選択 ==
@@ -784,10 +1364,16 @@ else バリデーションOK
     APIRoutes -> DiagramService : createDiagram(dto, templateContent)
     activate DiagramService
 
-    DiagramService -> Storage : list(path)\n重複チェック
+    DiagramService -> DiagramRepo : exists(projectId, diagramName)
+    activate DiagramRepo
+
+    DiagramRepo -> Storage : list(path)\n重複チェック
     activate Storage
-    Storage --> DiagramService : ファイル一覧
+    Storage --> DiagramRepo : ファイル一覧
     deactivate Storage
+
+    DiagramRepo --> DiagramService : boolean
+    deactivate DiagramRepo
 
     alt 同名ファイル存在
         DiagramService --> APIRoutes : ConflictError(409)
@@ -803,10 +1389,16 @@ else バリデーションOK
           3. 初期コメント追加
         end note
 
-        DiagramService -> Storage : upload(path, templateContent)
+        DiagramService -> DiagramRepo : create(diagram)
+        activate DiagramRepo
+
+        DiagramRepo -> Storage : upload(path, templateContent)
         activate Storage
-        Storage --> DiagramService : 保存成功
+        Storage --> DiagramRepo : 保存成功
         deactivate Storage
+
+        DiagramRepo --> DiagramService : Diagram
+        deactivate DiagramRepo
 
         DiagramService --> APIRoutes : { id, name, type, path }
         deactivate DiagramService
@@ -854,7 +1446,536 @@ deactivate Browser
 
 ---
 
-## 4. 技術仕様
+## 4. 編集・プレビュー（UC 3-3, 3-4）
+
+**対象ユースケース**: UC 3-3 図表を編集する, UC 3-4 図表をプレビューする
+**基準ドキュメント**: PlantUML_Studio_業務フロー図_20251201.md § 3.1
+**検証**: Context7 MCP, PlantUML開発憲法 v4.2 準拠
+
+図表編集とリアルタイムプレビュー機能のシーケンス図です。
+
+**参照技術決定**:
+- **TD-006**: MVPはStorage Only構成
+- **TD-007**: AI機能プロバイダー構成（OpenRouter経由でLLM利用）
+
+---
+
+### 4.1. 図表編集フロー（UC 3-3）
+
+![図表編集シーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Edit.svg)
+
+```plantuml
+@startuml PlantUML_Studio_Sequence_Edit
+'==================================================
+' シーケンス図: 図表編集フロー（PlantUML）
+' UC 3-3 図表を編集する
+' 基準: 業務フロー図 3.1, 機能一覧表 F-DGM-03
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title 図表編集フロー（UC 3-3）- PlantUML
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Monaco Editor)"
+participant Debouncer as "入力待機処理\n(500ms)"
+participant APIRoutes as "API Routes\n(/api/diagrams)"
+participant DiagramService as "DiagramService"
+participant DiagramRepo as "IDiagramRepository\n(Storage実装)"
+participant ValidationService as "ValidationService"
+participant PlantUMLService as "PlantUML Service\n(node-plantuml)"
+database Storage as "Supabase Storage"
+
+== 図表を開く（初期読込） ==
+
+User -> Browser : 図表一覧から図表をクリック
+activate Browser
+
+Browser -> APIRoutes : GET /api/diagrams/{id}
+activate APIRoutes
+
+APIRoutes -> DiagramService : getDiagram(userId, diagramId)
+activate DiagramService
+
+DiagramService -> DiagramRepo : get(userId, diagramId)
+activate DiagramRepo
+
+DiagramRepo -> Storage : download(path)
+activate Storage
+Storage --> DiagramRepo : ファイル内容
+deactivate Storage
+
+DiagramRepo --> DiagramService : Diagram
+deactivate DiagramRepo
+
+DiagramService --> APIRoutes : { diagram }
+deactivate DiagramService
+
+APIRoutes --> Browser : 200 OK\n{ sourceCode, previewSvg }
+deactivate APIRoutes
+
+Browser -> Browser : Monaco Editor初期化\n+ ソースコード表示
+
+Browser --> User : エディタ画面表示
+
+== コード編集フェーズ ==
+
+User -> Browser : コードを入力/編集
+activate Browser
+
+Browser -> Browser : シンタックスハイライト\n（PlantUML構文）
+
+note over Browser
+  **Monaco Editor機能**
+  シンタックスハイライト
+  オートコンプリート
+  行番号表示
+  折りたたみ対応
+end note
+
+Browser -> Browser : 未保存マーク表示\n（タイトルに「*」）
+
+== デバウンス処理（自動プレビュー） ==
+
+Browser -> Debouncer : 入力イベント発火
+activate Debouncer
+
+note right of Debouncer
+  **デバウンス処理**
+  500ms間入力がなければ実行
+  連続入力中はリセット
+  CPU負荷軽減
+end note
+
+Debouncer -> Debouncer : 500ms待機
+Debouncer -> APIRoutes : POST /api/diagrams/preview\n{ source_code }
+activate APIRoutes
+
+APIRoutes -> ValidationService : validate(source)
+activate ValidationService
+
+ValidationService -> PlantUMLService : checkSyntax(source)
+activate PlantUMLService
+
+PlantUMLService -> PlantUMLService : node-plantuml実行\n（Java 17 + Graphviz）
+
+alt 構文エラーあり
+    PlantUMLService --> ValidationService : { errors: [...] }
+    deactivate PlantUMLService
+    ValidationService --> APIRoutes : { is_valid: false, errors }
+    deactivate ValidationService
+    APIRoutes --> Debouncer : 400 Bad Request\n{ errors }
+    deactivate APIRoutes
+    Debouncer --> Browser : エラー情報
+    deactivate Debouncer
+    Browser -> Browser : エラーマーカー表示\n（該当行に赤下線）
+    Browser --> User : エラー表示\n（行番号 + メッセージ）
+
+else 構文OK
+    PlantUMLService -> PlantUMLService : SVG生成
+    PlantUMLService --> ValidationService : { svg, warnings }
+    deactivate PlantUMLService
+    ValidationService --> APIRoutes : { is_valid: true, svg }
+    deactivate ValidationService
+    APIRoutes --> Debouncer : 200 OK\n{ preview_svg }
+    deactivate APIRoutes
+    Debouncer --> Browser : プレビュー画像
+    deactivate Debouncer
+    Browser -> Browser : プレビューパネル更新
+    Browser --> User : プレビュー表示
+end
+
+== 手動保存（Ctrl+S） ==
+
+User -> Browser : Ctrl+S（または保存ボタン）
+Browser -> APIRoutes : PUT /api/diagrams/{id}\n{ source_code }
+activate APIRoutes
+
+APIRoutes -> DiagramService : updateDiagram(userId, diagramId, source)
+activate DiagramService
+
+DiagramService -> DiagramRepo : update(diagram)
+activate DiagramRepo
+
+DiagramRepo -> Storage : upload(path, content)
+activate Storage
+Storage --> DiagramRepo : 保存成功
+deactivate Storage
+
+DiagramRepo --> DiagramService : Diagram
+deactivate DiagramRepo
+
+DiagramService --> APIRoutes : { diagram }
+deactivate DiagramService
+
+APIRoutes --> Browser : 200 OK
+deactivate APIRoutes
+
+Browser -> Browser : 未保存マーク消去
+Browser --> User : 「保存しました」トースト
+
+deactivate Browser
+
+@enduml
+```
+
+#### フロー説明
+
+| ステップ | 処理内容 | 担当 |
+|:--------:|---------|------|
+| 0 | 図表一覧から図表をクリック | エンドユーザー |
+| 1 | GET /api/diagrams/{id} で図表読込 | API Routes |
+| 2 | Monaco Editor初期化 + ソースコード表示 | ブラウザ |
+| 3 | コードを入力/編集 | エンドユーザー |
+| 4 | シンタックスハイライト + 未保存マーク表示 | ブラウザ（Monaco Editor） |
+| 5 | 入力イベント発火（500msデバウンス） | Debouncer |
+| 6 | POST /api/diagrams/preview | API Routes |
+| 7 | 構文チェック + SVG生成 | PlantUML Service |
+| 8 | プレビュー表示 or エラー表示 | ブラウザ |
+| 9 | Ctrl+S で手動保存 | ブラウザ → DiagramService → Storage |
+
+#### Monaco Editor機能
+
+| 機能 | 説明 |
+|------|------|
+| シンタックスハイライト | PlantUML構文の色分け表示 |
+| オートコンプリート | キーワード補完 |
+| 行番号表示 | 左側に行番号表示 |
+| 折りたたみ | @startuml〜@endumlブロック折りたたみ |
+| エラーマーカー | 構文エラー行に赤下線表示 |
+
+---
+
+### 4.2. 図表プレビュー・AI修正提案フロー（UC 3-4）
+
+![図表プレビューシーケンス図](diagrams/sequence/PlantUML_Studio_Sequence_Preview.svg)
+
+```plantuml
+@startuml PlantUML_Studio_Sequence_Preview
+'==================================================
+' シーケンス図: 図表プレビュー・AI修正提案フロー
+' UC 3-4 図表をプレビューする
+' 基準: 業務フロー図 3.1, 機能一覧表 F-DGM-04
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title 図表プレビュー・AI修正提案フロー（UC 3-4）
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Next.js Client)"
+participant APIRoutes as "API Routes\n(/api/validate)"
+participant ValidationService as "ValidationService"
+participant PlantUMLService as "PlantUML Service\n(node-plantuml)"
+participant AIService as "AI Service\n(OpenRouter)"
+
+== プレビュー生成 ==
+
+User -> Browser : コード編集完了\n（デバウンス500ms経過）
+activate Browser
+
+Browser -> APIRoutes : POST /api/validate\n{ source_code }
+activate APIRoutes
+
+APIRoutes -> ValidationService : validateAndRender(source)
+activate ValidationService
+
+ValidationService -> PlantUMLService : render(source)
+activate PlantUMLService
+
+note over PlantUMLService
+  **node-plantuml処理**
+  Java 17 + Graphviz
+  複数ブロック対応
+  目標: 500ms以内
+end note
+
+PlantUMLService -> PlantUMLService : 構文チェック
+
+alt 構文エラーあり
+    PlantUMLService --> ValidationService : { error, line, message }
+    deactivate PlantUMLService
+
+    ValidationService --> APIRoutes : 400\n{ is_valid: false,\n  errors: [...] }
+    deactivate ValidationService
+
+    APIRoutes --> Browser : 400 Bad Request\n{ errors }
+    deactivate APIRoutes
+
+    Browser -> Browser : エラーメッセージ表示\n（行番号ハイライト）
+
+    Browser --> User : 「構文エラー: ...（行X）」
+
+    == AI修正提案（オプション） ==
+
+    User -> Browser : 「AI修正提案」ボタンをクリック
+
+    Browser -> APIRoutes : POST /api/ai/fix\n{ source_code, errors }
+    activate APIRoutes
+
+    APIRoutes -> AIService : generateFix(source, errors)
+    activate AIService
+
+    note over AIService
+      **OpenRouter経由**
+      モデル: Claude/GPT-4等
+      プロンプト: エラー修正特化
+      TD-007準拠
+    end note
+
+    AIService -> AIService : LLMにリクエスト\n（ストリーミング）
+
+    AIService --> APIRoutes : { suggested_code,\n  explanation }
+    deactivate AIService
+
+    APIRoutes --> Browser : 200 OK\n{ suggested_fix }
+    deactivate APIRoutes
+
+    Browser -> Browser : 差分表示\n（修正前/修正後）
+
+    Browser --> User : AI修正提案表示
+
+    alt 修正を適用
+        User -> Browser : 「適用」をクリック
+        Browser -> Browser : エディタ内容を更新
+        Browser -> Browser : 再度プレビュー生成トリガー
+    else 修正を却下
+        User -> Browser : 「キャンセル」をクリック
+        Browser --> User : 元のコードのまま
+    end
+
+else 構文OK（警告あり）
+    PlantUMLService -> PlantUMLService : SVG生成
+    PlantUMLService --> ValidationService : { svg, warnings }
+    deactivate PlantUMLService
+
+    ValidationService --> APIRoutes : 200\n{ is_valid: true,\n  svg, warnings }
+    deactivate ValidationService
+
+    APIRoutes --> Browser : 200 OK\n{ preview_svg, warnings }
+    deactivate APIRoutes
+
+    Browser -> Browser : プレビューパネル更新
+    Browser -> Browser : 警告トースト表示
+
+    Browser --> User : プレビュー表示\n+ 警告メッセージ
+
+else 構文OK（警告なし）
+    PlantUMLService -> PlantUMLService : SVG生成
+    PlantUMLService --> ValidationService : { svg }
+    deactivate PlantUMLService
+
+    ValidationService --> APIRoutes : 200\n{ is_valid: true, svg }
+    deactivate ValidationService
+
+    APIRoutes --> Browser : 200 OK\n{ preview_svg }
+    deactivate APIRoutes
+
+    Browser -> Browser : プレビューパネル更新
+
+    Browser --> User : プレビュー表示
+end
+
+deactivate Browser
+
+@enduml
+```
+
+#### フロー説明
+
+| ステップ | 処理内容 | 担当 |
+|:--------:|---------|------|
+| 1 | デバウンス経過後、プレビュー生成開始 | ブラウザ |
+| 2 | POST /api/validate でソースコード送信 | API Routes |
+| 3 | ValidationService → PlantUML Service で構文チェック | ValidationService |
+| 4-A | 構文エラー時: エラーメッセージ表示 + AI修正提案オプション | ブラウザ |
+| 4-B | 構文OK（警告あり）: プレビュー表示 + 警告トースト | ブラウザ |
+| 4-C | 構文OK（警告なし）: プレビュー表示 | ブラウザ |
+| 5 | AI修正提案を適用 or 却下 | エンドユーザー |
+
+#### AI修正提案機能（TD-007準拠）
+
+| 項目 | 内容 |
+|------|------|
+| プロバイダー | OpenRouter（統一API経由） |
+| モデル | Claude / GPT-4 等（ユーザー設定可能） |
+| 入力 | ソースコード + エラー情報 |
+| 出力 | 修正後コード + 説明文 |
+| UI | 差分表示（修正前/修正後） |
+
+#### プレビュー品質目標
+
+| 項目 | 目標値 |
+|------|--------|
+| レンダリング時間 | 500ms以内 |
+| エラー検出 | 行番号 + メッセージ |
+| 対応形式 | SVG / PNG |
+
+---
+
+## 5. 技術仕様
+
+### API仕様
+
+#### 認証API
+
+| エンドポイント | メソッド | 説明 | 認証 |
+|--------------|:-------:|------|:----:|
+| `/auth/callback` | GET | OAuthコールバック | ❌ |
+| `/auth/signout` | POST | ログアウト | ✅ |
+
+#### プロジェクトAPI
+
+| エンドポイント | メソッド | 説明 | 認証 |
+|--------------|:-------:|------|:----:|
+| `/api/projects` | POST | プロジェクト作成 | ✅ |
+| `/api/projects` | GET | プロジェクト一覧取得 | ✅ |
+| `/api/projects/{id}` | GET | プロジェクト詳細取得 | ✅ |
+| `/api/projects/{id}` | PUT | プロジェクト更新 | ✅ |
+| `/api/projects/{id}` | DELETE | プロジェクト削除 | ✅ |
+| `/api/projects/{id}/diagrams` | GET | 図表一覧取得 | ✅ |
+| `/api/projects/{id}/diagrams/count` | GET | 図表数取得 | ✅ |
+| `/api/users/me/selected-project` | PUT | 選択プロジェクト更新 | ✅ |
+
+#### 図表API
+
+| エンドポイント | メソッド | 説明 | 認証 |
+|--------------|:-------:|------|:----:|
+| `/api/diagrams` | POST | 図表作成 | ✅ |
+| `/api/diagrams/{id}` | GET | 図表詳細取得 | ✅ |
+| `/api/diagrams/{id}` | PUT | 図表更新（保存） | ✅ |
+| `/api/diagrams/{id}` | DELETE | 図表削除 | ✅ |
+| `/api/diagrams/preview` | POST | プレビュー生成 | ✅ |
+| `/api/templates` | GET | テンプレート一覧取得 | ✅ |
+| `/api/validate` | POST | 構文検証 | ✅ |
+| `/api/ai/fix` | POST | AI修正提案 | ✅ |
+
+### Request/Response型定義
+
+#### プロジェクトCRUD
+
+```typescript
+// POST /api/projects
+interface CreateProjectRequest {
+  name: string;  // 1〜100文字、禁止文字なし
+}
+
+interface ProjectResponse {
+  id: string;
+  name: string;
+  storagePath: string;
+  diagramCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// PUT /api/projects/{id}
+interface UpdateProjectRequest {
+  name: string;
+}
+
+// PUT /api/users/me/selected-project
+interface SelectProjectRequest {
+  projectId: string;
+}
+```
+
+#### 図表CRUD
+
+```typescript
+// POST /api/diagrams
+interface CreateDiagramRequest {
+  projectId: string;
+  name: string;           // 1〜100文字
+  type: 'plantuml' | 'excalidraw';
+  templateId?: string;    // テンプレートから作成時
+}
+
+interface DiagramResponse {
+  id: string;
+  name: string;
+  type: 'plantuml' | 'excalidraw';
+  filePath: string;
+  sourceCode?: string;
+  previewSvg?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// PUT /api/diagrams/{id}
+interface UpdateDiagramRequest {
+  sourceCode: string;
+}
+
+// POST /api/diagrams/preview
+interface PreviewRequest {
+  sourceCode: string;
+}
+
+interface PreviewResponse {
+  isValid: boolean;
+  previewSvg?: string;
+  errors?: Array<{
+    line: number;
+    message: string;
+  }>;
+  warnings?: string[];
+}
+```
+
+#### エラーレスポンス
+
+```typescript
+interface ErrorResponse {
+  error: string;      // エラーコード
+  message: string;    // ユーザー向けメッセージ
+  details?: unknown;  // 追加情報（開発時のみ）
+}
+
+// エラーコード一覧
+type ErrorCode =
+  | 'PROJECT_NAME_REQUIRED'
+  | 'PROJECT_NAME_TOO_LONG'
+  | 'PROJECT_NAME_INVALID_CHAR'
+  | 'PROJECT_NAME_RESERVED'
+  | 'PROJECT_NAME_DUPLICATE'
+  | 'PROJECT_NOT_FOUND'
+  | 'DIAGRAM_NAME_REQUIRED'
+  | 'DIAGRAM_NAME_TOO_LONG'
+  | 'DIAGRAM_NAME_INVALID_CHAR'
+  | 'DIAGRAM_NAME_DUPLICATE'
+  | 'DIAGRAM_NOT_FOUND'
+  | 'UNAUTHORIZED'        // 401: 認証が必要
+  | 'FORBIDDEN'           // 403: 権限がない（他ユーザーのリソースにアクセス）
+  | 'DELETE_FAILED'
+  | 'STORAGE_ERROR';
+```
 
 ### 使用ライブラリ
 
@@ -862,6 +1983,8 @@ deactivate Browser
 |-----------|-----------|------|
 | @supabase/ssr | ^0.5.x | Next.js SSR対応（推奨） |
 | next | ^15.x | App Router |
+| node-plantuml | ^0.9.x | PlantUMLレンダリング |
+| monaco-editor | ^0.45.x | コードエディタ |
 
 > **注意**: `@supabase/auth-helpers-nextjs` は非推奨。`@supabase/ssr` を使用すること。
 
@@ -1073,6 +2196,117 @@ export function LogoutButton() {
 }
 ```
 
+#### 7. DiagramService（クラス図v1.7準拠）
+
+```typescript
+// services/DiagramService.ts
+import { IDiagramRepository } from '@/repositories/IDiagramRepository'
+
+export class DiagramService {
+  constructor(private readonly diagramRepo: IDiagramRepository) {}
+
+  async createDiagram(userId: string, dto: CreateDiagramRequest): Promise<Diagram> {
+    // 重複チェック
+    const exists = await this.diagramRepo.exists(dto.projectId, dto.name)
+    if (exists) {
+      throw new ConflictError('DIAGRAM_NAME_DUPLICATE')
+    }
+
+    // 図表作成
+    const diagram: Diagram = {
+      id: crypto.randomUUID(),
+      projectId: dto.projectId,
+      name: dto.name,
+      type: dto.type,
+      sourceCode: dto.templateContent ?? this.getInitialContent(dto.type),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+
+    return this.diagramRepo.create(userId, diagram)
+  }
+
+  async getDiagram(userId: string, diagramId: string): Promise<Diagram> {
+    const diagram = await this.diagramRepo.get(userId, diagramId)
+    if (!diagram) {
+      throw new NotFoundError('DIAGRAM_NOT_FOUND')
+    }
+    return diagram
+  }
+
+  async updateDiagram(userId: string, diagramId: string, sourceCode: string): Promise<Diagram> {
+    const diagram = await this.getDiagram(userId, diagramId)
+    diagram.sourceCode = sourceCode
+    diagram.updatedAt = new Date()
+    return this.diagramRepo.update(userId, diagram)
+  }
+
+  private getInitialContent(type: 'plantuml' | 'excalidraw'): string {
+    return type === 'plantuml'
+      ? "@startuml\n' 新しい図表\n\n@enduml"
+      : '{"type":"excalidraw","version":2,"elements":[]}'
+  }
+}
+```
+
+#### 8. IDiagramRepository インターフェース
+
+```typescript
+// repositories/IDiagramRepository.ts
+export interface IDiagramRepository {
+  exists(projectId: string, diagramName: string): Promise<boolean>
+  get(userId: string, diagramId: string): Promise<Diagram | null>
+  create(userId: string, diagram: Diagram): Promise<Diagram>
+  update(userId: string, diagram: Diagram): Promise<Diagram>
+  delete(userId: string, diagramId: string): Promise<void>
+  list(userId: string, projectId: string): Promise<Diagram[]>
+}
+
+// repositories/StorageDiagramRepository.ts
+import { createClient } from '@/utils/supabase/server'
+
+export class StorageDiagramRepository implements IDiagramRepository {
+  async exists(projectId: string, diagramName: string): Promise<boolean> {
+    const supabase = await createClient()
+    const { data } = await supabase.storage
+      .from('diagrams')
+      .list(`${projectId}`, { search: diagramName })
+    return (data?.length ?? 0) > 0
+  }
+
+  async get(userId: string, diagramId: string): Promise<Diagram | null> {
+    const supabase = await createClient()
+    const { data, error } = await supabase.storage
+      .from('diagrams')
+      .download(`${userId}/${diagramId}`)
+    if (error) return null
+    // ファイル内容からDiagramオブジェクトを構築
+    const content = await data.text()
+    return this.parseDiagram(diagramId, content)
+  }
+
+  async create(userId: string, diagram: Diagram): Promise<Diagram> {
+    const supabase = await createClient()
+    const path = `${userId}/${diagram.projectId}/${diagram.name}.puml`
+    await supabase.storage
+      .from('diagrams')
+      .upload(path, diagram.sourceCode)
+    return diagram
+  }
+
+  async update(userId: string, diagram: Diagram): Promise<Diagram> {
+    const supabase = await createClient()
+    const path = `${userId}/${diagram.projectId}/${diagram.name}.puml`
+    await supabase.storage
+      .from('diagrams')
+      .update(path, diagram.sourceCode)
+    return diagram
+  }
+
+  // ... 他のメソッド実装
+}
+```
+
 ### 非推奨パターン（使用禁止）
 
 ```typescript
@@ -1145,11 +2379,12 @@ project/
 
 | ドキュメント | 内容 |
 |-------------|------|
-| `PlantUML_Studio_ユースケース図_20251130.md` | UC 1-1〜1-2, 2-1〜2-4 |
+| `PlantUML_Studio_ユースケース図_20251130.md` | UC 1-1〜1-2, 2-1〜2-4, 3-1〜3-4 |
 | `PlantUML_Studio_コンテキスト図_20251130.md` | Supabase連携 |
-| `PlantUML_Studio_業務フロー図_20251201.md` § 3.5 | 業務フロー詳細 |
-| `docs/context/technical_decisions.md` TD-005, TD-006 | 技術決定 |
-| `PlantUML_Studio_CRUD表_20251209.md` | CRUD操作一覧 |
+| `PlantUML_Studio_業務フロー図_20251201.md` § 3.1, 3.5 | 業務フロー詳細 |
+| `PlantUML_Studio_クラス図_20251208.md` v1.7 | サービス層、リポジトリ |
+| `PlantUML_Studio_CRUD表_20251213.md` v2.2 | CRUD操作一覧 |
+| `docs/context/technical_decisions.md` TD-005, TD-006, TD-007 | 技術決定 |
 | [Supabase SSR公式ドキュメント](https://github.com/supabase/supabase/blob/master/apps/docs/content/guides/auth/server-side/creating-a-client.mdx) | 公式リファレンス |
 
 ---
@@ -1161,3 +2396,6 @@ project/
 | 2025-11-30 | 1.0 | 初版作成（UC 1-1, 1-2 認証フロー） |
 | 2025-12-14 | 2.0 | 1ファイル方式に統合、UC 2-1〜2-4 追加 |
 | 2025-12-14 | 2.1 | UC 3-1, 3-2（図表作成・テンプレート選択）追加 |
+| 2025-12-14 | 2.2 | UC 3-3, 3-4（編集・プレビュー・AI修正提案）追加 |
+| 2025-12-15 | 2.3 | §2 PlantUMLコード追加、異常系強化、CRUD表整合性検証、API仕様追加 |
+| 2025-12-15 | 2.4 | **クラス図v1.7整合性強化**: §3-4にIDiagramRepository追加、§4.1図表読込シーケンス追加、403 Forbidden追加、DiagramService/StorageDiagramRepository実装コード追加 |
