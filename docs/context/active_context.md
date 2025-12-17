@@ -1,6 +1,6 @@
 # 現在の作業コンテキスト（Active Context）
 
-**最終更新**: 2025-12-16（UC 3-5 保存シーケンス図追加）
+**最終更新**: 2025-12-18（知見統合 + proposalsディレクトリ再構成）
 
 ---
 
@@ -128,6 +128,33 @@
 ---
 
 ## 最近の変更
+
+### 2025-12-18
+
+- **シーケンス図アクティブバー知見統合** ✅
+  - UC 3-5作成時に発見した知見を正式ドキュメントに統合
+  - **新規作成ファイル**:
+    - `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` (LL-001〜LL-024)
+    - `docs/guides/sequence_diagram/Sequence_Diagram_Patterns.md` (NL-001〜NL-007)
+    - `docs/guides/Sequence_Diagram_Knowledge_Integration_Strategy.md`
+  - **更新ファイル（最小限追加）**:
+    - `PlantUML_Development_Constitution.md`: +5行
+    - `Sequence_Diagram_Authoring_Guide.md`: +1行、`md_authoring_guides/`に移動
+  - **制約遵守**: Constitution既存テキスト変更なし（追加のみ）
+  - Evidence更新: `00_raw_notes.md`, `sequence_save.review.json`に偽陽性分析追加
+  - **統計**: 偽陽性レビュー6回/7サイクル、知見31件（LL 24 + NL 7）
+
+- **proposalsディレクトリ再構成** ✅
+  - **ファイル名変更（番号プレフィックス追加）**:
+    - `PlantUML_Studio_*` → `01_〜08_*`
+  - **diagramsディレクトリ再構成**:
+    - `business_flow/` → `03_business_flow/`
+    - `class/` → `06_class/`
+    - `sequence/` → `08_sequence/`
+    - 新規: `01_context/`, `02_usecase/`, `04_dfd/`
+  - **DFD図追加**: Level 0/1/2 のSVG・Mermaid PNG 20ファイル
+
+- **Git push完了**: `e780ce3` (80ファイル、+3790/-594行)
 
 ### 2025-12-16
 
