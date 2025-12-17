@@ -31,13 +31,13 @@
 
 | DiagramType | 説明 | 保存先 |
 |-------------|------|--------|
-| `business_flow` | 業務フロー図 | `docs/proposals/diagrams/business_flow/` |
-| `sequence` | シーケンス図 | `docs/proposals/diagrams/sequence/` |
-| `usecase` | ユースケース図 | `docs/proposals/diagrams/usecase/` |
-| `context` | コンテキスト図 | `docs/proposals/diagrams/context/` |
-| `component` | コンポーネント図 | `docs/proposals/diagrams/component/` |
-| `class` | クラス図 | `docs/proposals/diagrams/class/` |
-| `dfd` | データフロー図 | `docs/proposals/diagrams/dfd/` |
+| `business_flow` | 業務フロー図 | `docs/proposals/diagrams/03_business_flow/` |
+| `sequence` | シーケンス図 | `docs/proposals/diagrams/08_sequence/` |
+| `usecase` | ユースケース図 | `docs/proposals/diagrams/02_usecase/` |
+| `context` | コンテキスト図 | `docs/proposals/diagrams/01_context/` |
+| `component` | コンポーネント図 | `docs/proposals/diagrams/11_component/` |
+| `class` | クラス図 | `docs/proposals/diagrams/06_class/` |
+| `dfd` | データフロー図 | `docs/proposals/diagrams/04_dfd/` |
 
 ---
 

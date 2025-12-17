@@ -1,0 +1,317 @@
+{
+    "file": "sequence_save.puml",
+    "diagram_type": "sequence",
+    "uc_id": "UC 3-5",
+    "title": "図表保存フロー（PlantUML）",
+
+    "summary": {
+        "total_review_cycles": 7,
+        "false_positive_count": 6,
+        "final_approval_date": "2025-12-17T09:01:00",
+        "svg_publish_date": "2025-12-17T09:20:00",
+        "lessons_learned_count": 24,
+        "pattern_count": 7,
+        "claude_ops_operations": "108+"
+    },
+
+    "current": {
+        "hash": "5B3D4FADCB2CA287",
+        "timestamp": "2025-12-17T18:01:44",
+        "reviewed_at": "2025-12-17T19:30:00",
+        "status": "approved",
+        "issues": [],
+        "review": {
+            "pass1_structure": true,
+            "pass2_connections": true,
+            "pass3_content": true,
+            "pass4_style": true,
+            "pass5_activation_bars": true
+        },
+        "key_fix": "Hidden arrow anchor (LL-008) without ++ in else branch",
+        "note": "Final approved version. Applied hidden arrow anchor (LL-008) in else branch. All activation bars verified including alt/else branches. 24 lessons learned documented (LL-001 to LL-024). LL-017~020: Visual review methodology failures. LL-021~024: Additional insights from claude ops analysis."
+    },
+
+    "false_positive_analysis": {
+        "description": "6回のレビューで「完了」と判定したが、ユーザー指摘により問題が発見された",
+        "root_causes": [
+            "LL-017: PNG視覚確認での先入観（ソースを読んだ後に確認）",
+            "LL-018: 終端部確認不足（最後のメッセージまで確認していない）",
+            "LL-019: 否定的証拠探索の欠如（「バーがあるか」ではなく「ないのはどれか」を探すべき）",
+            "LL-020: 部分的サンプリング（50メッセージ中、実際は一部のみ確認）"
+        ],
+        "cycles": [
+            {
+                "cycle": 1,
+                "hash": "AC2809FC605D0C24",
+                "ai_verdict": "completed",
+                "actual_status": "defective",
+                "user_finding": "else分岐にアクティブバーがない",
+                "lesson_id": "LL-001",
+                "lesson": "else分岐はALT開始時点の状態を継承"
+            },
+            {
+                "cycle": 2,
+                "hash": "83652F96F016ACEC",
+                "ai_verdict": "completed (50 messages verified)",
+                "actual_status": "defective",
+                "user_finding": "最後の2メッセージにアクティブバーがない",
+                "lesson_id": "LL-012",
+                "lesson": "アクティブバー描画 = active状態 ∧ 視覚的トリガー"
+            },
+            {
+                "cycle": 3,
+                "hash": "B480DDDAED35A700",
+                "ai_verdict": "completed",
+                "actual_status": "defective",
+                "user_finding": "Storage errorパスのアクティブバー欠落",
+                "lesson_id": "LL-011",
+                "lesson": "return arrow（-->）はバーが薄い"
+            },
+            {
+                "cycle": 4,
+                "hash": "73CE4FCC47B7664E",
+                "ai_verdict": "completed",
+                "actual_status": "defective",
+                "user_finding": "noteはアンカーにならない（ダメです）",
+                "lesson_id": "LL-009",
+                "lesson": "noteはアクティベーションアンカーにならない"
+            },
+            {
+                "cycle": 5,
+                "hash": "73BC2C03C1C49702",
+                "ai_verdict": "completed",
+                "actual_status": "defective",
+                "user_finding": "self-messageで余計なメッセージが表示される",
+                "lesson_id": "LL-007",
+                "lesson": "Self-message Anchorパターンは表示される"
+            },
+            {
+                "cycle": 6,
+                "hash": "5420E9C4C7B388DE",
+                "ai_verdict": "completed",
+                "actual_status": "defective",
+                "user_finding": "hidden arrow ++ でエラー「Cannot activate Browser」",
+                "lesson_id": "LL-008",
+                "lesson": "Hidden arrowに++は使えない（既にactive）"
+            },
+            {
+                "cycle": 7,
+                "hash": "5B3D4FADCB2CA287",
+                "ai_verdict": "completed",
+                "actual_status": "approved",
+                "user_finding": "承認",
+                "lesson_id": null,
+                "lesson": "hidden arrow（++なし）+ -- ショートカットで解決"
+            }
+        ]
+    },
+
+    "history": [
+        {
+            "hash": "12151318112472B7",
+            "timestamp": "2025-12-16T01:17:04",
+            "reviewed_at": "2025-12-16T05:20:00",
+            "issues": [],
+            "status": "completed",
+            "review": {
+                "pass1_structure": true,
+                "pass2_connections": true,
+                "pass3_content": true,
+                "pass4_style": true,
+                "pass5_activation_bars": true
+            },
+            "note": "Removed deactivate before alt block. Browser activation bar now continuous from 200 OK through final alt branches. Using -- shortcut for deactivate in each branch."
+        },
+        {
+            "hash": "5420E9C4C7B388DE",
+            "timestamp": "2025-12-16T05:10:00",
+            "reviewed_at": "2025-12-16T05:15:00",
+            "issues": [],
+            "status": "false_positive_6",
+            "review": {
+                "pass1_structure": true,
+                "pass2_connections": true,
+                "pass3_content": true,
+                "pass4_style": true,
+                "pass5_activation_bars": true
+            },
+            "note": "FALSE POSITIVE: Applied hidden arrow with ++ - caused 'Cannot activate Browser' error. LL-008 lesson learned.",
+            "user_finding": "hidden arrow ++ でエラー「Cannot activate Browser」"
+        },
+        {
+            "hash": "73BC2C03C1C49702",
+            "timestamp": "2025-12-16T04:25:00",
+            "reviewed_at": "2025-12-16T04:30:00",
+            "issues": [],
+            "status": "false_positive_5",
+            "review": {
+                "pass1_structure": true,
+                "pass2_connections": true,
+                "pass3_content": true,
+                "pass4_style": true,
+                "pass5_activation_bars": true
+            },
+            "note": "FALSE POSITIVE: Added self-message anchor in else branch (LL-007). User pointed out unwanted visible message.",
+            "user_finding": "self-messageで余計なメッセージが表示される"
+        },
+        {
+            "hash": "73CE4FCC47B7664E",
+            "timestamp": "2025-12-16T00:58:13",
+            "reviewed_at": "2025-12-16T03:45:00",
+            "issues": [],
+            "status": "false_positive_4",
+            "review": {
+                "pass1_structure": true,
+                "pass2_connections": true,
+                "pass3_content": true,
+                "pass4_style": true,
+                "pass5_activation_bars": true
+            },
+            "note": "FALSE POSITIVE: Tried to use note as anchor. User said 'ノートではダメです'. LL-009 lesson learned.",
+            "user_finding": "noteはアンカーにならない"
+        },
+        {
+            "hash": "780DF8EA761CC18A",
+            "timestamp": "2025-12-16T00:55:57",
+            "reviewed_at": "2025-12-16T03:35:00",
+            "issues": [],
+            "status": "completed",
+            "review": {
+                "pass1_structure": true,
+                "pass2_connections": true,
+                "pass3_content": true,
+                "pass4_style": true,
+                "pass5_activation_bars": true
+            },
+            "note": "Applied Context7-verified shortcut syntax (-- for deactivate). All arrows changed to regular arrows (->). All activation bars verified for Storage error path."
+        },
+        {
+            "hash": "9750DE1EBBCBD155",
+            "timestamp": "2025-12-16T00:52:15",
+            "reviewed_at": "2025-12-16T03:25:00",
+            "issues": [],
+            "status": "false_positive_3",
+            "review": {
+                "pass1_structure": true,
+                "pass2_connections": true,
+                "pass3_content": true,
+                "pass4_style": true,
+                "pass5_activation_bars": true
+            },
+            "note": "FALSE POSITIVE: Fixed Storage error path arrows but missed activation bar issue.",
+            "user_finding": "Storage errorパスのアクティブバー欠落"
+        },
+        {
+            "hash": "B480DDDAED35A700",
+            "timestamp": "2025-12-16T00:48:33",
+            "reviewed_at": "2025-12-16T03:15:00",
+            "issues": [],
+            "status": "false_positive_2",
+            "review": {
+                "pass1_structure": true,
+                "pass2_connections": true,
+                "pass3_content": true,
+                "pass4_style": true,
+                "pass5_activation_bars": true
+            },
+            "note": "FALSE POSITIVE: Fixed Browser->User arrow type but user found last 2 messages still missing activation bars. LL-012 lesson learned.",
+            "user_finding": "最後の2メッセージにアクティブバーがない"
+        },
+        {
+            "hash": "83652F96F016ACEC",
+            "timestamp": "2025-12-16T00:34:19",
+            "reviewed_at": "2025-12-16T02:45:00",
+            "status": "false_positive_1",
+            "review": {
+                "pass1_structure": true,
+                "pass2_connections": true,
+                "pass3_content": true,
+                "pass4_style": true,
+                "pass5_activation_bars": true
+            },
+            "issues": [],
+            "note": "FALSE POSITIVE: Claimed '50 messages verified' but user found else branch missing activation bars. LL-001 lesson learned.",
+            "user_finding": "else分岐にアクティブバーがない"
+        },
+        {
+            "hash": "RESOLVED_ISSUES",
+            "timestamp": "2025-12-16T02:30:00",
+            "status": "resolved",
+            "issues": [
+                {
+                    "pass": "pass2_connections",
+                    "symptom": "PlantUML Error line 204: activate DiagramService",
+                    "cause": "else branches inherit state from ALT START - cannot activate already-active participants",
+                    "fix": "Removed activate DiagramService/APIRoutes from else branches (they are already active from alt start). Only activate AIService (which was deactivated in first branch)",
+                    "lesson_id": "LL-001"
+                }
+            ]
+        },
+        {
+            "hash": "AC2809FC605D0C24",
+            "timestamp": "2025-12-16T00:20:41",
+            "reviewed_at": "2025-12-16T01:05:00",
+            "status": "initial_false_positive",
+            "review": {
+                "pass1_structure": true,
+                "pass2_connections": true,
+                "pass3_content": true,
+                "pass4_style": true,
+                "pass5_activation_bars": true
+            },
+            "note": "INITIAL FALSE POSITIVE: First 'completed' review. Reopened due to user feedback about missing deactivate statements inside alt blocks.",
+            "user_finding": "alt分岐内のdeactivate欠落"
+        }
+    ],
+
+    "lessons_learned_reference": {
+        "document": "docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md",
+        "total_items": 24,
+        "categories": {
+            "basic_principles": ["LL-001", "LL-002", "LL-003"],
+            "syntax_patterns": ["LL-004", "LL-005", "LL-006", "LL-007", "LL-008"],
+            "limitations": ["LL-009", "LL-010", "LL-011", "LL-012"],
+            "advanced_patterns": ["LL-013", "LL-014", "LL-015", "LL-016"],
+            "review_methodology_failures": ["LL-017", "LL-018", "LL-019", "LL-020"],
+            "additional_insights": ["LL-021", "LL-022", "LL-023", "LL-024"]
+        },
+        "most_critical": [
+            "LL-001: else分岐はALT開始時点の状態を継承",
+            "LL-008: Hidden Arrowアンカー（++なし）",
+            "LL-012: アクティブバー描画 = active ∧ 視覚的トリガー",
+            "LL-018: 終端部確認不足（逆順確認推奨）",
+            "LL-019: 否定的証拠探索（「バーがないのはどれ？」）"
+        ]
+    },
+
+    "patterns_reference": {
+        "document": "docs/guides/sequence_diagram/Sequence_Diagram_Patterns.md",
+        "total_items": 7,
+        "items": [
+            "NL-001: skinparam設定パターン",
+            "NL-002: participant宣言パターン",
+            "NL-003: フェーズ区切り線",
+            "NL-004: note配置パターン",
+            "NL-005: Self-messageとnoteの使い分け",
+            "NL-006: ヘッダーコメント構造",
+            "NL-007: 矢印タイプの選択"
+        ]
+    },
+
+    "claude_ops_statistics": {
+        "period": "2025-12-15 ~ 2025-12-17",
+        "operations": {
+            "sequence_save.puml": "47+",
+            "work_sheet.md": "30+",
+            "sequence_save.review.json": "22+",
+            "total": "108+",
+            "note": "hasMore=true - 実際の操作数はさらに多い"
+        }
+    },
+
+    "svg_publish": {
+        "path": "docs/proposals/diagrams/08_sequence/PlantUML_Studio_Sequence_Save.svg",
+        "published_at": "2025-12-17T09:20:00",
+        "based_on_hash": "5B3D4FADCB2CA287"
+    }
+}

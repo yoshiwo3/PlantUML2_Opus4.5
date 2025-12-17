@@ -1,0 +1,230 @@
+@startuml PlantUML_Studio_Sequence_Save
+'==================================================
+' シーケンス図: 図表保存フロー（PlantUML）
+' UC 3-5 図表を保存する
+' 基準: 業務フロー図 3.6.1.1, 機能一覧表 F-DGM-05
+' 参照: TD-006（Storage Only構成）, TD-007（AI機能構成）
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title 図表保存フロー（UC 3-5）- PlantUML
+
+actor User as "エンドユーザー"
+participant Browser as "ブラウザ\n(Monaco Editor)"
+participant APIRoutes as "API Routes\n(/api/diagrams)"
+participant DiagramService as "DiagramService"
+participant ValidationService as "ValidationService"
+participant PlantUMLService as "PlantUML Service\n(node-plantuml)"
+participant AIService as "AI Service\n(OpenRouter)"
+participant DiagramRepo as "IDiagramRepository\n(Storage実装)"
+database Storage as "Supabase Storage"
+
+== 図表を開く（初期読込） ==
+
+activate User
+User -> Browser : 図表一覧から図表をクリック
+activate Browser
+
+Browser -> APIRoutes : GET /api/diagrams/{id}
+activate APIRoutes
+
+APIRoutes -> DiagramService : getDiagram(userId, diagramId)
+activate DiagramService
+
+DiagramService -> DiagramRepo : get(userId, diagramId)
+activate DiagramRepo
+
+DiagramRepo -> Storage : download(path)\n/{user_id}/{project}/{name}.puml
+activate Storage
+Storage --> DiagramRepo : ファイル内容
+deactivate Storage
+
+DiagramRepo --> DiagramService : Diagram
+deactivate DiagramRepo
+
+DiagramService --> APIRoutes : { diagram }
+deactivate DiagramService
+
+APIRoutes --> Browser : 200 OK\n{ sourceCode, previewSvg }
+deactivate APIRoutes
+
+Browser -> Browser : Monaco Editor初期化\n+ プレビューパネル表示
+Browser --> User : エディタ画面表示
+
+== 編集 → 保存 ==
+
+User -> Browser : コードを編集
+Browser -> Browser : 未保存状態を表示\n（タイトルに * 表示）
+
+User -> Browser : Ctrl+S または保存ボタン
+note over Browser
+  **保存方法（TD-006）**
+  - Ctrl+S（キーボードショートカット）
+  - 保存ボタンクリック
+  - 手動保存のみ（自動保存なし）
+end note
+
+Browser -> APIRoutes : PUT /api/diagrams/{id}\n{ sourceCode }
+activate APIRoutes
+
+APIRoutes -> DiagramService : saveDiagram(userId, diagramId, dto)
+activate DiagramService
+
+== 構文検証 ==
+
+DiagramService -> ValidationService : validateAndRender(sourceCode)
+activate ValidationService
+
+ValidationService -> PlantUMLService : render(sourceCode)
+activate PlantUMLService
+
+note over PlantUMLService
+  **node-plantuml処理**
+  Java 17 + Graphviz
+  構文チェック + SVG生成
+end note
+
+alt 構文エラーあり
+    PlantUMLService --> ValidationService : { error, line, message }
+    deactivate PlantUMLService
+
+    ValidationService --> DiagramService : ValidationError(400)
+    deactivate ValidationService
+
+    DiagramService --> APIRoutes : BadRequestError(400)
+    deactivate DiagramService
+
+    APIRoutes --> Browser : 400 Bad Request\n{ error: "SYNTAX_ERROR",\n  errors: [...] }
+    deactivate APIRoutes
+
+    Browser -> Browser : エラーメッセージ表示\n（行番号ハイライト）
+
+    Browser -> User : 「構文エラー: ...（行X）」\n保存キャンセル
+    deactivate Browser
+    deactivate User
+else 構文OK
+    activate PlantUMLService
+    activate ValidationService
+    PlantUMLService --> ValidationService : { svg }
+    deactivate PlantUMLService
+
+    activate DiagramService
+    ValidationService --> DiagramService : { isValid: true, previewSvg }
+    deactivate ValidationService
+
+    == ファイル保存（Storage） ==
+
+    DiagramService -> DiagramRepo : save(diagram)
+    activate DiagramRepo
+
+    note over DiagramRepo
+      **保存ファイル（TD-006）**
+      1. {diagram_name}.puml
+      2. {diagram_name}.preview.svg
+    end note
+
+    DiagramRepo -> Storage : upload(path, sourceCode)\n/{user_id}/{project}/{name}.puml
+    activate Storage
+
+    note over Storage
+      **RLS Policy適用**
+      - user_id = auth.uid()
+      - 所有者のみ書き込み可
+    end note
+
+    alt Storage書き込み失敗
+        Storage -> DiagramRepo -- : StorageError
+
+        DiagramRepo -> DiagramService -- : StorageError(500)
+
+        DiagramService -> APIRoutes -- : InternalServerError(500)
+
+        APIRoutes -> Browser -- : 500 Internal Server Error\n{ error: "STORAGE_ERROR" }
+
+        Browser -> User -- : 「保存に失敗しました」\nリトライオプション表示
+        deactivate User
+    else Storage書き込み成功
+        activate Storage
+        activate DiagramRepo
+        Storage --> DiagramRepo : 保存成功
+        deactivate Storage
+
+        DiagramRepo -> Storage : upload(path, previewSvg)\n/{user_id}/{project}/{name}.preview.svg
+        activate Storage
+        Storage --> DiagramRepo : 保存成功
+        deactivate Storage
+
+        activate DiagramService
+        DiagramRepo --> DiagramService : Diagram（更新済み）
+        deactivate DiagramRepo
+
+        == 用語一貫性チェック（非同期） ==
+
+        DiagramService -> AIService : checkTerminology(sourceCode, projectId)
+        activate AIService
+
+        note over AIService
+          **用語チェック（TD-007）**
+          - OpenRouter API経由
+          - プロジェクト内の用語統一を検証
+          - タイムアウト時: 保存は成功扱い
+        end note
+
+        alt 用語チェックタイムアウト or エラー
+            AIService --> DiagramService : TimeoutError / Error
+            deactivate AIService
+
+            note over DiagramService
+              用語チェック失敗でも
+              保存は成功扱い
+              （次回保存時に再チェック）
+            end note
+
+            DiagramService --> APIRoutes : { diagram, terminologyCheck: null }
+        else 用語不一致検出
+            activate AIService
+            AIService --> DiagramService : { inconsistencies: [...] }
+            deactivate AIService
+
+            DiagramService --> APIRoutes : { diagram,\n  terminologyCheck: {\n    hasIssues: true,\n    issues: [...]\n  }\n}
+        else 用語一貫性OK
+            activate AIService
+            AIService --> DiagramService : { inconsistencies: [] }
+            deactivate AIService
+
+            DiagramService --> APIRoutes : { diagram,\n  terminologyCheck: {\n    hasIssues: false\n  }\n}
+        end
+
+        deactivate DiagramService
+        APIRoutes -> Browser --++ : 200 OK\n{ diagram, terminologyCheck }
+
+        Browser -> Browser : 保存状態を更新\n（* を削除）
+        Browser -> Browser : 最終保存時刻を表示
+
+        alt 用語不一致あり
+            note right of Browser : 警告トースト表示
+            Browser -> User -- : 「保存完了」\n+ 「用語の不一致を検出しました」
+        else 用語一貫性OK or チェックスキップ
+            Browser -[hidden]-> Browser
+            Browser -> User -- : 「保存完了」
+        end
+    end
+end
+
+deactivate User
+
+@enduml

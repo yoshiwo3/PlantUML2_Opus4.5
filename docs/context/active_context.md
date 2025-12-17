@@ -1,6 +1,6 @@
 # 現在の作業コンテキスト（Active Context）
 
-**最終更新**: 2025-12-15（UC 3-3, 3-4 編集・プレビュー シーケンス図追加）
+**最終更新**: 2025-12-16（UC 3-5 保存シーケンス図追加）
 
 ---
 
@@ -23,7 +23,7 @@
 | ⑤ 機能一覧表（業務フロー・DFD対比含む） | ✅ | 完了（v3.12, §12クラス図整合版, PRD即採用可能） |
 | ⑥ クラス図 | ✅ | 完了（v1.7, 100点Aランク） |
 | ⑦ CRUD表 | ✅ | 完了（v2.2, 90点A評価, Obsidian callout対応, 32機能×11エンティティ） |
-| ⑧ シーケンス図 | 🟡 | 4/14完了（MVP: 4/8、Phase2: 0/6）※v3除外、統合版100点S |
+| ⑧ シーケンス図 | 🟡 | 5/14完了（MVP: 5/8、Phase2: 0/6）※v3除外、統合版100点S |
 | ⑨ 画面遷移図 | 🔴 | 要作成 |
 | ⑩ ワイヤーフレーム | 🔴 | 要作成 |
 | ⑪ コンポーネント図 | 🔴 | 要作成 |
@@ -61,7 +61,7 @@
 | 2 | プロジェクトCRUD | 2-1, 2-2, 2-3, 2-4 | Supabase Storage | ✅ 完了 |
 | 3 | 図表作成・テンプレート | 3-1, 3-2 | Supabase Storage | ✅ 完了 |
 | 4 | 編集・プレビュー | 3-3, 3-4 | node-plantuml + OpenRouter | ✅ 完了 |
-| 5 | 保存 | 3-5 | Storage + OpenRouter | 🔴 要作成 |
+| 5 | 保存 | 3-5 | Storage + OpenRouter | ✅ 完了 |
 | 6 | エクスポート | 3-6 | node-plantuml | 🔴 要作成 |
 | 7 | 図表削除 | 3-9 | Supabase Storage | 🔴 要作成 |
 | 8 | AI Question-Start | 4-1 | OpenRouter (streaming) | 🔴 要作成 |
@@ -77,8 +77,8 @@
 | 13 | LLM使用量監視 | 5-7 | OpenRouter + Supabase | 🔴 要作成 |
 | 14 | 学習コンテンツ登録 | 5-11 | OpenAI Embedding + pgvector | 🔴 要作成 |
 
-**シーケンス図 進捗: 4/14 完了（29%）**
-- MVP: 4/8完了（50%）
+**シーケンス図 進捗: 5/14 完了（36%）**
+- MVP: 5/8完了（63%）
 - Phase 2: 0/6
 
 > **v3除外**: バージョン管理（UC 3-7, 3-8）はv3フェーズで作成予定のため、現在の対象外
@@ -129,6 +129,24 @@
 
 ## 最近の変更
 
+### 2025-12-16
+
+- **UC 3-5 保存シーケンス図追加** ✅
+  - UC 3-5: 図表保存フロー（Storage + 用語チェック）
+  - Repository Pattern準拠（DiagramService → IDiagramRepository → Supabase Storage）
+  - 初期読込シーケンス明示（「前提」ではなくAPI呼び出し記述）
+  - エラーハンドリング: 400 構文エラー、500 Storage書き込み失敗
+  - 用語チェック: TD-007準拠（OpenRouter API経由、非同期処理）
+  - **メッセージチェック表方式導入**: 50メッセージの始点・終点アクティブバーを事前チェック
+  - **PlantUML activate/deactivate教訓**:
+    - LL-001: else分岐はalt開始時点の状態を継承
+    - LL-002: 選択的activate（first branchでdeactivateされた参加者のみ）
+    - LL-003: メッセージチェック表の有効性
+  - 5パス視覚的レビュー完了
+  - SVG生成: `docs/proposals/diagrams/08_sequence/PlantUML_Studio_Sequence_Save.svg`
+  - Evidence: `docs/evidence/20251215_2345_sequence_save/`
+  - **シーケンス図進捗**: 4/14 → 5/14（MVP: 5/8完了、63%）
+
 ### 2025-12-15
 
 - **UC 3-3, 3-4 編集・プレビュー シーケンス図追加** ✅
@@ -136,7 +154,7 @@
   - UC 3-4: 図表プレビュー・AI修正提案フロー（ValidationService + OpenRouter）
   - TD-007 AI機能プロバイダー構成準拠（OpenRouter経由でLLM利用）
   - 4パスレビュー完了（Pass 2: アクティブバー詳細確認、UC 3-3修正実施）
-  - SVG 2件生成: `PlantUML_Studio_Sequence_Edit.svg`, `PlantUML_Studio_Sequence_Preview.svg`
+  - SVG 2件生成: `4_1_Edit.svg`, `4_2_Preview.svg`
   - 統合版シーケンス図v2.2に追加
   - Evidence: `docs/evidence/20251214_2330_sequence_edit_preview/`
   - **シーケンス図進捗**: 3/14 → 4/14（MVP: 4/8完了、50%）
@@ -161,7 +179,7 @@
   - **シーケンス図進捗**: 2/14 → 3/14（MVP: 3/8完了）
 
 - **シーケンス図統合版完成（100点Sランク）** ✅
-  - `PlantUML_Studio_シーケンス図_20251214.md`（1ファイル方式）
+  - `08_シーケンス図_20251214.md`（1ファイル方式）
   - **認証フローSVG 4件追加**:
     - Login_OAuth.svg（UC 1-1: OAuthログイン PKCE）
     - Session_Check.svg（UC 1-1: セッション検証 Middleware）
@@ -200,7 +218,7 @@
     - skinparam: facade/infrastructure ステレオタイプ色定義追加
     - ヘッダー/ステータス/関連ドキュメント参照を最新化
   - 評価サイクル: 83点(v1.6) → 94点 → 98点 → **100点(v1.7)**
-  - 正式版: `docs/proposals/PlantUML_Studio_クラス図_20251208.md`（v1.7）
+  - 正式版: `docs/proposals/06_クラス図_20251208.md`（v1.7）
   - Evidence: `docs/evidence/20251214_1830_function_list_section12_update/`
 
 - **機能一覧表 v3.12 §12クラス図整合版 完成** ✅
@@ -250,7 +268,7 @@
     - **§5.5 ストーリー5: 管理者がAIモデルを設定する** 追加（5ストーリーに拡充）
     - `<details>`タグをObsidian callout構文に変換（8箇所）
   - **評価スコア推移**: 82点(B) → 90点(A) → **96点以上(A)見込**
-  - 正式版: `docs/proposals/PlantUML_Studio_CRUD表_20251213.md`
+  - 正式版: `docs/proposals/07_CRUD表_20251213.md`
   - Evidence: `docs/evidence/20251213_0253_crud_table_revision/`
 
 ### 2025-12-12
@@ -260,7 +278,7 @@
   - 3.10.2 学習画面フロー（UC 3-10, 3-11）
   - 確定済み要件17項目、データモデル、エラーハンドリング
   - PNG生成・4パスレビュー完了
-  - SVG生成完了（`docs/proposals/diagrams/business_flow/`）
+  - SVG生成完了（`docs/proposals/diagrams/03_business_flow/`）
   - 業務フロー図ドキュメントへ統合完了
   - Evidence: `docs/evidence/20251211_2330_learning_content_flow/`
 - **業務フロー図 全11フロー完了** ✅
@@ -278,7 +296,7 @@
   - 3.11.3 Embeddingモデル設定フロー（UC 5-9）
   - 3.11.4 Embedding使用量監視フロー（UC 5-10）
   - Evidence: `docs/evidence/20251210_2230_admin_flow_phase2/`
-  - SVG: `docs/proposals/diagrams/business_flow/`（4件追加）
+  - SVG: `docs/proposals/diagrams/03_business_flow/`（4件追加）
   - 業務フロー図への統合完了
 - **TD-008: LLMワークフローのDAG構造採用**
   - UI: ビジュアルノードエディタ（React Flow）
@@ -297,13 +315,13 @@
   - カテゴリ別詳細テーブル（F-AUTH/F-PRJ/F-DGM/F-AI/F-ADM）
   - 操作分布: Read 47%, Update 30%, Create 15%, Delete 8%
   - クラス図v1.6 Repository（9インターフェース）との対応表
-  - 正式版: `docs/proposals/PlantUML_Studio_CRUD表_20251209.md`
+  - 正式版: `docs/proposals/07_CRUD表_20251209.md`
   - Evidence: `docs/evidence/20251209_0024_crud_table/`
 - **⑥ クラス図 v1.6 評価・修正完了** ✅
   - **評価結果: 97点→100点（Aランク）- PRD採用版**
   - AdminService → UserService + SystemConfigService 分離（SRP準拠、PlantUMLコード完全整合）
   - 評価項目別: 構造的完全性20/20、技術決定整合性15/15、DFD/機能一覧表整合性20/20、PlantUMLコード品質15/15、ドキュメント品質15/15、詳細度・実装可能性15/15
-  - 正式版: `docs/proposals/PlantUML_Studio_クラス図_20251208.md`（v1.6）
+  - 正式版: `docs/proposals/06_クラス図_20251208.md`（v1.6）
 
 ### 2025-12-08
 
@@ -312,8 +330,8 @@
   - サービス層図: 9インターフェース、8Repository実装、12サービス、5外部クライアント
   - TD-005/TD-006/TD-007との整合性確認済み
   - 機能一覧表v1.5 §9との対応確認済み（エンティティ11/11、サービス10/10）
-  - 正式版: `docs/proposals/PlantUML_Studio_クラス図_20251208.md`
-  - SVG: `docs/proposals/diagrams/class/`
+  - 正式版: `docs/proposals/06_クラス図_20251208.md`
+  - SVG: `docs/proposals/diagrams/06_class/`
   - Evidence: `docs/evidence/20251208_0430_class_diagram/`
 - **⑤ 機能一覧表 v1.5 評価完了** ✅
   - **評価結果: 82点（Bランク）- PRD採用条件付き**
@@ -327,7 +345,7 @@
   - 業務フロー・DFD対比表（11フロー × 7プロセス × 24データフロー）
   - UCカバレッジマトリクス: 全体71.9%、**MVP 100%**
   - 整合性チェック: MVP機能はすべて完全カバー、問題なし
-  - 正式版: `docs/proposals/PlantUML_Studio_機能一覧表_20251213.md`
+  - 正式版: `docs/proposals/05_機能一覧表_20251213.md`
   - Evidence: `docs/evidence/20251208_0239_function_list/`
 - **④ データフロー図（DFD）v3.1 100点完全版** ✅
   - **評価・改善サイクル実施**: 75点（v2.1）→ 99点（v3.0）→ **100点（v3.1）**
@@ -345,8 +363,8 @@
     - D1バリデーションエラーメッセージ（14種）
     - D2バリデーションエラーメッセージ（8種）
     - 実装チームが迷わない詳細レベルに到達
-  - 正式版: `docs/proposals/PlantUML_Studio_データフロー図_20251208.md`（v3.1）
-  - SVG: `docs/proposals/diagrams/dfd/dfd_level0.svg`, `dfd_level1.svg`
+  - 正式版: `docs/proposals/04_データフロー図_20251208.md`（v3.1）
+  - SVG: `docs/proposals/diagrams/04_dfd/dfd_level0.svg`, `dfd_level1.svg`
   - Evidence: `docs/evidence/20251208_0128_dfd/`, `20251208_0157_dfd_improvement/`
 - **④ データフロー図（DFD）初版作成**
   - DFDレベル0（コンテキスト図）: 外部エンティティ、プロセス、データストア定義
@@ -416,7 +434,7 @@
   - `docs/proposals/diagrams/`: 正式版SVG保存ディレクトリ構造作成
   - ローカルJAR使用（`C:\temp\vscode\.plantuml\plantuml-mit-1.2025.2.jar`）
 - **管理機能フローSVG生成・視覚的レビュー完了**（10件）
-  - `docs/proposals/diagrams/business_flow/`に正式版SVG保存
+  - `docs/proposals/diagrams/03_business_flow/`に正式版SVG保存
   - 3.9.1 ユーザー管理、3.9.2 LLM管理（6件）、3.9.3 システム設定
   - Playwrightでブラウザ表示確認済み
 - **CLAUDE.md更新**: ガイドへの参照追加、ディレクトリ構造更新
@@ -537,7 +555,7 @@
 7. [x] 【レビュー・修正】業務フロー・DFDの不備を修正（MVP完全カバー、問題なし）✅
 8. [x] **Phase 3: クラス図**（ドメインモデル、サービス層）✅ 完了
 9. [x] **Phase 3続き: CRUD表**（機能×エンティティ）✅ 完了
-10. [ ] **Phase 4: シーケンス図**（残り10件: MVP4本+Phase2 6本）← **次の作業**
+10. [ ] **Phase 4: シーケンス図**（残り9件: MVP3本+Phase2 6本）← **次の作業**
 
 ### Phase 2 残作業（業務フロー）
 
@@ -549,7 +567,7 @@
 ### 今後の検討事項
 
 - [x] Phase 3: データ・構造定義（クラス図、CRUD表）✅
-- [ ] Phase 4: 振る舞い詳細化（シーケンス図残り10件: MVP4本+Phase2 6本、画面遷移図、ワイヤーフレーム）← **次**
+- [ ] Phase 4: 振る舞い詳細化（シーケンス図残り9件: MVP3本+Phase2 6本、画面遷移図、ワイヤーフレーム）← **次**
 - [ ] Phase 5: アーキテクチャ（コンポーネント図、外部インターフェース一覧）
 - [ ] Phase 6: 品質・権限定義（非機能要件、アクター権限マトリクス）
 
@@ -560,8 +578,8 @@
 | ドキュメント | 内容 |
 |-------------|------|
 | `CLAUDE.md` | プロジェクトガイド（最新） |
-| `docs/proposals/PlantUML_Studio_業務フロー図_20251201.md` | 業務フロー図 + UX設計思想 |
-| `docs/proposals/PlantUML_Studio_ユースケース図_20251130.md` | ユースケース図（32UC） |
+| `docs/proposals/03_業務フロー図_20251201.md` | 業務フロー図 + UX設計思想 |
+| `docs/proposals/02_ユースケース図_20251130.md` | ユースケース図（32UC） |
 | `docs/context/technical_decisions.md` | 技術決定記録（TD-001〜009） |
 
 ---

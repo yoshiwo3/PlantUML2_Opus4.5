@@ -402,7 +402,7 @@ Embeddingモデルを切り替える際、既存コンテンツのEmbedding再�
 - 業務フロー図3.11.3で表現
 
 **関連ドキュメント**:
-- `docs/proposals/PlantUML_Studio_業務フロー図_20251201.md` - 3.11セクション
+- `docs/proposals/03_業務フロー図_20251201.md` - 3.11セクション
 - `docs/evidence/20251210_2230_admin_flow_phase2/`
 
 ---

@@ -1,6 +1,6 @@
 # シーケンス図作成ガイドライン
 
-**対象ファイル**: `docs/proposals/PlantUML_Studio_シーケンス図_20251214.md`
+**対象ファイル**: `docs/proposals/08_シーケンス図_20251214.md`
 **作成日**: 2025-12-15
 **根拠**: v2.3→v2.4改善時の教訓
 
@@ -258,12 +258,14 @@ title ○○フロー（UC X-X）
 
 | ドキュメント | 参照目的 |
 |-------------|---------|
-| `PlantUML_Studio_クラス図_20251208.md` | Service/Repository構造 |
-| `PlantUML_Studio_業務フロー図_20251201.md` | 業務フロー詳細 |
-| `PlantUML_Studio_機能一覧表_20251213.md` | UC番号、機能ID |
-| `PlantUML_Studio_CRUD表_20251213.md` | CRUD操作対応 |
+| `06_クラス図_20251208.md` | Service/Repository構造 |
+| `03_業務フロー図_20251201.md` | 業務フロー詳細 |
+| `05_機能一覧表_20251213.md` | UC番号、機能ID |
+| `07_CRUD表_20251213.md` | CRUD操作対応 |
 | `PlantUML_Development_Constitution.md` | PlantUML開発憲法 |
 | `docs/context/technical_decisions.md` | TD-005, TD-006, TD-007 |
+
+**関連知見ベース**: 詳細なアクティブバー制御とパターン集は `docs/guides/sequence_diagram/` を参照。
 
 ---
 

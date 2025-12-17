@@ -173,9 +173,9 @@ Claudeが必要な情報をヒアリングします。
 
 | タスク種別 | 追加で読むべきファイル |
 |-----------|---------------------|
-| 業務フロー図 | docs/proposals/PlantUML_Studio_業務フロー図_20251201.md |
-| シーケンス図 | docs/proposals/PlantUML_Studio_シーケンス図_ログイン_20251130.md |
-| クラス図 | docs/proposals/PlantUML_Studio_クラス図_20251208.md |
+| 業務フロー図 | docs/proposals/03_業務フロー図_20251201.md |
+| シーケンス図 | docs/proposals/08_シーケンス図_20251214.md |
+| クラス図 | docs/proposals/06_クラス図_20251208.md |
 | PlantUML全般 | docs/guides/PlantUML_Development_Constitution.md |
 
 ---

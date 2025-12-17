@@ -62,6 +62,17 @@ $ProjectRoot = Split-Path -Parent $ScriptDir
 $PlantUmlJar = "C:\temp\vscode\.plantuml\plantuml-mit-1.2025.2.jar"
 $ProposalsDiagramsDir = Join-Path $ProjectRoot "docs\proposals\diagrams"
 
+# DiagramType から フォルダ名へのマッピング
+$DiagramTypeFolderMap = @{
+    "business_flow" = "03_business_flow"
+    "sequence"      = "08_sequence"
+    "usecase"       = "02_usecase"
+    "context"       = "01_context"
+    "component"     = "11_component"
+    "class"         = "06_class"
+    "dfd"           = "04_dfd"
+}
+
 # ハッシュ計算関数
 function Get-FileHashValue {
     param([string]$FilePath)
@@ -246,7 +257,8 @@ if ($Review) {
     $Mode = "Publish"
     $Format = "svg"
     $FormatOption = "-tsvg"
-    $OutputDir = Join-Path $ProposalsDiagramsDir $DiagramType
+    $FolderName = $DiagramTypeFolderMap[$DiagramType]
+    $OutputDir = Join-Path $ProposalsDiagramsDir $FolderName
     if (-not (Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
     }
@@ -261,7 +273,7 @@ if ($Review) {
     Write-Host "Generate PNG for visual review with Claude" -ForegroundColor Gray
 } else {
     Write-Host "=== PlantUML Publish Mode (SVG) ===" -ForegroundColor Green
-    Write-Host "Save official SVG to proposals/diagrams/$DiagramType" -ForegroundColor Gray
+    Write-Host "Save official SVG to proposals/diagrams/$FolderName" -ForegroundColor Gray
 }
 Write-Host ""
 Write-Host "Input:  $InputPath"

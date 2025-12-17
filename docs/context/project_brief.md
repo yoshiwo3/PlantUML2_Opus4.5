@@ -162,7 +162,7 @@ Claude CodeがPlantUML図表を自律的に作成・検証・修正するAI機�
 
 ## UX設計思想
 
-**詳細は `docs/proposals/PlantUML_Studio_業務フロー図_20251201.md` 参照**
+**詳細は `docs/proposals/03_業務フロー図_20251201.md` 参照**
 
 ### 想定ユーザーペルソナ
 

@@ -52,8 +52,8 @@ Phase 2の管理機能（LLMワークフロー定義、Embedding管理）の業�
 | 2 | 3.11.1_llm_workflow_definition.puml | 同上 |
 | 3 | 3.11.2_embedding_model_setting.puml | 同上 |
 | 4 | 3.11.3_embedding_usage_monitoring.puml | 同上 |
-| 5 | 正式版SVG（4件） | docs/proposals/diagrams/business_flow/ |
-| 6 | 業務フロー図への統合 | docs/proposals/PlantUML_Studio_業務フロー図_20251201.md |
+| 5 | 正式版SVG（4件） | docs/proposals/diagrams/03_business_flow/ |
+| 6 | 業務フロー図への統合 | docs/proposals/03_業務フロー図_20251201.md |
 
 ---
 
@@ -63,8 +63,8 @@ Phase 2の管理機能（LLMワークフロー定義、Embedding管理）の業�
 
 | # | ファイルパス | 参照目的 |
 |:-:|-------------|---------|
-| 1 | docs/proposals/PlantUML_Studio_業務フロー図_20251201.md | 3.9の構造・フォーマットを参照 |
-| 2 | docs/proposals/PlantUML_Studio_ユースケース図_20251130.md | UC 5-6, 5-9, 5-10の定義確認 |
+| 1 | docs/proposals/03_業務フロー図_20251201.md | 3.9の構造・フォーマットを参照 |
+| 2 | docs/proposals/02_ユースケース図_20251130.md | UC 5-6, 5-9, 5-10の定義確認 |
 | 3 | docs/evidence/20251206_openrouter_research/llm_management_feature_design.md | LM-05, EM-01, EM-02の設計仕様 |
 | 4 | docs/context/technical_decisions.md | TD-007（OpenRouter/OpenAI分離）確認 |
 | 5 | docs/guides/PlantUML_Development_Constitution.md | PlantUML憲法v3.4の制約確認 |
