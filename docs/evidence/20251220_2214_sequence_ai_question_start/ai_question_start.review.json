@@ -1,0 +1,35 @@
+﻿{
+    "current":  {
+                    "hash":  "79C6600624EC2D9F",
+                    "timestamp":  "2025-12-20T22:46:16",
+                    "reviewed_at":  "2025-12-20T22:48:00",
+                    "issues":  [],
+                    "status":  "completed",
+                    "review":  {
+                                   "pass1_structure":  true,
+                                   "pass2_connections":  true,
+                                   "pass3_content":  true,
+                                   "pass4_style":  true
+                               },
+                    "notes": "LL-001適用: else分岐で明示的activate追加、アクティブバー修正完了"
+                },
+    "history":  [
+                    {
+                        "hash":  "74BE364780E75A2F",
+                        "timestamp":  "2025-12-20T22:19:08",
+                        "reviewed_at":  "2025-12-20T22:25:00",
+                        "issues":  [
+
+                                   ],
+                        "status":  "completed",
+                        "review":  {
+                                       "pass1_structure":  true,
+                                       "pass2_connections":  true,
+                                       "pass3_content":  true,
+                                       "pass4_style":  true
+                                   },
+                        "notes":  "4パスレビュー完了: 7参加者、5フェーズ、SSEストリーミング、エラーハンドリング(401/403/429/500/503)"
+                    }
+                ],
+    "file":  "ai_question_start.puml"
+}

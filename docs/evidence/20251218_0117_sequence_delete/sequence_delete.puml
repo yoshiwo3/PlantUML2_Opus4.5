@@ -1,0 +1,134 @@
+@startuml PlantUML_Studio_Sequence_Delete
+'==================================================
+' シーケンス図: 図表削除フロー
+' UC 3-9 図表を削除する
+' 基準: 業務フロー図 3.8, 機能一覧表 F-DGM-09
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title 図表削除フロー（UC 3-9）
+
+actor "エンドユーザー" as user
+participant "ブラウザ\n(図表一覧)" as browser #E3F2FD
+participant "API Routes\n(/api/diagrams)" as APIRoutes #FFF3E0
+participant "DiagramService" as DiagramService #E8F5E9
+participant "IDiagramRepository" as DiagramRepo #FCE4EC
+database "Supabase Storage" as Storage #F3E5F5
+
+== 削除確認 ==
+
+user -> browser : 図表の「削除」ボタンをクリック
+activate browser
+
+browser -> browser : 図表情報を取得
+
+note over browser
+  **確認ダイアログ表示**
+  「この図表を削除しますか？」
+  「削除すると復元できません」
+end note
+
+browser --> user : 確認ダイアログ表示
+
+alt キャンセル
+    user -> browser : キャンセルをクリック
+    browser -> browser : ダイアログを閉じる
+    browser --> user : 図表一覧に戻る
+    deactivate browser
+
+else 削除確認
+
+    user -> browser : 削除を確認
+    activate browser
+
+    == 削除処理 ==
+
+    browser -> APIRoutes : DELETE /api/diagrams/{projectName}/{diagramName}
+    activate APIRoutes
+
+    note over APIRoutes
+      認証・権限検証
+      Storage Policy適用
+    end note
+
+    alt 401 Unauthorized
+        APIRoutes --> browser : 401 UNAUTHORIZED
+        deactivate APIRoutes
+        browser --> user : エラー「ログインしてください」
+        deactivate browser
+
+    else 403 Forbidden
+        activate APIRoutes
+        APIRoutes --> browser : 403 FORBIDDEN
+        deactivate APIRoutes
+        activate browser
+        browser --> user : エラー「削除権限がありません」
+        deactivate browser
+
+    else 正常処理
+        activate APIRoutes
+
+        APIRoutes -> DiagramService : delete(projectName, diagramName)
+        activate DiagramService
+
+        DiagramService -> DiagramRepo : delete(projectName, diagramName)
+        activate DiagramRepo
+
+        DiagramRepo -> DiagramRepo : 存在確認
+
+        alt 404 Not Found
+            DiagramRepo --> DiagramService : DiagramNotFoundError
+            deactivate DiagramRepo
+            DiagramService --> APIRoutes : 404 NOT_FOUND
+            deactivate DiagramService
+            APIRoutes --> browser : 404 NOT_FOUND
+            deactivate APIRoutes
+            activate browser
+            browser --> user : エラー「図表が見つかりません」
+            deactivate browser
+
+        else 図表存在
+            activate DiagramRepo
+
+            DiagramRepo -> Storage : ソースファイル削除\n(.puml / .excalidraw.json)
+            activate Storage
+            Storage --> DiagramRepo : 削除成功
+            deactivate Storage
+
+            DiagramRepo -> Storage : プレビューファイル削除\n(.preview.svg)
+            activate Storage
+            Storage --> DiagramRepo : 削除成功
+            deactivate Storage
+
+            DiagramRepo --> DiagramService : void
+            deactivate DiagramRepo
+
+            DiagramService --> APIRoutes : 204 No Content
+            deactivate DiagramService
+
+            APIRoutes --> browser : 204 No Content
+            deactivate APIRoutes
+
+            activate browser
+            browser -> browser : 図表一覧を更新\n（削除された図表を除外）
+            browser --> user : 「図表を削除しました」トースト
+            deactivate browser
+        end
+    end
+end
+
+@enduml

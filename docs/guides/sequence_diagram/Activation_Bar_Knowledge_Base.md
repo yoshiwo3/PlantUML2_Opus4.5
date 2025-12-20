@@ -3,7 +3,7 @@
 **作成日**: 2025-12-18
 **出典**: `docs/evidence/20251215_2345_sequence_save/work_sheet.md`
 **対象UC**: UC 3-5 保存シーケンス図
-**総項目数**: 24項目（LL-001〜LL-024）
+**総項目数**: 25項目（LL-001〜LL-025）
 
 ---
 
@@ -21,7 +21,7 @@ UC 3-5 保存シーケンス図作成で得られたアクティブバー関連�
 | 制限・原則 | LL-009〜LL-012 | note非アンカー、deactivateタイミング |
 | 状態vs描画 | LL-013〜LL-016 | 視覚的トリガー、チェック表限界 |
 | レビュー方法論 | LL-017〜LL-020 | 大域的確認バイアス、終端部確認、否定的証拠探索 |
-| 追加知見 | LL-021〜LL-024 | ネストalt、初期activate、段階的リファクタリング |
+| 追加知見 | LL-021〜LL-025 | ネストalt、初期activate、段階的リファクタリング、activate漏れ防止 |
 
 ---
 
@@ -400,6 +400,44 @@ activate Browser
 | alt前deactivateでバーなし | LL-010 + LL-012 |
 
 **教訓**: 個々の知見を暗記するだけでは不十分。**組み合わせパターン**を理解
+
+### LL-025: ネストaltでのactivate漏れ防止
+
+**追加日**: 2025-12-20
+**出典**: UC 4-1 AI Question-Start作成時の誤り
+
+altブロックがネストしている場合、外側のalt分岐内で内側のaltの`else`分岐に入ると、外側で行われたactivateの追跡が困難になる。
+
+```plantuml
+' 問題構造
+alt 500 Provider Error
+    deactivate OpenRouterClient  ' ← ここでdeactivate
+    deactivate AIService
+else 正常レスポンス
+    activate OpenRouter          ' ← OpenRouterのみactivate（不足）
+    ' OpenRouterClient, AIServiceのactivateが必要だった
+```
+
+**根本原因**:
+- LL-001を「知っている」だけで「適用」しなかった
+- ネストが深いと追跡が困難
+
+**チェック方法**:
+1. else分岐で処理を行う参加者をリストアップ
+2. 前のalt分岐でdeactivateされている参加者を特定
+3. 重複があればelse分岐冒頭で**明示的にactivate**
+
+```plantuml
+' 正しいパターン
+else 正常レスポンス（ストリーミング）
+    ' LL-001: else分岐は前分岐のdeactivateを継承しない - 明示的にactivate
+    activate OpenRouterClient  ' 追加
+    activate AIService         ' 追加
+    activate APIRoutes         ' 追加
+    activate OpenRouter
+```
+
+**関連**: LL-001, LL-021
 
 ---
 

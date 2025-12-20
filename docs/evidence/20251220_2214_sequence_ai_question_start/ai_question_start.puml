@@ -1,0 +1,213 @@
+@startuml PlantUML_Studio_Sequence_AI_Question_Start
+'==================================================
+' シーケンス図: AI Question-Startフロー
+' UC 4-1 AI Question-Startで図表を生成する
+' 基準: 業務フロー図 3.2, 機能一覧表 F-AI-01
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title AI Question-Startフロー（UC 4-1）
+
+actor "エンドユーザー" as User
+participant "ブラウザ\n(AIチャットパネル)" as Browser #E3F2FD
+participant "API Routes\n(/api/ai/question-start)" as APIRoutes #FFF3E0
+participant "AIService" as AIService #E8F5E9
+participant "PromptService" as PromptService #FCE4EC
+participant "OpenRouterClient" as OpenRouterClient #F3E5F5
+participant "OpenRouter API" as OpenRouter #FFEBEE
+
+== AIチャットパネルを開く ==
+
+User -> Browser : AIチャットパネルを開く
+activate Browser
+
+Browser -> Browser : パネル初期化\n(会話履歴があれば読み込み)
+Browser --> User : AIチャットパネル表示
+
+== 質問入力・送信 ==
+
+User -> Browser : 質問を入力\n「ログイン機能のシーケンス図を作りたい」
+
+note over Browser
+  **入力データ**
+  question: "ログイン機能の..."
+  context_code: null (新規)
+  conversation_id: null (新規)
+end note
+
+Browser -> Browser : 入力バリデーション\n(空文字チェック)
+
+alt 入力が空
+    Browser --> User : エラー「質問を入力してください」
+else 入力あり
+
+    Browser -> APIRoutes : POST /api/ai/question-start\n{ question, context_code?, conversation_id? }
+    activate APIRoutes
+
+    note over APIRoutes
+      認証・権限検証
+      ai_question_start_enabled確認
+    end note
+
+    alt 401 Unauthorized
+        APIRoutes --> Browser : 401 UNAUTHORIZED
+        deactivate APIRoutes
+        Browser --> User : エラー「ログインしてください」
+        deactivate Browser
+
+    else 403 Feature Disabled
+        activate APIRoutes
+        APIRoutes --> Browser : 403 FORBIDDEN\n{ error: "AI_FEATURE_DISABLED" }
+        deactivate APIRoutes
+        activate Browser
+        Browser --> User : エラー「AI機能は現在無効です」
+        deactivate Browser
+
+    else 正常処理
+        activate APIRoutes
+
+        == AI処理 ==
+
+        APIRoutes -> AIService : questionStart(question, context?)
+        activate AIService
+
+        AIService -> AIService : コンテキスト解析\n(図表タイプ推定)
+
+        note over AIService
+          **推定処理**
+          "シーケンス図" → SEQUENCE
+          "クラス図" → CLASS
+          不明 → 質問で確認
+        end note
+
+        AIService -> PromptService : getPrompt("question_start")
+        activate PromptService
+        PromptService -> PromptService : テンプレート取得\n変数展開
+        PromptService --> AIService : prompt: String
+        deactivate PromptService
+
+        AIService -> AIService : selectModel("question_start")
+
+        note over AIService
+          **モデル選択**
+          FeatureModelAssignment参照
+          feature_id: "ai_question_start"
+          → 割り当てられたLLMModel
+        end note
+
+        AIService -> OpenRouterClient : chatCompletion(request)
+        activate OpenRouterClient
+
+        note over OpenRouterClient
+          **リクエスト構築**
+          model: "anthropic/claude-3.5-sonnet"
+          messages: [system, user]
+          stream: true
+          max_tokens: 4096
+        end note
+
+        OpenRouterClient -> OpenRouter : POST /api/v1/chat/completions\n(stream: true)
+        activate OpenRouter
+
+        alt 429 Rate Limited
+            OpenRouter --> OpenRouterClient : 429 TOO_MANY_REQUESTS
+            deactivate OpenRouter
+            OpenRouterClient -> OpenRouterClient : handleFallback()\nフォールバックモデル試行
+            OpenRouterClient -> OpenRouter : POST (fallback model)
+            activate OpenRouter
+        end
+
+        alt 500 Provider Error
+            OpenRouter --> OpenRouterClient : 500 PROVIDER_ERROR
+            deactivate OpenRouter
+            OpenRouterClient --> AIService : ProviderError
+            deactivate OpenRouterClient
+            AIService --> APIRoutes : 503 SERVICE_UNAVAILABLE
+            deactivate AIService
+            APIRoutes --> Browser : 503 SERVICE_UNAVAILABLE\n{ error: "AI_SERVICE_UNAVAILABLE" }
+            deactivate APIRoutes
+            activate Browser
+            Browser --> User : エラー「AIサービスが一時的に\n利用できません。再試行してください」
+            deactivate Browser
+
+        else 正常レスポンス（ストリーミング）
+            ' LL-001: else分岐は前分岐のdeactivateを継承しない - 明示的にactivate
+            activate OpenRouterClient
+            activate AIService
+            activate APIRoutes
+            activate OpenRouter
+
+            == ストリーミングレスポンス ==
+
+            loop SSE chunks
+                OpenRouter --> OpenRouterClient : data: {"choices":[{"delta":{"content":"..."}}]}
+                OpenRouterClient --> AIService : chunk
+                AIService --> APIRoutes : chunk
+                APIRoutes --> Browser : SSE: data: {"content":"..."}
+                Browser -> Browser : 回答をリアルタイム表示
+            end
+
+            OpenRouter --> OpenRouterClient : data: [DONE]
+            deactivate OpenRouter
+
+            OpenRouterClient -> OpenRouterClient : 使用量計算\n(input_tokens, output_tokens, cost)
+            OpenRouterClient --> AIService : AIResponse\n{ response, tokens, cost }
+            deactivate OpenRouterClient
+
+            AIService -> AIService : UsageLog記録
+
+            note over AIService
+              **レスポンス構築**
+              response: AI生成テキスト
+              is_final: false (対話継続)
+              suggested_type: SEQUENCE
+              suggested_templates: [...]
+            end note
+
+            AIService --> APIRoutes : AIResponse
+            deactivate AIService
+
+            APIRoutes --> Browser : 200 OK (stream end)\n{ is_final, suggested_type, suggested_templates }
+            deactivate APIRoutes
+
+            activate Browser
+
+            == 結果表示 ==
+
+            Browser -> Browser : 回答表示完了\n推奨テンプレート表示
+
+            alt AIがコード提案を含む場合
+                Browser -> Browser : コードブロック抽出
+                Browser --> User : 「適用」ボタン表示
+
+                alt ユーザーが適用
+                    User -> Browser : 「適用」ボタンをクリック
+                    Browser -> Browser : Monaco Editorに\nコードを挿入
+                    Browser --> User : エディタ更新
+                else ユーザーが手動編集継続
+                    User -> Browser : 追加質問または手動編集
+                end
+            else 質問・確認の場合
+                Browser --> User : AIからの質問表示\n「どのような認証方式ですか？」
+            end
+
+            deactivate Browser
+        end
+    end
+end
+
+@enduml

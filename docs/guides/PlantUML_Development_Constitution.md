@@ -1,7 +1,7 @@
 # PlantUML開発憲法
 
-**バージョン**: 4.6
-**最終更新**: 2025-12-16
+**バージョン**: 4.7
+**最終更新**: 2025-12-20
 
 ClaudeCodeが高品質なPlantUML図表を作成するための行動規範。
 
@@ -92,7 +92,7 @@ ClaudeCodeが高品質なPlantUML図表を作成するための行動規範。
 | `docs/guides/PlantUML_Script_Reference.md` | スクリプト詳細・出力例、トラブルシューティング |
 | `docs/guides/validate_plantuml_issues_template_spec.md` | issuesテンプレート仕様書 |
 | `.serena/memories/plantuml_svg_generation_standard.md` | Serenaメモリ（PlantUML生成標準） |
-| `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | シーケンス図アクティブバー知見（LL-001〜LL-024） |
+| `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | シーケンス図アクティブバー知見（LL-001〜LL-025） |
 | `docs/guides/sequence_diagram/Sequence_Diagram_Patterns.md` | シーケンス図パターン集（NL-001〜NL-007） |
 | PlantUML公式 | https://plantuml.com/ |
 
@@ -480,7 +480,7 @@ end
 ```
 
 > **詳細ガイド**: アクティブバーの詳細な制御方法は `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` を参照。
-> 24項目の知見（LL-001〜LL-024）とPNG視覚確認の失敗パターン分析を含む。
+> 25項目の知見（LL-001〜LL-025）とPNG視覚確認の失敗パターン分析を含む。特にLL-025（ネストaltでのactivate漏れ防止）はalt/else分岐で頻発するため必読。
 
 ### 3.3 その他の図表タイプの制限
 
@@ -1312,6 +1312,7 @@ PlantUML作業の全フェーズで使用するチェックリスト。印刷し
 
 | 日付 | バージョン | 変更内容 |
 |------|-----------|---------|
+| 2025-12-20 | 4.7 | **LL-025参照追加**: ① 関連ドキュメント表の知見ベース範囲を「LL-001〜LL-025」に更新、② §3.2詳細ガイドで「25項目」に更新しLL-025（ネストaltでのactivate漏れ防止）を明示。UC 4-1 AI Question-Startシーケンス図で発見したalt/else分岐でのactivate漏れ問題に基づく改善。 |
 | 2025-12-15 | 4.5 | **§6 Markdown正式版ドキュメント更新ルール追加**: `docs/proposals/`配下のMarkdownドキュメント更新時は`docs/guides/md_authoring_guides/`配下のガイドラインを参照する指示を追加。参照すべきガイドラインテーブル、更新フローを定義。 |
 | 2025-12-15 | 4.4 | **§6 SVGファイル命名規則追加**: 正式版SVGファイルのセクション番号プレフィックス命名規則を新設。`<セクション番号>_<説明>.svg`形式（例: `1_1_Login_OAuth.svg`, `3_11_2_llm_workflow_definition.svg`）。sequence/class/business_flow各タイプの命名例、サブセクション記号（1_3a, 1_3b）、-Publish時の注意事項を追加。 |
 | 2025-12-15 | 4.3 | **シーケンス図用チェック項目追加**: ① §3.2に「alt分岐内でdeactivateが抜けるとアクティブバーが不正確」制限追加、② §4.2 Pass 2にシーケンス図用チェックリスト追加（activate/deactivate対応、alt分岐内deactivate、アクティブバー終端、ネスト確認）、③ 付録C Phase 3-2にシーケンス図用チェック項目（3-2-8〜3-2-11）追加。UC 3-3レビューで発見した問題（alt分岐内deactivate漏れ→アクティブバー不正確）に基づく改善。 |

@@ -1,0 +1,130 @@
+@startuml PlantUML_Studio_Sequence_Export
+'==================================================
+' シーケンス図: エクスポートフロー
+' UC 3-6 図表をエクスポートする
+' 基準: 業務フロー図 3.6.2, 機能一覧表 F-DGM-06
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title エクスポートフロー（UC 3-6）
+
+actor "エンドユーザー" as user
+participant "ブラウザ\n(エディタ画面)" as browser #E3F2FD
+participant "API Routes\n(/api/diagrams/export)" as APIRoutes #FFF3E0
+participant "ExportService" as ExportService #E8F5E9
+participant "ValidationService" as ValidationService #FCE4EC
+
+note over user, ValidationService
+  **前提**: 図表を編集中（UC 3-3, 3-4 完了後）
+  sourceCode（PlantUMLソース）が存在する状態
+end note
+
+== エクスポート開始 ==
+
+user -> browser : エクスポートボタンをクリック
+activate browser
+
+browser -> browser : エクスポートダイアログ表示
+
+note right of browser
+  **対応形式**
+  - PNG（ラスター画像）
+  - SVG（ベクター画像）
+  - PDF（ドキュメント）
+end note
+
+user -> browser : 形式を選択\n（PNG/SVG/PDF）
+
+browser -> APIRoutes : POST /api/diagrams/export\n{ diagramId, format, sourceCode }
+activate APIRoutes
+
+APIRoutes -> APIRoutes : セッション検証
+
+alt 未認証
+    APIRoutes --> browser : 401 Unauthorized\n{ error: "UNAUTHORIZED" }
+    browser --> user : 「ログインが必要です」
+else 認証済み
+    APIRoutes -> ExportService : export(userId, diagramId, format, sourceCode)
+    activate ExportService
+
+    alt 他ユーザーの図表
+        ExportService --> APIRoutes : ForbiddenError(403)
+        APIRoutes --> browser : 403 Forbidden\n{ error: "FORBIDDEN" }
+        browser --> user : 「この図表にアクセスする権限がありません」
+    else 図表が存在しない
+        ExportService --> APIRoutes : NotFoundError(404)
+        APIRoutes --> browser : 404 Not Found\n{ error: "DIAGRAM_NOT_FOUND" }
+        browser --> user : 「図表が見つかりません」
+    else 無効な形式
+        ExportService --> APIRoutes : BadRequestError(400)
+        APIRoutes --> browser : 400 Bad Request\n{ error: "INVALID_FORMAT" }
+        browser --> user : 「無効なエクスポート形式です」
+    else 正常
+        ExportService -> ValidationService : render(sourceCode, format)
+        activate ValidationService
+
+        note right of ValidationService
+          **node-plantuml実行**
+          - Java 17 + Graphviz
+          - 外部サーバー不使用
+          - プライバシー保護
+        end note
+
+        alt format == PNG
+            ValidationService -> ValidationService : generatePNG(sourceCode)
+        else format == SVG
+            ValidationService -> ValidationService : generateSVG(sourceCode)
+        else format == PDF
+            ValidationService -> ValidationService : generateSVG(sourceCode)
+            ValidationService -> ValidationService : convertToPDF(svg)
+        end
+
+        alt 構文エラー
+            ValidationService --> ExportService : SyntaxError
+            deactivate ValidationService
+            ExportService --> APIRoutes : BadRequestError(400)\n{ error: "SYNTAX_ERROR", details }
+            APIRoutes --> browser : 400 Bad Request\n{ error: "SYNTAX_ERROR" }
+            browser --> user : 「図表の構文エラーを修正してください」
+        else 生成失敗
+            ValidationService --> ExportService : GenerationError
+            deactivate ValidationService
+            ExportService --> APIRoutes : InternalError(500)
+            APIRoutes --> browser : 500 Internal Server Error\n{ error: "GENERATION_FAILED" }
+            browser --> user : 「エクスポートに失敗しました」
+        else 生成成功
+            ValidationService --> ExportService : { blob, mimeType }
+            deactivate ValidationService
+
+            ExportService --> APIRoutes : { blob, filename, mimeType }
+            deactivate ExportService
+
+            APIRoutes --> browser : 200 OK\nContent-Type: {mimeType}\nContent-Disposition: attachment
+            deactivate APIRoutes
+
+            == ダウンロード処理 ==
+
+            browser -> browser : Blobからダウンロードリンク生成
+            browser -> browser : ダウンロード開始
+
+            browser --> user : ダウンロード完了通知\n「{filename} をダウンロードしました」
+
+            deactivate browser
+        end
+    end
+end
+
+@enduml

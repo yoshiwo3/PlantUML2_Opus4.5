@@ -1,6 +1,6 @@
 # 現在の作業コンテキスト（Active Context）
 
-**最終更新**: 2025-12-18（知見統合 + proposalsディレクトリ再構成）
+**最終更新**: 2025-12-20（UC 4-1 AI Question-Startシーケンス図完了、MVP 8/8達成）
 
 ---
 
@@ -32,7 +32,7 @@
 | ⑤ 機能一覧表 | ✅ | 93点A | v3.12 §12クラス図整合版 |
 | ⑥ クラス図 | ✅ | 100点A | v1.7 PRD即採用可能 |
 | ⑦ CRUD表 | ✅ | 90点A | v2.2 32機能×11エンティティ |
-| ⑧ シーケンス図 | 🟡 | 100点S | 5/14完了（MVP: 5/8）|
+| ⑧ シーケンス図 | 🟡 | 100点S | 8/14完了（MVP: 8/8 ✅）|
 | ⑨ 画面遷移図 | 🔴 | - | 要作成 |
 | ⑩ ワイヤーフレーム | 🔴 | - | 要作成 |
 | ⑪ コンポーネント図 | 🔴 | - | 要作成 |
@@ -71,9 +71,9 @@
 | 3 | 図表作成・テンプレート | 3-1, 3-2 | Supabase Storage | ✅ 完了 |
 | 4 | 編集・プレビュー | 3-3, 3-4 | node-plantuml + OpenRouter | ✅ 完了 |
 | 5 | 保存 | 3-5 | Storage + OpenRouter | ✅ 完了 |
-| 6 | エクスポート | 3-6 | node-plantuml | 🔴 要作成 |
-| 7 | 図表削除 | 3-9 | Supabase Storage | 🔴 要作成 |
-| 8 | AI Question-Start | 4-1 | OpenRouter (streaming) | 🔴 要作成 |
+| 6 | エクスポート | 3-6 | node-plantuml | ✅ 完了 |
+| 7 | 図表削除 | 3-9 | Supabase Storage | ✅ 完了 |
+| 8 | AI Question-Start | 4-1 | OpenRouter (streaming) | ✅ 完了 |
 
 #### Phase 2（6本）
 
@@ -86,8 +86,8 @@
 | 13 | LLM使用量監視 | 5-7 | OpenRouter + Supabase | 🔴 要作成 |
 | 14 | 学習コンテンツ登録 | 5-11 | OpenAI Embedding + pgvector | 🔴 要作成 |
 
-**シーケンス図 進捗: 5/14 完了（36%）**
-- MVP: 5/8完了（63%）
+**シーケンス図 進捗: 8/14 完了（57%）**
+- MVP: 8/8完了（100%） ✅
 - Phase 2: 0/6
 
 > **v3除外**: バージョン管理（UC 3-7, 3-8）はv3フェーズで作成予定のため、現在の対象外
@@ -100,12 +100,12 @@
 |-----------|:----:|:---------------:|:----:|:----:|
 | 1. 認証 | 2 | 1本（統合） | 1 | 0 |
 | 2. プロジェクト管理 | 4 | 1本（統合） | 1 | 0 |
-| 3. 図表操作 | 11 | 5本 | 3 | 2 |
-| 4. AI機能 | 2 | 2本 | 0 | 2 |
+| 3. 図表操作 | 11 | 5本 | 5 | 0 |
+| 4. AI機能 | 2 | 2本 | 1 | 1 |
 | 5. 管理機能 | 13 | 5本 | 0 | 5 |
-| **合計** | **32** | **14本** | **5** | **9** |
+| **合計** | **32** | **14本** | **8** | **6** |
 
-**知見ドキュメント**: `docs/guides/sequence_diagram/`（LL-001〜LL-024, NL-001〜NL-007）
+**知見ドキュメント**: `docs/guides/sequence_diagram/`（LL-001〜LL-025, NL-001〜NL-007）
 
 ### 管理機能一覧（UC 5-1〜5-13）
 
@@ -151,6 +151,35 @@
 
 ## 最近の変更
 
+### 2025-12-20
+
+- **UC 4-1 AI Question-Start シーケンス図完了** ✅
+  - UC 4-1: AI Question-Startで図表を生成する（OpenRouter SSEストリーミング）
+  - 7参加者、5フェーズ、エラーハンドリング（401/403/429/500/503）
+  - 4パスレビュー完了
+  - SVG: `docs/proposals/diagrams/08_sequence/7_1_AI_Question_Start.svg`
+  - 統合版: `08_シーケンス図_20251214.md` §7追加
+  - **シーケンス図進捗**: 7/14 → 8/14（**MVP: 8/8完了** ✅）
+  - Evidence: `docs/evidence/20251220_2214_sequence_ai_question_start/`
+
+- **LL-025知見追加（ネストaltでのactivate漏れ防止）** ✅
+  - UC 4-1作成時にアクティブバー欠落を発見
+  - 根本原因: LL-001の「知識」はあったが「適用」しなかった
+  - **ドキュメント更新**:
+    - `Activation_Bar_Knowledge_Base.md`: LL-025追加（24→25項目）
+    - `Sequence_Diagram_Authoring_Guide.md`: §7「alt/else状態追跡チェックリスト」追加
+    - `PlantUML_Development_Constitution.md`: v4.7 LL-025参照追加
+
+- **シーケンス図 §5 再構成** ✅
+  - UC 3-5（保存）とUC 3-6（エクスポート）を§5「保存・エクスポート」に統合
+  - SVGリネーム: `PlantUML_Studio_Sequence_Save.svg` → `5_1_Save.svg`, `6_1_Export.svg` → `5_2_Export.svg`
+  - 業務フロー3.6（保存・エクスポートフロー）との整合性確保
+
+- **UC 3-9 図表削除シーケンス図完了** ✅
+  - UC 3-9: 図表を削除する（確認ダイアログ、カスケード削除）
+  - SVG: `docs/proposals/diagrams/08_sequence/6_1_Delete.svg`
+  - 統合版: `08_シーケンス図_20251214.md` §6追加
+
 ### 2025-12-18
 
 - **シーケンス図アクティブバー知見統合** ✅
@@ -177,6 +206,15 @@
   - **DFD図追加**: Level 0/1/2 のSVG・Mermaid PNG 20ファイル
 
 - **Git push完了**: `e780ce3` (80ファイル、+3790/-594行)
+
+- **UC 3-6 エクスポートシーケンス図追加** ✅
+  - UC 3-6: 図表エクスポートフロー（node-plantuml PNG/SVG/PDF）
+  - ExportService → ValidationService 経由のレンダリング
+  - 4パス視覚的レビュー完了
+  - **シーケンス図進捗**: 5/14 → 6/14（MVP: 6/8完了、75%）
+  - 統合版: `08_シーケンス図_20251214.md` §5追加
+  - SVG: `docs/proposals/diagrams/08_sequence/6_1_Export.svg`
+  - Evidence: `docs/evidence/20251218_0104_sequence_export/`
 
 ### 2025-12-16
 
@@ -591,7 +629,7 @@
 7. [x] 【レビュー・修正】業務フロー・DFDの不備を修正（MVP完全カバー、問題なし）✅
 8. [x] **Phase 3: クラス図**（ドメインモデル、サービス層）✅ 完了
 9. [x] **Phase 3続き: CRUD表**（機能×エンティティ）✅ 完了
-10. [ ] **Phase 4: シーケンス図**（残り9件: MVP3本+Phase2 6本）← **次の作業**
+10. [ ] **Phase 4: シーケンス図**（残り6件: Phase2 6本）← **次の作業**
 
 ### Phase 2 残作業（業務フロー）
 
@@ -603,7 +641,7 @@
 ### 今後の検討事項
 
 - [x] Phase 3: データ・構造定義（クラス図、CRUD表）✅
-- [ ] Phase 4: 振る舞い詳細化（シーケンス図残り9件: MVP3本+Phase2 6本、画面遷移図、ワイヤーフレーム）← **次**
+- [ ] Phase 4: 振る舞い詳細化（シーケンス図残り6件: Phase2 6本、画面遷移図、ワイヤーフレーム）← **次**
 - [ ] Phase 5: アーキテクチャ（コンポーネント図、外部インターフェース一覧）
 - [ ] Phase 6: 品質・権限定義（非機能要件、アクター権限マトリクス）
 
@@ -622,14 +660,14 @@
 |-------------|------|
 | `docs/proposals/02_ユースケース図_20251130.md` | ユースケース図（32UC） |
 | `docs/proposals/03_業務フロー図_20251201.md` | 業務フロー図 + UX設計思想 |
-| `docs/proposals/08_シーケンス図_20251214.md` | シーケンス図統合版（5/14完了） |
+| `docs/proposals/08_シーケンス図_20251214.md` | シーケンス図統合版（6/14完了） |
 
 ### ガイドライン・知見ベース
 | ドキュメント | 内容 |
 |-------------|------|
 | `docs/guides/PlantUML_Development_Constitution.md` | PlantUML開発憲法 v4.x |
 | `docs/guides/md_authoring_guides/Sequence_Diagram_Authoring_Guide.md` | シーケンス図作成ガイド |
-| `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | アクティブバー知見ベース（LL-001〜024） |
+| `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | アクティブバー知見ベース（LL-001〜025） |
 | `docs/guides/sequence_diagram/Sequence_Diagram_Patterns.md` | シーケンス図パターン集（NL-001〜007） |
 
 ---

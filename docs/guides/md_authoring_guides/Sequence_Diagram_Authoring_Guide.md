@@ -238,6 +238,34 @@ title ○○フロー（UC X-X）
 - [ ] 参加者命名規則に従っているか
 - [ ] 全てのエラーケース（400/401/403/404/409/500）を検討したか
 
+### alt/else状態追跡（LL-025）
+
+**alt/elseブロックを書く前に、以下の状態追跡表を作成すること。**
+
+```markdown
+| 参加者 | alt開始時 | alt分岐終了時 | else分岐で必要 | else冒頭でactivate? |
+|--------|:---------:|:------------:|:--------------:|:------------------:|
+| APIRoutes | active | deactivated | active | ✅ 必要 |
+| AIService | active | deactivated | active | ✅ 必要 |
+| OpenRouterClient | active | deactivated | active | ✅ 必要 |
+```
+
+- [ ] alt分岐でdeactivateされる参加者をリストアップしたか
+- [ ] else分岐で活動する参加者をリストアップしたか
+- [ ] 上記2つに重複があれば、else冒頭で明示的にactivateを追加したか
+- [ ] コードにコメントで状態を記載したか
+
+```plantuml
+' 必須パターン
+else 正常レスポンス
+    ' LL-001/LL-025: else分岐は前分岐のdeactivateを継承しない
+    activate OpenRouterClient  ' alt分岐でdeactivateされた
+    activate AIService         ' alt分岐でdeactivateされた
+    activate APIRoutes         ' alt分岐でdeactivateされた
+```
+
+**参照**: `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` (LL-001, LL-025)
+
 ### ドキュメント整合性
 
 - [ ] エラーハンドリングテーブルに不足がないか
@@ -274,3 +302,4 @@ title ○○フロー（UC X-X）
 | 日付 | 内容 |
 |------|------|
 | 2025-12-15 | 初版作成（v2.3→v2.4改善時の教訓に基づく） |
+| 2025-12-20 | §7「alt/else状態追跡（LL-025）」チェックリスト追加 |
