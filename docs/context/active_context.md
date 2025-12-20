@@ -1,6 +1,6 @@
 # 現在の作業コンテキスト（Active Context）
 
-**最終更新**: 2025-12-20（UC 4-1 AI Question-Startシーケンス図完了、MVP 8/8達成）
+**最終更新**: 2025-12-21（UC 4-2 AIチャットシーケンス図完了、Phase 2 1/6）
 
 ---
 
@@ -30,9 +30,9 @@
 | ③ 業務フロー図 | ✅ | - | 11/11完了（100%） |
 | ④ データフロー図（DFD） | ✅ | 100点A | v5.0 draw.io形式 |
 | ⑤ 機能一覧表 | ✅ | 93点A | v3.12 §12クラス図整合版 |
-| ⑥ クラス図 | ✅ | 100点A | v1.7 PRD即採用可能 |
+| ⑥ クラス図 | ✅ | 100点A | v1.8 UC 4-2整合対応 |
 | ⑦ CRUD表 | ✅ | 90点A | v2.2 32機能×11エンティティ |
-| ⑧ シーケンス図 | 🟡 | 100点S | 8/14完了（MVP: 8/8 ✅）|
+| ⑧ シーケンス図 | 🟡 | 100点S | 9/14完了（MVP: 8/8 ✅、Phase 2: 1/6）|
 | ⑨ 画面遷移図 | 🔴 | - | 要作成 |
 | ⑩ ワイヤーフレーム | 🔴 | - | 要作成 |
 | ⑪ コンポーネント図 | 🔴 | - | 要作成 |
@@ -79,16 +79,16 @@
 
 | # | シーケンス図 | 対応UC | 外部システム | 状況 |
 |:-:|-------------|--------|-------------|:----:|
-| 9 | AIチャット | 4-2 | OpenRouter (conversation) | 🔴 要作成 |
+| 9 | AIチャット | 4-2 | OpenRouter (conversation) | ✅ 完了 |
 | 10 | 学習コンテンツ検索 | 3-10 | OpenRouter (RAG) | 🔴 要作成 |
 | 11 | ユーザー管理 | 5-1 | Supabase Auth | 🔴 要作成 |
 | 12 | LLMモデル登録 | 5-2 | OpenRouter + Supabase | 🔴 要作成 |
 | 13 | LLM使用量監視 | 5-7 | OpenRouter + Supabase | 🔴 要作成 |
 | 14 | 学習コンテンツ登録 | 5-11 | OpenAI Embedding + pgvector | 🔴 要作成 |
 
-**シーケンス図 進捗: 8/14 完了（57%）**
+**シーケンス図 進捗: 9/14 完了（64%）**
 - MVP: 8/8完了（100%） ✅
-- Phase 2: 0/6
+- Phase 2: 1/6
 
 > **v3除外**: バージョン管理（UC 3-7, 3-8）はv3フェーズで作成予定のため、現在の対象外
 
@@ -101,9 +101,9 @@
 | 1. 認証 | 2 | 1本（統合） | 1 | 0 |
 | 2. プロジェクト管理 | 4 | 1本（統合） | 1 | 0 |
 | 3. 図表操作 | 11 | 5本 | 5 | 0 |
-| 4. AI機能 | 2 | 2本 | 1 | 1 |
+| 4. AI機能 | 2 | 2本 | 2 | 0 |
 | 5. 管理機能 | 13 | 5本 | 0 | 5 |
-| **合計** | **32** | **14本** | **8** | **6** |
+| **合計** | **32** | **14本** | **9** | **5** |
 
 **知見ドキュメント**: `docs/guides/sequence_diagram/`（LL-001〜LL-025, NL-001〜NL-007）
 
@@ -150,6 +150,32 @@
 ---
 
 ## 最近の変更
+
+### 2025-12-21
+
+- **UC 4-2 AIチャット シーケンス図完了** ✅
+  - UC 4-2: AIチャットで図表を修正する（OpenRouter conversation）
+  - §7 AI Question-Startをベースに会話継続機能を追加
+  - 7参加者、ネストalt/else（外側5分岐 + 内側4分岐）、loopブロック
+  - **§7との差分**:
+    - エンドポイント: `/api/ai/chat`
+    - `context_code`必須、`messages`履歴配列、`chat_mode`追加
+    - 400 CONTEXT_REQUIRED エラー追加
+  - 4パスレビュー完了（LL-025準拠）
+  - SVG: `docs/proposals/diagrams/08_sequence/8_1_AI_Chat.svg`
+  - 統合版: `08_シーケンス図_20251214.md` §8追加（旧§8技術仕様→§9にリネンバリング）
+  - **シーケンス図進捗**: 8/14 → 9/14（Phase 2: 1/6）
+  - Evidence: `docs/evidence/20251220_2330_sequence_ai_chat/`
+
+- **クラス図 v1.8 更新（UC 4-2シーケンス図整合性対応）** ✅
+  - Ultrathink分析により `AIService.chat()` メソッド未定義を発見
+  - UC 4-1（単発）とUC 4-2（マルチターン）の責務分離を確認
+  - **追加内容**:
+    - `AIService.chat(message, context, chatMode, messages[]): ChatResponse`
+    - 値オブジェクト: ChatContext, ChatResponse, Suggestion, Message
+    - 列挙型: ChatMode, ChatPhase, SuggestionType, MessageRole
+    - PromptPurpose に AI_CHAT_* を追加
+  - **クラス図バージョン**: v1.7 → v1.8
 
 ### 2025-12-20
 

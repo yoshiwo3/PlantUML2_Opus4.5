@@ -1,0 +1,26 @@
+{
+  "file": "sequence_ai_chat.puml",
+  "current": {
+    "hash": "16F8629292D1C803",
+    "timestamp": "2025-12-20T23:38:30",
+    "reviewed_at": "2025-12-20T23:45:00",
+    "status": "completed",
+    "review": {
+      "pass1_structure": true,
+      "pass2_connections": true,
+      "pass3_content": true,
+      "pass4_style": true
+    },
+    "issues": [],
+    "notes": {
+      "pass1": "7参加者、3セパレーター、ネストalt/else、loopブロック全て正常",
+      "pass2": "LL-025準拠、ネストalt内のdeactivateカスケード正常",
+      "pass3": "400/401/403/429/500/503全てカバー、SSEフォーマット正確",
+      "pass4": "スタイル適用済み、日本語表示正常"
+    }
+  },
+  "history": [],
+  "uc": "UC 4-2 AIチャット",
+  "reviewer": "Claude Code",
+  "approved_for_publish": true
+}
