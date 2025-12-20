@@ -184,14 +184,15 @@ Phase 6: 品質・権限定義
 | ⑤ | **機能一覧表**（業務フロー・DFD対比含む） | `docs/proposals/05_機能一覧表_20251213.md` | §8 | ✅ 完了 (v3.12, 93点A) |
 | ⑥ | **クラス図** | `docs/proposals/06_クラス図_20251208.md` | §7.1-7.2 | ✅ 完了 (v1.7, 100点A) |
 | ⑦ | **CRUD表** | `docs/proposals/07_CRUD表_20251213.md` | §9.1 | ✅ 完了 (v2.2) |
-| ⑧ | **シーケンス図** | `docs/proposals/08_シーケンス図_20251214.md` | §10 | 🟡 5/14 (MVP 5/8) |
+| ⑧ | **シーケンス図** | `docs/proposals/08_シーケンス図_20251214.md` | §10 | 🟡 8/14 (MVP 8/8 ✅) |
 |    |  └ 認証フロー | 統合版 §1-2 | UC 1-1, 1-2 | ✅ 完了 |
 |    |  └ プロジェクトCRUD | 統合版 §2 | UC 2-1〜2-4 | ✅ 完了 |
 |    |  └ 図表作成・テンプレート | 統合版 §3 | UC 3-1, 3-2 | ✅ 完了 |
 |    |  └ 編集プレビュー | 統合版 §4 | UC 3-3, 3-4 | ✅ 完了 |
 |    |  └ 保存 | 統合版 §5 | UC 3-5 | ✅ 完了 |
-|    |  └ エクスポート | 未作成 | UC 3-6 | 🔴 要作成 |
-|    |  └ AI Question-Start | 未作成 | UC 4-1 | 🔴 要作成 |
+|    |  └ エクスポート | 統合版 §5 | UC 3-6 | ✅ 完了 |
+|    |  └ 図表削除 | 統合版 §6 | UC 3-9 | ✅ 完了 |
+|    |  └ AI Question-Start | 統合版 §7 | UC 4-1 | ✅ 完了 |
 |    |  └ AIチャット | 未作成 | UC 4-2 | 🔴 要作成 |
 | ⑨ | **画面遷移図** | 未作成 | §6 | 🔴 要作成 |
 | ⑩ | **ワイヤーフレーム** | 未作成 | §5.1-5.4 | 🔴 要作成 |
@@ -290,7 +291,7 @@ Phase 6: 品質・権限定義
 | `05_機能一覧表_20251213.md` | 機能一覧v3.12: 32UC対応、業務フロー・DFD対比、クラス図橋渡し、93点A評価 |
 | `06_クラス図_20251208.md` | クラス図v1.7: ドメインモデル（11エンティティ）、サービス層（13サービス）、100点A評価 |
 | `07_CRUD表_20251213.md` | CRUD表v2.2: 機能×エンティティ、アクター×機能権限 |
-| `08_シーケンス図_20251214.md` | シーケンス図統合版: 認証/プロジェクトCRUD/図表作成/編集プレビュー/保存（5/14完了） |
+| `08_シーケンス図_20251214.md` | シーケンス図統合版: MVP 8/8完了（認証/プロジェクトCRUD/図表作成/編集プレビュー/保存/エクスポート/図表削除/AI Question-Start） |
 
 ### UX設計思想（重要）
 
@@ -323,8 +324,8 @@ Phase 6: 品質・権限定義
 1. [x] **業務フロー図完了**: 3.1〜3.11（11/11）✅
 2. [x] **Phase 2完了**: DFD v5.0（draw.io形式）、機能一覧表 v3.12（93点A評価）✅
 3. [x] **Phase 3完了**: クラス図 v1.7（100点A評価）、CRUD表 v2.2 ✅
-4. [x] **シーケンス図（部分）**: 認証/プロジェクトCRUD/図表作成/編集プレビュー/保存（5/14）✅
-5. [ ] **シーケンス図残り**: エクスポート/図表削除/AI×2（MVP残3本）+ Phase2 6本
+4. [x] **シーケンス図（MVP完了）**: 認証/プロジェクトCRUD/図表作成/編集プレビュー/保存/エクスポート/図表削除/AI Question-Start（8/14、MVP 8/8 ✅）
+5. [ ] **シーケンス図残り**: Phase2 6本（AIチャット/学習コンテンツ検索/ユーザー管理/LLMモデル登録/LLM使用量監視/学習コンテンツ登録）
 6. [ ] **残り6図表の正式版作成**（Phase順に依存関係を考慮）
    - Phase 4: 画面遷移図、ワイヤーフレーム
    - Phase 5: コンポーネント図、外部インターフェース一覧
@@ -549,7 +550,7 @@ pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -Diagram
 | `docs/guides/PlantUML_Environment_Setup.md` | 環境構成（Java、Graphviz、ディレクトリ構成） |
 | `docs/guides/PlantUML_Script_Reference.md` | スクリプト詳細・出力例、トラブルシューティング |
 | `docs/guides/md_authoring_guides/Sequence_Diagram_Authoring_Guide.md` | シーケンス図作成ガイドライン |
-| `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | アクティブバー知見ベース（LL-001〜024） |
+| `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | アクティブバー知見ベース（LL-001〜025） |
 | `docs/guides/sequence_diagram/Sequence_Diagram_Patterns.md` | シーケンス図パターン集（NL-001〜007） |
 
 ## Directory Structure
