@@ -105,7 +105,24 @@
 | 5. 管理機能 | 13 | 5本 | 0 | 5 |
 | **合計** | **32** | **14本** | **9** | **5** |
 
-**知見ドキュメント**: `docs/guides/sequence_diagram/`（LL-001〜LL-025, NL-001〜NL-007）
+**知見ドキュメント**: `docs/guides/sequence_diagram/`（LL-001〜LL-027, NL-001〜NL-007, DP-001〜DP-006）
+
+### 次のアクション（シーケンス図 Phase 2）
+
+**作業開始手順**:
+1. `CLAUDE.md` を読む
+2. 本ファイル（`active_context.md`）を読む
+3. `docs/guides/sequence_diagram/00_Session_Start.md` を読む
+4. 下記UCの中から1つ選び、ユーザーに確認を求める
+
+| 優先度 | UC | 説明 | 外部システム | 状況 |
+|:------:|:--:|------|-------------|:----:|
+| **1** | **UC 5-1** | **ユーザー管理** | Supabase Auth | 🔴 次 |
+| 2 | UC 5-2 | LLMモデル登録 | OpenRouter + Supabase | 🔴 |
+| 3 | UC 5-7 | LLM使用量監視 | OpenRouter + Supabase | 🔴 |
+| 4 | UC 5-11 | 学習コンテンツ登録 | OpenAI Embedding + pgvector | 🔴 |
+
+> **注意**: 1セッション = 1UC。複数UCを連続作成しない。
 
 ### 管理機能一覧（UC 5-1〜5-13）
 
