@@ -295,10 +295,11 @@ Phase 2で連携する外部システム。
 ### ガイドライン
 
 ```
-docs/guides/md_authoring_guides/Sequence_Diagram_Authoring_Guide.md
+docs/guides/sequence_diagram/02_Authoring_Guide.md
 docs/guides/PlantUML_Development_Constitution.md
 docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md
 docs/guides/sequence_diagram/Sequence_Diagram_Patterns.md
+docs/guides/sequence_diagram/Design_Pattern_Checklist.md
 ```
 
 ### 設計仕様
