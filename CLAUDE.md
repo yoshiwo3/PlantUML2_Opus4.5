@@ -818,6 +818,18 @@ Serenaは積極的に活用する：
 - [ ] 「UCカバレッジ」テーブルを更新（該当時）
 - [ ] 「次のステップ」を更新
 
+### PlantUML作業時の追加ルール
+
+> **参照**: `docs/guides/PlantUML_Development_Constitution.md` §1.7
+
+PlantUML図表（シーケンス図、クラス図、業務フロー図等）の作業完了時は、上記に加えて**知見反映チェックリスト**を実施すること。
+
+- [ ] LL違反があった → `Activation_Bar_Knowledge_Base.md` に追加
+- [ ] 新DP適用があった → `Design_Pattern_Checklist.md` に実例追加
+- [ ] プロセス改善を発見 → 憲法を更新
+- [ ] ガイドライン変更が必要 → `02_Authoring_Guide.md` を更新
+- [ ] work_sheet.md に反映結果を記録
+
 ---
 
 ## 関連ドキュメント

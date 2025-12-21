@@ -1,9 +1,10 @@
 # PlantUML シーケンス図 アクティブバー知見ベース
 
 **作成日**: 2025-12-18
+**最終更新**: 2025-12-21
 **出典**: `docs/evidence/20251215_2345_sequence_save/work_sheet.md`
-**対象UC**: UC 3-5 保存シーケンス図
-**総項目数**: 27項目（LL-001〜LL-027）
+**対象UC**: UC 3-5 保存シーケンス図、UC 5-1 ユーザー管理（CS-001）
+**総項目数**: 27項目（LL-001〜LL-027）+ 1ケーススタディ（CS-001）
 
 ---
 
@@ -534,8 +535,56 @@ AIService.chat() を使用
 
 ---
 
+## ケーススタディ
+
+### CS-001: UC 5-1 ユーザー管理（LL-001大量違反）
+
+**発生日**: 2025-12-21
+**出典**: `docs/evidence/20251221_1655_sequence_user_management/work_sheet.md`
+
+**問題**: 初回評価で77/95点（不合格）。LL-001違反が**9箇所**で発見。
+
+**違反パターン**:
+```plantuml
+' ❌ 9箇所すべてが同じパターン
+else ユーザー存在
+    activate UserRepo      ' ← 不要（ALT開始時点でactive）
+    activate UserService   ' ← 不要（ALT開始時点でactive）
+    activate APIRoutes     ' ← 不要（ALT開始時点でactive）
+```
+
+**根本原因**:
+- else分岐が「前分岐終了時点の状態」ではなく「ALT開始時点の状態」を継承することを失念
+- 前分岐でdeactivateしていない参加者を、else分岐で「念のため」activateしていた
+- 結果、ALT開始時点で既にactiveな参加者を再activateしてエラー
+
+**解決策**:
+```plantuml
+' ✅ 修正後: 不要なactivateを削除、コメントで明示
+else ユーザー存在
+    ' LL-001: UserRepo, UserService, APIRoutesはALT開始時点でactive
+    ' 再activateは不要
+    UserRepo -> Storage : get(userId)
+```
+
+**改善結果**:
+| 評価 | 得点 | 備考 |
+|------|:----:|------|
+| 初回 | 77/95 | LL-001違反9箇所、クラス図不整合 |
+| 改善後 | 93/95 | 全問題修正、合格 |
+
+**教訓**:
+1. **コード作成前に状態追跡表を作成**（§1.3.6）
+2. **else分岐では「ALT開始時点の状態」を基準に判断**
+3. **「念のためactivate」は禁止**—必要性を論理的に検証
+
+**関連**: LL-001, LL-025, 憲法 §1.3.5
+
+---
+
 ## 参照
 
 - **詳細版**: `docs/evidence/20251215_2345_sequence_save/work_sheet.md`
-- **SERENA Memory**: `.serena/memories/session_20251217_sequence_save_lessons_learned.md`
+- **UC 5-1詳細**: `docs/evidence/20251221_1655_sequence_user_management/work_sheet.md`
+- **SERENA Memory**: `.serena/memories/session_20251221_constitution_v51_complete.md`
 - **憲法**: `docs/guides/PlantUML_Development_Constitution.md`

@@ -1,0 +1,365 @@
+@startuml PlantUML_Studio_Sequence_UserManagement
+'==================================================
+' シーケンス図: ユーザー管理フロー
+' UC 5-1 ユーザーを管理する
+' 基準: 業務フロー図 3.9.1, 機能一覧表 F-ADM-01, クラス図 v1.8
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+' 設計パターン: DP-001（レジリエンス）, DP-005（監査ログ）
+'
+' クラス図整合性確認:
+'   UserService.listUsers(filter?: UserFilter): User[]  ✅
+'   UserService.getUser(userId: UUID): User             ✅
+'   UserService.updateUserRole(userId: UUID, role): void ✅
+'   UserService.deactivateUser(userId: UUID): void      ✅
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title ユーザー管理フロー（UC 5-1）
+
+actor Developer as "開発者\n(管理者権限)"
+participant Browser as "ブラウザ\n(Next.js Client)" #E3F2FD
+participant APIRoutes as "API Routes\n(/api/admin/users)" #FFF3E0
+participant UserService as "UserService" #E8F5E9
+participant UserRepo as "IUserRepository\n(Supabase実装)" #E8F5E9
+participant AuditLog as "AuditLogService" #FCE4EC
+database SupabaseAuth as "Supabase Auth\n(auth.users)" #E1F5FE
+
+== 初期読込: ユーザー一覧取得 ==
+
+Developer -> Browser : 管理画面を開く
+activate Browser
+
+Browser -> APIRoutes : GET /api/admin/users?status=all
+activate APIRoutes
+
+APIRoutes -> APIRoutes : セッション検証\n+ 管理者権限確認
+
+note over APIRoutes
+  **権限チェック（LL-015）**
+  - 認証済みであること
+  - role = 'admin' であること
+end note
+
+alt 未認証 401
+    APIRoutes --> Browser : 401 UNAUTHORIZED
+    Browser --> Developer : ログイン画面へリダイレクト
+
+else 権限なし 403
+    ' LL-001: else分岐はALT開始時点の状態を継承
+    ' APIRoutesはALT開始時点でactive → activateは不要
+    APIRoutes --> Browser : 403 FORBIDDEN\n{ error: "ADMIN_REQUIRED" }
+    Browser --> Developer : 「管理者権限が必要です」
+
+else 認証・権限OK
+    APIRoutes -> UserService : listUsers(filter?)
+    activate UserService
+
+    note over UserService
+      **クラス図v1.8準拠**
+      listUsers(filter?: UserFilter): User[]
+      ※ pagination引数はクラス図にないため使用しない
+    end note
+
+    UserService -> UserRepo : findAll(filter?)
+    activate UserRepo
+
+    UserRepo -> SupabaseAuth : admin.listUsers()
+    activate SupabaseAuth
+
+    note over SupabaseAuth
+      **Supabase Admin API**
+      - auth.users テーブル参照
+      - RLS バイパス（Service Role Key）
+    end note
+
+    alt サービス障害 503
+        SupabaseAuth --> UserRepo : ServiceError
+        deactivate SupabaseAuth
+        UserRepo --> UserService : RepositoryError
+        deactivate UserRepo
+        UserService --> APIRoutes : 503 SERVICE_UNAVAILABLE
+        deactivate UserService
+        APIRoutes --> Browser : 503 SERVICE_UNAVAILABLE\n{ error: "AUTH_SERVICE_UNAVAILABLE" }
+        Browser --> Developer : 「認証サービスが一時的に\n利用できません」
+
+    else 正常
+        SupabaseAuth --> UserRepo : { users[], total }
+        deactivate SupabaseAuth
+
+        UserRepo --> UserService : User[]
+        deactivate UserRepo
+
+        UserService --> APIRoutes : { users }
+        deactivate UserService
+
+        APIRoutes --> Browser : 200 OK\n{ users[] }
+        Browser -> Browser : ユーザー一覧テーブル表示
+        Browser --> Developer : 管理画面表示
+    end
+end
+
+deactivate APIRoutes
+deactivate Browser
+
+== ユーザー詳細表示 ==
+
+Developer -> Browser : ユーザー行をクリック
+activate Browser
+
+Browser -> APIRoutes : GET /api/admin/users/{userId}
+activate APIRoutes
+
+APIRoutes -> APIRoutes : セッション検証\n+ 管理者権限確認
+
+alt 未認証/権限なし
+    APIRoutes --> Browser : 401/403
+    Browser --> Developer : エラー表示
+
+else 認証・権限OK
+    APIRoutes -> UserService : getUser(userId)
+    activate UserService
+
+    UserService -> UserRepo : findById(userId)
+    activate UserRepo
+
+    UserRepo -> SupabaseAuth : admin.getUserById(userId)
+    activate SupabaseAuth
+
+    alt ユーザー未存在 404
+        SupabaseAuth --> UserRepo : null
+        deactivate SupabaseAuth
+        UserRepo --> UserService : null
+        deactivate UserRepo
+        UserService --> APIRoutes : 404 NOT_FOUND
+        deactivate UserService
+        APIRoutes --> Browser : 404 NOT_FOUND\n{ error: "USER_NOT_FOUND" }
+        Browser --> Developer : 「ユーザーが見つかりません」
+
+    else ユーザー存在
+        SupabaseAuth --> UserRepo : User
+        deactivate SupabaseAuth
+
+        UserRepo --> UserService : User
+        deactivate UserRepo
+
+        UserService --> APIRoutes : { user }
+        deactivate UserService
+
+        APIRoutes --> Browser : 200 OK\n{ user }
+        Browser -> Browser : ユーザー詳細パネル表示
+        Browser --> Developer : 詳細情報表示
+    end
+end
+
+deactivate APIRoutes
+deactivate Browser
+
+== ロール変更フロー ==
+
+Developer -> Browser : ロール変更ボタンをクリック
+activate Browser
+
+Browser -> Browser : ロール選択ダイアログ表示
+
+Developer -> Browser : 新しいロールを選択\n(user → admin)
+
+Browser -> APIRoutes : PUT /api/admin/users/{userId}/role\n{ role: "admin" }
+activate APIRoutes
+
+APIRoutes -> APIRoutes : セッション検証\n+ 管理者権限確認
+
+alt 未認証/権限なし
+    APIRoutes --> Browser : 401/403
+    Browser --> Developer : エラー表示
+
+else 認証・権限OK
+    APIRoutes -> UserService : updateUserRole(userId, role)
+    activate UserService
+
+    UserService -> UserRepo : findById(userId)
+    activate UserRepo
+
+    UserRepo -> SupabaseAuth : admin.getUserById(userId)
+    activate SupabaseAuth
+
+    alt ユーザー未存在 404
+        SupabaseAuth --> UserRepo : null
+        deactivate SupabaseAuth
+        UserRepo --> UserService : null
+        deactivate UserRepo
+        UserService --> APIRoutes : 404 NOT_FOUND
+        deactivate UserService
+        APIRoutes --> Browser : 404 NOT_FOUND
+        Browser --> Developer : 「ユーザーが見つかりません」
+
+    else ユーザー存在
+        SupabaseAuth --> UserRepo : User
+        deactivate SupabaseAuth
+
+        UserRepo --> UserService : User
+        deactivate UserRepo
+
+        note over UserService
+          **DP-005: 監査ログ（ロール変更）**
+          権限変更は重要な操作のため
+          操作前後の状態を記録
+        end note
+
+        UserService -> AuditLog : log("ROLE_CHANGE", {\n  targetUserId,\n  oldRole, newRole,\n  performedBy })
+        activate AuditLog
+        AuditLog --> UserService : logged
+        deactivate AuditLog
+
+        UserService -> UserRepo : updateRole(userId, role)
+        activate UserRepo
+
+        UserRepo -> SupabaseAuth : admin.updateUserById(userId,\n{ user_metadata: { role } })
+        activate SupabaseAuth
+
+        alt 更新失敗 500
+            SupabaseAuth --> UserRepo : Error
+            deactivate SupabaseAuth
+            UserRepo --> UserService : RepositoryError
+            deactivate UserRepo
+            UserService --> APIRoutes : 500 INTERNAL_ERROR
+            deactivate UserService
+            APIRoutes --> Browser : 500 INTERNAL_ERROR\n{ error: "UPDATE_FAILED" }
+            Browser --> Developer : 「ロール変更に失敗しました」
+
+        else 更新成功
+            SupabaseAuth --> UserRepo : User (updated)
+            deactivate SupabaseAuth
+
+            UserRepo --> UserService : User
+            deactivate UserRepo
+
+            UserService --> APIRoutes : { user }
+            deactivate UserService
+
+            APIRoutes --> Browser : 200 OK\n{ user }
+            Browser -> Browser : 一覧テーブル更新
+            Browser --> Developer : 「ロールを変更しました」\nトースト表示
+        end
+    end
+end
+
+deactivate APIRoutes
+deactivate Browser
+
+== ユーザー無効化フロー ==
+
+Developer -> Browser : 無効化ボタンをクリック
+activate Browser
+
+Browser -> Browser : 確認ダイアログ表示\n「本当に無効化しますか？」
+
+Developer -> Browser : 「無効化する」を選択
+
+Browser -> APIRoutes : PUT /api/admin/users/{userId}/deactivate
+activate APIRoutes
+
+APIRoutes -> APIRoutes : セッション検証\n+ 管理者権限確認
+
+alt 未認証/権限なし
+    APIRoutes --> Browser : 401/403
+    Browser --> Developer : エラー表示
+
+else 自分自身を無効化 409
+    APIRoutes --> Browser : 409 CONFLICT\n{ error: "CANNOT_DEACTIVATE_SELF" }
+    Browser --> Developer : 「自分自身は無効化できません」
+
+else 認証・権限OK
+    APIRoutes -> UserService : deactivateUser(userId)
+    activate UserService
+
+    UserService -> UserRepo : findById(userId)
+    activate UserRepo
+
+    UserRepo -> SupabaseAuth : admin.getUserById(userId)
+    activate SupabaseAuth
+
+    alt ユーザー未存在 404
+        SupabaseAuth --> UserRepo : null
+        deactivate SupabaseAuth
+        UserRepo --> UserService : null
+        deactivate UserRepo
+        UserService --> APIRoutes : 404 NOT_FOUND
+        deactivate UserService
+        APIRoutes --> Browser : 404 NOT_FOUND
+        Browser --> Developer : 「ユーザーが見つかりません」
+
+    else ユーザー存在
+        SupabaseAuth --> UserRepo : User
+        deactivate SupabaseAuth
+
+        UserRepo --> UserService : User
+        deactivate UserRepo
+
+        note over UserService
+          **DP-005: 監査ログ（ユーザー無効化）**
+          アカウント無効化は不可逆操作のため
+          詳細な操作記録を残す
+        end note
+
+        UserService -> AuditLog : log("USER_DEACTIVATE", {\n  targetUserId,\n  reason, performedBy })
+        activate AuditLog
+        AuditLog --> UserService : logged
+        deactivate AuditLog
+
+        UserService -> UserRepo : deactivate(userId)
+        activate UserRepo
+
+        UserRepo -> SupabaseAuth : admin.updateUserById(userId,\n{ banned: true })
+        activate SupabaseAuth
+
+        note over SupabaseAuth
+          **Supabase Auth無効化**
+          - banned = true でログイン禁止
+          - 既存セッションは維持される
+          - 次回認証時に拒否
+        end note
+
+        alt 無効化失敗 500
+            SupabaseAuth --> UserRepo : Error
+            deactivate SupabaseAuth
+            UserRepo --> UserService : RepositoryError
+            deactivate UserRepo
+            UserService --> APIRoutes : 500 INTERNAL_ERROR
+            deactivate UserService
+            APIRoutes --> Browser : 500 INTERNAL_ERROR\n{ error: "DEACTIVATE_FAILED" }
+            Browser --> Developer : 「無効化に失敗しました」
+
+        else 無効化成功
+            SupabaseAuth --> UserRepo : User (banned)
+            deactivate SupabaseAuth
+
+            UserRepo --> UserService : User
+            deactivate UserRepo
+
+            UserService --> APIRoutes : { user }
+            deactivate UserService
+
+            APIRoutes --> Browser : 200 OK\n{ user }
+            Browser -> Browser : 一覧テーブル更新\n(ステータス: 無効)
+            Browser --> Developer : 「ユーザーを無効化しました」\nトースト表示
+        end
+    end
+end
+
+deactivate APIRoutes
+deactivate Browser
+
+@enduml
