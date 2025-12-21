@@ -1,0 +1,222 @@
+@startuml PlantUML_Studio_Sequence_LLMModelRegistration
+'==================================================
+' シーケンス図: LLMモデル登録フロー
+' UC 5-2 LLMモデルを登録する
+' 基準: 業務フロー図 3.9.2.1, 機能一覧表 F-MGT-02, クラス図 v1.8
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+' 設計パターン: DP-001（レジリエンス）, DP-005（監査ログ）
+'
+' クラス図整合性確認:
+'   LLMConfigService.registerModel(dto: RegisterModelDto): LLMModel  ✅
+'   ILLMModelRepository.save(model: LLMModel): void                  ✅
+'   ILLMModelRepository.list(): LLMModel[]                           ✅
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title LLMモデル登録フロー（UC 5-2）
+
+actor Developer as "開発者\n(管理者権限)"
+participant Browser as "ブラウザ\n(Next.js Client)" #E3F2FD
+participant APIRoutes as "API Routes\n(/api/admin/llm)" #FFF3E0
+participant LLMConfigService as "LLMConfigService" #E8F5E9
+participant LLMModelRepo as "ILLMModelRepository\n(Supabase実装)" #E8F5E9
+participant AuditLog as "AuditLogService" #FCE4EC
+participant OpenRouter as "OpenRouter API" #F3E5F5
+database SupabaseDB as "Supabase DB\n(llm_models)" #E1F5FE
+
+== 初期読込: OpenRouterモデル一覧取得 ==
+
+Developer -> Browser : 「モデル登録」をクリック
+activate Browser
+
+Browser -> APIRoutes : GET /api/admin/llm/available-models
+activate APIRoutes
+
+APIRoutes -> APIRoutes : セッション検証\n+ 管理者権限確認
+
+note over APIRoutes
+  **権限チェック（LL-015）**
+  - 認証済みであること
+  - role = 'developer' であること
+end note
+
+alt 未認証 401
+    APIRoutes --> Browser : 401 UNAUTHORIZED
+    Browser --> Developer : ログイン画面へリダイレクト
+
+else 権限なし 403
+    ' LL-001: else分岐はALT開始時点の状態を継承
+    ' APIRoutesはALT開始時点でactive → activateは不要
+    APIRoutes --> Browser : 403 FORBIDDEN\n{ error: "DEVELOPER_REQUIRED" }
+    Browser --> Developer : 「開発者権限が必要です」
+
+else 認証・権限OK
+    APIRoutes -> OpenRouter : GET /api/v1/models
+    activate OpenRouter
+
+    note over OpenRouter
+      **DP-001: レジリエンス設定**
+      - timeout: 30秒
+      - retry: 3回（exponential backoff）
+      - circuit breaker: 5回失敗で30秒open
+    end note
+
+    alt サービス障害 503
+        OpenRouter --> APIRoutes : ServiceError
+        deactivate OpenRouter
+        APIRoutes --> Browser : 503 SERVICE_UNAVAILABLE\n{ error: "OPENROUTER_UNAVAILABLE" }
+        Browser --> Developer : 「OpenRouter APIが一時的に\n利用できません。\n数分後に再試行してください。」
+
+    else 正常
+        OpenRouter --> APIRoutes : { data: models[] }
+        deactivate OpenRouter
+
+        note right of OpenRouter
+          **返却モデル例**
+          - Claude 3.5 Sonnet
+          - GPT-4o
+          - Gemini Pro
+          - Llama 3.1 405B
+          etc. 300+モデル
+        end note
+
+        APIRoutes --> Browser : 200 OK\n{ availableModels[] }
+        Browser -> Browser : モデル選択UI表示\n(カテゴリ別フィルタ)
+        Browser --> Developer : モデル登録画面表示
+    end
+end
+
+deactivate APIRoutes
+deactivate Browser
+
+== モデル選択・パラメータ設定 ==
+
+Developer -> Browser : モデルを選択\n(例: claude-3-5-sonnet)
+activate Browser
+
+Browser -> Browser : デフォルトパラメータ表示\n- input_cost\n- output_cost\n- max_context
+
+Developer -> Browser : パラメータを確認/編集\n「登録」をクリック
+
+== モデル登録実行 ==
+
+Browser -> APIRoutes : POST /api/admin/llm/models\n{ modelId, displayName,\n  inputCost, outputCost,\n  maxContext }
+activate APIRoutes
+
+APIRoutes -> APIRoutes : セッション検証\n+ 管理者権限確認
+
+alt 未認証/権限なし
+    APIRoutes --> Browser : 401/403
+    Browser --> Developer : エラー表示
+
+else 認証・権限OK
+    APIRoutes -> APIRoutes : 入力バリデーション
+
+    note over APIRoutes
+      **バリデーション項目**
+      - modelId: 必須、OpenRouter形式
+      - displayName: 必須、100文字以内
+      - inputCost: 必須、正の数値
+      - outputCost: 必須、正の数値
+      - maxContext: 必須、1〜2097152
+    end note
+
+    alt バリデーションエラー 400
+        APIRoutes --> Browser : 400 BAD_REQUEST\n{ error: "VALIDATION_ERROR",\n  details: [...] }
+        Browser --> Developer : バリデーションエラー表示
+
+    else バリデーションOK
+        APIRoutes -> LLMConfigService : registerModel(dto)
+        activate LLMConfigService
+
+        note over LLMConfigService
+          **クラス図v1.8準拠**
+          registerModel(dto: RegisterModelDto): LLMModel
+        end note
+
+        LLMConfigService -> LLMModelRepo : get(modelId)
+        activate LLMModelRepo
+
+        LLMModelRepo -> SupabaseDB : SELECT * FROM llm_models\nWHERE model_id = ?
+        activate SupabaseDB
+
+        alt モデル重複 409
+            SupabaseDB --> LLMModelRepo : existing model
+            deactivate SupabaseDB
+            LLMModelRepo --> LLMConfigService : LLMModel
+            deactivate LLMModelRepo
+            LLMConfigService --> APIRoutes : 409 CONFLICT
+            deactivate LLMConfigService
+            APIRoutes --> Browser : 409 CONFLICT\n{ error: "MODEL_ALREADY_EXISTS" }
+            Browser --> Developer : 「このモデルは既に\n登録されています」
+
+        else モデル未登録
+            SupabaseDB --> LLMModelRepo : null
+            deactivate SupabaseDB
+            LLMModelRepo --> LLMConfigService : null
+            deactivate LLMModelRepo
+
+            LLMConfigService -> LLMConfigService : LLMModelエンティティ生成\n(is_active: true)
+
+            LLMConfigService -> LLMModelRepo : save(model)
+            activate LLMModelRepo
+
+            LLMModelRepo -> SupabaseDB : INSERT INTO llm_models\n(model_id, display_name,\n input_cost, output_cost,\n max_context, is_active)
+            activate SupabaseDB
+
+            alt DB保存エラー 500
+                SupabaseDB --> LLMModelRepo : Error
+                deactivate SupabaseDB
+                LLMModelRepo --> LLMConfigService : RepositoryError
+                deactivate LLMModelRepo
+                LLMConfigService --> APIRoutes : 500 INTERNAL_SERVER_ERROR
+                deactivate LLMConfigService
+                APIRoutes --> Browser : 500 INTERNAL_SERVER_ERROR\n{ error: "DATABASE_ERROR" }
+                Browser --> Developer : 「保存に失敗しました。\n再試行してください。」
+
+            else 保存成功
+                SupabaseDB --> LLMModelRepo : saved
+                deactivate SupabaseDB
+                LLMModelRepo --> LLMConfigService : void
+                deactivate LLMModelRepo
+
+                ' DP-005: 監査ログ
+                note over LLMConfigService
+                  **DP-005: 監査ログ**
+                  LLMモデル登録は重要な設定変更
+                  操作内容を記録
+                end note
+
+                LLMConfigService -> AuditLog : log("LLM_MODEL_REGISTER", {\n  modelId,\n  displayName,\n  performedBy })
+                activate AuditLog
+                AuditLog --> LLMConfigService : logged
+                deactivate AuditLog
+
+                LLMConfigService --> APIRoutes : LLMModel
+                deactivate LLMConfigService
+
+                APIRoutes --> Browser : 201 CREATED\n{ model }
+                Browser -> Browser : 成功通知表示\n+ モデル一覧更新
+                Browser --> Developer : 「モデルを登録しました」
+            end
+        end
+    end
+end
+
+deactivate APIRoutes
+deactivate Browser
+
+@enduml
