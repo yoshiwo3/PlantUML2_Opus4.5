@@ -1,0 +1,319 @@
+@startuml PlantUML_Studio_Sequence_Learning_Content_Search
+'==================================================
+' シーケンス図: 学習コンテンツ検索フロー
+' UC 3-10 学習コンテンツを検索する
+' 基準: 業務フロー図 3.10, 機能一覧表 F-DGM-10
+' 技術仕様: TD-007（Embedding: OpenAI直接, LLM: OpenRouter経由）
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+' ベストプラクティス適用: DP-001, DP-002
+'   - デバウンス（300ms）
+'   - タイムアウト（5秒）+ リトライ（指数バックオフ）
+'   - 503 Service Unavailable
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title 学習コンテンツ検索フロー（UC 3-10）
+
+actor "エンドユーザー" as User
+participant "ブラウザ\n(ヘルプパネル)" as Browser #E3F2FD
+participant "API Routes\n(/api/learning/search)" as APIRoutes #FFF3E0
+participant "LearningService" as LearningService #E8F5E9
+participant "EmbeddingService" as EmbeddingService #FCE4EC
+participant "OpenAI\nEmbedding API" as OpenAI #F3E5F5
+participant "ILearningContent\nRepository" as LearningRepo #BBDEFB
+database "Supabase\n(pgvector)" as Supabase #E1F5FE
+
+== ヘルプパネルを開く ==
+
+User -> Browser : エディタ内ヘルプを開く\n（「?」ボタン or F1キー）
+activate Browser
+
+Browser -> Browser : ヘルプパネル初期化\n検索履歴読み込み
+
+Browser --> User : ヘルプパネル表示\n（検索ボックス + 人気トピック）
+
+== 検索クエリ入力 ==
+
+User -> Browser : 検索クエリを入力\n「シーケンス図の矢印の書き方」
+
+note over Browser #E3F2FD
+  **DP-002: デバウンス**
+  連続入力中はAPI呼び出しを抑制
+  300ms待機後に検索実行
+end note
+
+Browser -> Browser : デバウンス待機（300ms）
+Browser -> Browser : 入力バリデーション
+
+note over Browser
+  **バリデーション**
+  - 空文字チェック
+  - 最大文字数: 500文字
+  - XSSサニタイズ
+end note
+
+alt 入力が空
+    Browser --> User : プレースホルダー表示\n「PlantUMLの構文を検索...」
+else 入力あり
+    Browser -> Browser : 検索中インジケーター表示
+
+    Browser -> APIRoutes : POST /api/learning/search\n{ query, limit: 5 }
+    activate APIRoutes
+
+    note over APIRoutes
+      認証検証
+      learning_search_enabled確認
+    end note
+
+    alt 401 Unauthorized
+        APIRoutes --> Browser : 401 UNAUTHORIZED
+        deactivate APIRoutes
+        Browser --> User : エラー「ログインしてください」
+        deactivate Browser
+
+    else 403 Feature Disabled
+        activate APIRoutes
+        APIRoutes --> Browser : 403 FORBIDDEN\n{ error: "LEARNING_FEATURE_DISABLED" }
+        deactivate APIRoutes
+        activate Browser
+        Browser --> User : エラー「学習機能は現在無効です」
+        deactivate Browser
+
+    else 正常処理
+        activate APIRoutes
+
+        == Embedding生成（OpenAI直接接続） ==
+
+        APIRoutes -> LearningService : search(query, limit)
+        activate LearningService
+
+        LearningService -> EmbeddingService : generateEmbedding(query)
+        activate EmbeddingService
+
+        note over EmbeddingService #FCE4EC
+          **TD-007: OpenAI直接接続**
+          モデル: text-embedding-3-small
+          次元数: 1536
+          コスト: $0.02/M tokens
+          **DP-001: タイムアウト 5秒**
+        end note
+
+        EmbeddingService -> OpenAI : POST /v1/embeddings\n{ model: "text-embedding-3-small",\n  input: query }
+        activate OpenAI
+
+        alt 401 Invalid API Key
+            OpenAI --> EmbeddingService : 401 INVALID_API_KEY
+            deactivate OpenAI
+            EmbeddingService --> LearningService : EmbeddingError
+            deactivate EmbeddingService
+            LearningService --> APIRoutes : 500 EMBEDDING_ERROR
+            deactivate LearningService
+            APIRoutes --> Browser : 500 Internal Server Error\n{ error: "EMBEDDING_FAILED" }
+            deactivate APIRoutes
+            activate Browser
+            Browser --> User : エラー「検索機能に問題が発生しました」
+            deactivate Browser
+
+        else 429 Rate Limited
+            OpenAI --> EmbeddingService : 429 RATE_LIMITED
+            deactivate OpenAI
+            EmbeddingService --> LearningService : RateLimitError
+            deactivate EmbeddingService
+            LearningService --> APIRoutes : 429 RATE_LIMITED
+            deactivate LearningService
+            APIRoutes --> Browser : 429 Too Many Requests\n{ error: "RATE_LIMITED" }
+            deactivate APIRoutes
+            activate Browser
+            Browser --> User : エラー「しばらく待ってから再試行してください」
+            deactivate Browser
+
+        else 503 Service Unavailable
+            ' DP-001: リトライ機構（指数バックオフ）
+            OpenAI --> EmbeddingService : 503 SERVICE_UNAVAILABLE
+            deactivate OpenAI
+
+            note over EmbeddingService #FFEBEE
+              **DP-001: リトライ機構**
+              指数バックオフ: 1s → 2s → 4s
+              最大3回まで
+            end note
+
+            loop リトライ（最大3回）
+                activate EmbeddingService
+                EmbeddingService -> EmbeddingService : リトライ待機（指数バックオフ）
+                EmbeddingService -> OpenAI : リトライ POST /v1/embeddings
+                activate OpenAI
+                alt リトライ成功
+                    OpenAI --> EmbeddingService : { embedding: float[1536] }
+                    deactivate OpenAI
+                else リトライ失敗継続
+                    OpenAI --> EmbeddingService : 503
+                    deactivate OpenAI
+                    deactivate EmbeddingService
+                end
+            end
+
+            alt 全リトライ失敗
+                activate EmbeddingService
+                activate LearningService
+                activate APIRoutes
+                EmbeddingService --> LearningService : ServiceUnavailableError
+                deactivate EmbeddingService
+                LearningService --> APIRoutes : 503 SERVICE_UNAVAILABLE
+                deactivate LearningService
+                APIRoutes --> Browser : 503 Service Unavailable\n{ error: "EMBEDDING_SERVICE_UNAVAILABLE" }
+                deactivate APIRoutes
+                activate Browser
+                Browser --> User : エラー「検索サービスが一時的に\\n利用できません」
+                deactivate Browser
+            end
+
+        else 408 Request Timeout
+            ' DP-001: タイムアウト処理
+            OpenAI --> EmbeddingService : タイムアウト（5秒超過）
+            deactivate OpenAI
+            EmbeddingService --> LearningService : TimeoutError
+            deactivate EmbeddingService
+            LearningService --> APIRoutes : 408 REQUEST_TIMEOUT
+            deactivate LearningService
+            APIRoutes --> Browser : 408 Request Timeout\n{ error: "EMBEDDING_TIMEOUT" }
+            deactivate APIRoutes
+            activate Browser
+            Browser --> User : エラー「検索がタイムアウトしました\\nもう一度お試しください」
+            deactivate Browser
+
+        else 正常レスポンス
+            ' LL-001: else分岐は前分岐のdeactivateを継承しない - 明示的にactivate
+            activate OpenAI
+            activate EmbeddingService
+            activate LearningService
+            activate APIRoutes
+
+            OpenAI --> EmbeddingService : { embedding: float[1536] }
+            deactivate OpenAI
+
+            EmbeddingService --> LearningService : queryVector: float[1536]
+            deactivate EmbeddingService
+
+            == Hybrid Search（ベクトル + 全文検索） ==
+
+            LearningService -> LearningRepo : search(queryVector, query, limit)
+            activate LearningRepo
+
+            note over LearningRepo
+              **Hybrid Search実装**
+              1. ベクトル類似度検索（コサイン類似度）
+              2. 全文検索（BM25）
+              3. スコア正規化・結合
+              4. 結果ランキング
+            end note
+
+            LearningRepo -> Supabase : RPC: match_learning_content\n(query_embedding, query_text, limit)
+            activate Supabase
+
+            note over Supabase
+              **pgvector + pg_trgm**
+              similarity = 0.5 * vector_score
+                        + 0.5 * text_score
+              ORDER BY similarity DESC
+            end note
+
+            alt 検索結果なし
+                Supabase --> LearningRepo : [] (空配列)
+                deactivate Supabase
+                LearningRepo --> LearningService : []
+                deactivate LearningRepo
+                LearningService --> APIRoutes : { results: [], total: 0 }
+                deactivate LearningService
+                APIRoutes --> Browser : 200 OK\n{ results: [], total: 0 }
+                deactivate APIRoutes
+                activate Browser
+                Browser --> User : 「該当する結果がありません」\n関連トピック提案表示
+                deactivate Browser
+
+            else 検索結果あり
+                ' LL-001: else分岐でactivate
+                activate Supabase
+                activate LearningRepo
+                activate LearningService
+                activate APIRoutes
+
+                Supabase --> LearningRepo : LearningContent[]\n{ id, title, content, similarity }
+                deactivate Supabase
+
+                LearningRepo --> LearningService : SearchResult[]
+                deactivate LearningRepo
+
+                LearningService -> LearningService : 結果整形\n(ハイライト処理, スニペット生成)
+
+                note over LearningService
+                  **結果整形処理**
+                  - 検索キーワードハイライト
+                  - 200文字スニペット生成
+                  - カテゴリ・タグ付与
+                end note
+
+                LearningService --> APIRoutes : {\n  results: SearchResult[],\n  total: number,\n  query_time_ms: number\n}
+                deactivate LearningService
+
+                APIRoutes --> Browser : 200 OK\n{ results, total, query_time_ms }
+                deactivate APIRoutes
+
+                activate Browser
+
+                == 結果表示 ==
+
+                Browser -> Browser : 検索結果をレンダリング
+
+                note over Browser
+                  **表示項目**
+                  - タイトル（リンク）
+                  - スニペット（ハイライト付き）
+                  - カテゴリバッジ
+                  - 類似度スコア
+                end note
+
+                Browser --> User : 検索結果表示\n（最大5件）
+
+                == ユーザーアクション ==
+
+                alt コードスニペットをコピー
+                    User -> Browser : 「コピー」ボタンをクリック
+                    Browser -> Browser : クリップボードにコピー
+                    Browser --> User : 「コピーしました」トースト
+
+                else コードをエディタに挿入
+                    User -> Browser : 「挿入」ボタンをクリック
+                    Browser -> Browser : Monaco Editorに\nコードを挿入
+                    Browser --> User : エディタ更新\n+ ヘルプパネル閉じる
+
+                else 詳細を表示
+                    User -> Browser : 結果タイトルをクリック
+                    Browser -> Browser : 詳細パネル展開\n（全文 + 関連リンク）
+                    Browser --> User : 詳細表示
+
+                else 追加検索
+                    User -> Browser : 別の検索クエリを入力
+                    Browser -> Browser : 検索フローを再実行
+                end
+
+                deactivate Browser
+            end
+        end
+    end
+end
+
+@enduml

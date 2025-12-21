@@ -1,0 +1,36 @@
+﻿{
+    "current":  {
+                    "hash":  "75FB170991651580",
+                    "timestamp":  "2025-12-21T14:44:13",
+                    "reviewed_at":  "2025-12-21T14:50:00",
+                    "issues":  [],
+                    "status":  "completed",
+                    "review":  {
+                                   "pass1_structure":  true,
+                                   "pass2_connections":  true,
+                                   "pass3_content":  true,
+                                   "pass4_style":  true,
+                                   "pass5_design_patterns":  true
+                               },
+                    "reviewer_notes":  "5パスレビュー完了（v5.0）。DP-001適用（タイムアウト5秒、リトライ指数バックオフ、503エラー、408タイムアウト）。DP-002適用（デバウンス300ms）。クラス図v1.8整合性確認済み（LearningService→EmbeddingService→OpenAIEmbeddingClient）。"
+                },
+    "history":  [
+                    {
+                        "hash":  "5C20D32D691117F9",
+                        "timestamp":  "2025-12-21T01:02:44",
+                        "reviewed_at":  "2025-12-21T01:05:00",
+                        "issues":  [
+
+                                   ],
+                        "status":  "completed",
+                        "review":  {
+                                       "pass4_style":  true,
+                                       "pass1_structure":  true,
+                                       "pass3_content":  true,
+                                       "pass2_connections":  true
+                                   },
+                        "reviewer_notes":  "4パスレビュー完了。LL-001準拠（else分岐での明示的activate）。TD-007準拠（OpenAI Embedding直接接続）。Hybrid Searchパターン正常。"
+                    }
+                ],
+    "file":  "sequence_learning_content_search.puml"
+}

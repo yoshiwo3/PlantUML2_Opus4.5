@@ -238,6 +238,20 @@ title ○○フロー（UC X-X）
 - [ ] 参加者命名規則に従っているか
 - [ ] 全てのエラーケース（400/401/403/404/409/500）を検討したか
 
+### 設計パターン確認（LL-027）
+
+**シーケンス図作成前に、UC固有の設計パターン要否を分析すること。**
+
+> **詳細チェックリスト**: `docs/guides/sequence_diagram/Design_Pattern_Checklist.md`
+
+| # | 質問 | Yes の場合 |
+|:-:|------|-----------|
+| 1 | 外部APIを呼び出すか？ | DP-001（タイムアウト・リトライ・503）必須 |
+| 2 | ユーザー入力がリアルタイムか？ | DP-002（デバウンス300ms）必須 |
+| 3 | 同一リクエストが繰り返されるか？ | DP-003（キャッシュ）検討 |
+| 4 | 高頻度呼び出しが想定されるか？ | DP-004（レート制限）必須 |
+| 5 | 権限変更・データ削除があるか？ | DP-005（監査ログ）必須 |
+
 ### alt/else状態追跡（LL-025）
 
 **alt/elseブロックを書く前に、以下の状態追跡表を作成すること。**
@@ -290,10 +304,14 @@ else 正常レスポンス
 | `03_業務フロー図_20251201.md` | 業務フロー詳細 |
 | `05_機能一覧表_20251213.md` | UC番号、機能ID |
 | `07_CRUD表_20251213.md` | CRUD操作対応 |
-| `PlantUML_Development_Constitution.md` | PlantUML開発憲法 |
+| `PlantUML_Development_Constitution.md` | PlantUML開発憲法（v5.0: 5パスレビュー） |
 | `docs/context/technical_decisions.md` | TD-005, TD-006, TD-007 |
+| `docs/guides/sequence_diagram/Design_Pattern_Checklist.md` | 設計パターンチェックリスト（DP-001〜DP-006） |
 
-**関連知見ベース**: 詳細なアクティブバー制御とパターン集は `docs/guides/sequence_diagram/` を参照。
+**関連知見ベース**:
+- `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` - LL-001〜LL-027
+- `docs/guides/sequence_diagram/Sequence_Diagram_Patterns.md` - NL-001〜NL-007
+- `docs/guides/sequence_diagram/Design_Pattern_Checklist.md` - DP-001〜DP-006
 
 ---
 
@@ -303,3 +321,4 @@ else 正常レスポンス
 |------|------|
 | 2025-12-15 | 初版作成（v2.3→v2.4改善時の教訓に基づく） |
 | 2025-12-20 | §7「alt/else状態追跡（LL-025）」チェックリスト追加 |
+| 2025-12-21 | §7「設計パターン確認（LL-027）」追加、§8参照ドキュメント更新 |
