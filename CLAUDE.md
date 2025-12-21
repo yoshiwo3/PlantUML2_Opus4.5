@@ -549,11 +549,14 @@ pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -Diagram
 | `docs/guides/PlantUML_Development_Constitution.md` | **憲法（必読）** - 禁止事項、既知制限、必須プロセス |
 | `docs/guides/PlantUML_Environment_Setup.md` | 環境構成（Java、Graphviz、ディレクトリ構成） |
 | `docs/guides/PlantUML_Script_Reference.md` | スクリプト詳細・出力例、トラブルシューティング |
+| `docs/guides/sequence_diagram/00_Session_Start.md` | **シーケンス図作成時の作業プロセス（必読）** |
 | `docs/guides/sequence_diagram/01_Reference_Guide.md` | シーケンス図参照ガイド（ナビゲーション） |
 | `docs/guides/sequence_diagram/02_Authoring_Guide.md` | シーケンス図作成ガイドライン（How-to） |
 | `docs/guides/sequence_diagram/03_Knowledge_Strategy.md` | 知見統合戦略（メタドキュメント） |
 | `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | アクティブバー知見ベース（LL-001〜027） |
 | `docs/guides/sequence_diagram/Sequence_Diagram_Patterns.md` | シーケンス図パターン集（NL-001〜007） |
+
+> **シーケンス図作成時**: `active_context.md` と `00_Session_Start.md` を読み、次のUCを確認してからユーザーに作業開始の承認を求めること。
 
 ## Directory Structure
 
