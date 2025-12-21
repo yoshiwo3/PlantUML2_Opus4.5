@@ -1039,9 +1039,9 @@ Rename-Item -Path ".\生成されたファイル.svg" -NewName "1_1_Login_OAuth.
 
 | 対象ドキュメント | ガイドライン | 主な内容 |
 |----------------|-------------|---------|
-| `08_シーケンス図_*.md` | `docs/guides/md_authoring_guides/Sequence_Diagram_Authoring_Guide.md` | Repository Pattern遵守、初期読込シーケンス明示、参加者命名規則、エラーハンドリング網羅、7項目チェックリスト |
+| `08_シーケンス図_*.md` | `docs/guides/sequence_diagram/02_Authoring_Guide.md` | Repository Pattern遵守、初期読込シーケンス明示、参加者命名規則、エラーハンドリング網羅、8項目チェックリスト |
 
-> **Note**: 今後、他の図表タイプ（業務フロー図、クラス図等）のガイドラインも同ディレクトリに追加予定。
+> **Note**: シーケンス図関連ドキュメントは `docs/guides/sequence_diagram/` に集約。
 
 #### 更新フロー
 

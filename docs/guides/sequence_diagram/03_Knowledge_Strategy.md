@@ -68,8 +68,8 @@ docs/guides/sequence_diagram/  ← 新規ディレクトリ
     ├── Sequence_Diagram_Patterns.md      ← NL-001〜NL-007
     └── Design_Pattern_Checklist.md       ← DP-001〜DP-006（NEW）
 
-docs/guides/md_authoring_guides/
-    └── Sequence_Diagram_Authoring_Guide.md
+docs/guides/sequence_diagram/
+    └── 02_Authoring_Guide.md
             └── §7 設計パターン確認（LL-027）
             └── §8末尾: 知見ベースへの参照
 ```
@@ -245,9 +245,9 @@ docs/guides/md_authoring_guides/
 | 5 | 権限変更・データ削除があるか？ | DP-005必須 |
 ```
 
-### 3.5 既存ファイル更新: Sequence_Diagram_Authoring_Guide.md
+### 3.5 既存ファイル更新: 02_Authoring_Guide.md
 
-**パス**: `docs/guides/md_authoring_guides/Sequence_Diagram_Authoring_Guide.md`
+**パス**: `docs/guides/sequence_diagram/02_Authoring_Guide.md`
 
 **追加箇所**: §8 チェックリスト末尾
 
@@ -315,7 +315,7 @@ mkdir docs/guides/sequence_diagram
 | ファイル | 役割 | バージョン |
 |---------|------|:----------:|
 | `docs/guides/PlantUML_Development_Constitution.md` | PlantUML開発憲法 | v5.0 |
-| `docs/guides/md_authoring_guides/Sequence_Diagram_Authoring_Guide.md` | シーケンス図作成ガイド | - |
+| `docs/guides/sequence_diagram/02_Authoring_Guide.md` | シーケンス図作成ガイド | - |
 | `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | アクティブバー知見ベース | LL-027まで |
 | `docs/guides/sequence_diagram/Sequence_Diagram_Patterns.md` | シーケンス図パターン集 | NL-007まで |
 | `docs/guides/sequence_diagram/Design_Pattern_Checklist.md` | 設計パターンチェックリスト | DP-006まで |

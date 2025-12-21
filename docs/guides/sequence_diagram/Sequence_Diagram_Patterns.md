@@ -281,4 +281,4 @@ Browser -> User : 「保存完了」
 
 - **詳細版**: `docs/evidence/20251215_2345_sequence_save/work_sheet.md`
 - **アクティブバー知見**: `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md`
-- **Authoring Guide**: `docs/guides/md_authoring_guides/Sequence_Diagram_Authoring_Guide.md`
+- **Authoring Guide**: `docs/guides/sequence_diagram/02_Authoring_Guide.md`

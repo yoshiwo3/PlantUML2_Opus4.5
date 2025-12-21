@@ -104,7 +104,7 @@ pwsh scripts/create_evidence.ps1 20251221_1400_sequence_learning_content_search
 
 | ドキュメント | パス | 目的 |
 |-------------|------|------|
-| **シーケンス図作成ガイド** | `docs/guides/md_authoring_guides/Sequence_Diagram_Authoring_Guide.md` | 7項目チェックリスト、Repository Pattern、参加者命名規則、エラーハンドリング網羅 |
+| **シーケンス図作成ガイド** | `docs/guides/sequence_diagram/02_Authoring_Guide.md` | 8項目チェックリスト、Repository Pattern、参加者命名規則、エラーハンドリング網羅 |
 | **PlantUML開発憲法** | `docs/guides/PlantUML_Development_Constitution.md` | v5.0、禁止事項9項目、技術的制限、5パスレビュー手順 |
 | **アクティブバー知見ベース** | `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | LL-001〜LL-027（特にLL-025: ネストalt状態追跡、LL-026: クラス図整合性、LL-027: 設計パターン適用トリガー） |
 | **設計パターンチェックリスト** | `docs/guides/sequence_diagram/Design_Pattern_Checklist.md` | DP-001〜DP-006（レジリエンス、パフォーマンス、セキュリティ） |

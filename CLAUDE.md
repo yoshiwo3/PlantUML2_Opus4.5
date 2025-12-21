@@ -549,8 +549,10 @@ pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -Diagram
 | `docs/guides/PlantUML_Development_Constitution.md` | **憲法（必読）** - 禁止事項、既知制限、必須プロセス |
 | `docs/guides/PlantUML_Environment_Setup.md` | 環境構成（Java、Graphviz、ディレクトリ構成） |
 | `docs/guides/PlantUML_Script_Reference.md` | スクリプト詳細・出力例、トラブルシューティング |
-| `docs/guides/md_authoring_guides/Sequence_Diagram_Authoring_Guide.md` | シーケンス図作成ガイドライン |
-| `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | アクティブバー知見ベース（LL-001〜025） |
+| `docs/guides/sequence_diagram/01_Reference_Guide.md` | シーケンス図参照ガイド（ナビゲーション） |
+| `docs/guides/sequence_diagram/02_Authoring_Guide.md` | シーケンス図作成ガイドライン（How-to） |
+| `docs/guides/sequence_diagram/03_Knowledge_Strategy.md` | 知見統合戦略（メタドキュメント） |
+| `docs/guides/sequence_diagram/Activation_Bar_Knowledge_Base.md` | アクティブバー知見ベース（LL-001〜027） |
 | `docs/guides/sequence_diagram/Sequence_Diagram_Patterns.md` | シーケンス図パターン集（NL-001〜007） |
 
 ## Directory Structure
@@ -604,8 +606,7 @@ PlantUML2_Opus4.5/
 │   ├── session_handovers/   # セッション引継ぎ資料
 │   ├── templates/           # ドキュメントテンプレート
 │   ├── guides/              # ガイドドキュメント
-│   │   ├── md_authoring_guides/  # 図表作成ガイドライン
-│   │   └── sequence_diagram/     # シーケンス図知見ベース（LL/NL）
+│   │   └── sequence_diagram/     # シーケンス図関連（ガイド + 知見ベース）
 │   └── poc/evidence/        # PoC証跡（Layer 3）
 ├── scripts/
 │   ├── create_evidence.ps1  # Evidence自動作成（Windows）
