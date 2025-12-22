@@ -1,0 +1,209 @@
+@startuml PlantUML_Studio_Sequence_LearningContentRegister
+'==================================================
+' シーケンス図: 学習コンテンツ登録フロー
+' UC 5-11 学習コンテンツを登録する
+' 基準: 機能一覧表 F-ADM-11, クラス図 v1.8, TD-007
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+' 設計パターン: DP-001（レジリエンス）
+'
+' クラス図整合性確認:
+'   LearningService.register(dto: RegisterContentDto): LearningContent  ✅
+'   EmbeddingService.generateBatchEmbedding(texts: String[]): Vector[]  ✅
+'   ILearningContentRepository.save(content: LearningContent): void     ✅
+'   OpenAIEmbeddingClient（外部クライアント）                            ✅
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title 学習コンテンツ登録フロー（UC 5-11）
+
+actor Developer as "開発者\n(管理者権限)"
+participant Browser as "ブラウザ\n(Next.js Client)" #E3F2FD
+participant APIRoutes as "API Routes\n(/api/admin/learning-content)" #FFF3E0
+participant LearningService as "LearningService" #E8F5E9
+participant EmbeddingService as "EmbeddingService" #E8F5E9
+participant OpenAI as "OpenAI API\n(Embedding)" #F3E5F5
+participant ContentRepo as "ILearningContentRepository\n(Supabase実装)" #E8F5E9
+database SupabaseDB as "Supabase DB\n(learning_contents)" #E1F5FE
+
+== 登録フォーム表示 ==
+
+Developer -> Browser : 「学習コンテンツ管理」→「新規登録」
+activate Browser
+
+Browser -> Browser : 登録フォーム表示\n- タイトル\n- カテゴリ\n- コンテンツタイプ\n- ファイル\n- タグ
+
+Browser --> Developer : 登録フォーム表示
+
+== ファイルアップロード・バリデーション ==
+
+Developer -> Browser : ファイルをドラッグ＆ドロップ\n(Markdown/PDF)
+Browser -> Browser : クライアント側バリデーション\n- 形式チェック（.md/.pdf）\n- サイズチェック（≤10MB）
+
+alt ファイルサイズ超過
+    Browser --> Developer : 「ファイルサイズは10MB以下にしてください」
+
+else ファイル形式エラー
+    Browser --> Developer : 「Markdown(.md)またはPDF(.pdf)のみ対応」
+
+else バリデーションOK
+    Browser -> Browser : プレビュー表示
+    Browser --> Developer : ファイルプレビュー表示
+end
+
+== 登録実行 ==
+
+Developer -> Browser : フォーム入力完了\n→「登録」クリック
+
+note over Browser
+  **入力データ（F-ADM-11）**
+  - title: VARCHAR(200) [必須]
+  - category: VARCHAR(50) [必須]
+  - content_type: 'puml'|'excalidraw'|'general' [必須]
+  - file: MD/PDF [必須]
+  - tags: Array [任意]
+end note
+
+Browser -> APIRoutes : POST /api/admin/learning-content\n{ title, category, content_type, file, tags }
+activate APIRoutes
+
+APIRoutes -> APIRoutes : セッション検証\n+ 管理者権限確認
+
+note over APIRoutes
+  **権限チェック（LL-015）**
+  - 認証済みであること
+  - role = 'developer' であること
+end note
+
+alt 未認証 401
+    APIRoutes --> Browser : 401 UNAUTHORIZED
+    Browser --> Developer : ログイン画面へリダイレクト
+
+else 権限なし 403
+    ' LL-001: else分岐はALT開始時点の状態を継承
+    APIRoutes --> Browser : 403 FORBIDDEN\n{ error: "DEVELOPER_REQUIRED" }
+    Browser --> Developer : 「開発者権限が必要です」
+
+else 認証・権限OK
+    APIRoutes -> APIRoutes : サーバー側バリデーション\n- 必須項目チェック\n- タイトル重複チェック
+
+    alt タイトル重複
+        APIRoutes --> Browser : 409 CONFLICT\n{ error: "DUPLICATE_TITLE" }
+        Browser --> Developer : 「同じタイトルのコンテンツが存在します」
+
+    else バリデーションOK
+        APIRoutes -> LearningService : register(RegisterContentDto)
+        activate LearningService
+
+        note over LearningService
+          **RegisterContentDto**
+          - title: String
+          - category: LearningCategory
+          - contentType: ContentType
+          - file: File
+          - tags: String[]
+        end note
+
+        LearningService -> LearningService : ファイル解析\n- MD: テキスト抽出\n- PDF: pdf-parse使用
+
+        LearningService -> LearningService : チャンク分割\n(512 tokens/chunk)
+
+        note over LearningService
+          **チャンク処理**
+          - 512トークン単位で分割
+          - オーバーラップ: 50トークン
+          - メタデータ付与（位置情報）
+        end note
+
+        LearningService -> EmbeddingService : generateBatchEmbedding(chunks[])
+        activate EmbeddingService
+
+        note over EmbeddingService
+          **TD-007準拠**
+          OpenAI直接接続
+          (OpenRouter経由ではない)
+        end note
+
+        EmbeddingService -> OpenAI : POST /v1/embeddings\n{ model: "text-embedding-3-small",\n  input: chunks[] }
+        activate OpenAI
+
+        note over OpenAI
+          **DP-001: レジリエンス設定**
+          - timeout: 30秒（バッチ処理）
+          - retry: 2回（exponential backoff）
+          - 失敗時: 登録中断
+        end note
+
+        alt OpenAI API障害/タイムアウト
+            OpenAI --> EmbeddingService : ServiceError / Timeout
+            deactivate OpenAI
+
+            EmbeddingService --> LearningService : EmbeddingError
+            deactivate EmbeddingService
+
+            LearningService --> APIRoutes : ServiceException\n("EMBEDDING_FAILED")
+            deactivate LearningService
+
+            APIRoutes --> Browser : 503 SERVICE_UNAVAILABLE\n{ error: "EMBEDDING_FAILED" }
+            Browser --> Developer : 「ベクトル生成に失敗しました。\nしばらく待ってから再試行してください」
+
+        else OpenAI正常応答
+            OpenAI --> EmbeddingService : { data: [{ embedding: Vector }...],\n  usage: { total_tokens } }
+            deactivate OpenAI
+
+            EmbeddingService --> LearningService : Vector[]\n+ tokenCount
+            deactivate EmbeddingService
+
+            LearningService -> LearningService : LearningContent構築\n- メタデータ設定\n- チャンク+ベクトル紐付け
+
+            LearningService -> ContentRepo : save(learningContent)
+            activate ContentRepo
+
+            ContentRepo -> SupabaseDB : BEGIN TRANSACTION
+            activate SupabaseDB
+
+            ContentRepo -> SupabaseDB : INSERT INTO learning_contents\n(id, title, category, content_type,\n file_path, tags, created_at)
+            ContentRepo -> SupabaseDB : INSERT INTO content_chunks\n(id, content_id, chunk_index,\n text, token_count)
+            ContentRepo -> SupabaseDB : INSERT INTO content_vectors\n(chunk_id, embedding)\n-- pgvector拡張
+
+            SupabaseDB --> ContentRepo : COMMIT
+            deactivate SupabaseDB
+
+            ContentRepo --> LearningService : void
+            deactivate ContentRepo
+
+            LearningService --> APIRoutes : LearningContent\n{ contentId, chunkCount, tokenCount }
+            deactivate LearningService
+
+            APIRoutes --> Browser : 201 CREATED\n{ content_id, chunk_count, token_count }
+
+            note over Browser
+              **出力データ（F-ADM-11）**
+              - content_id: UUID
+              - chunk_count: INTEGER
+              - token_count: INTEGER
+            end note
+
+            Browser -> Browser : 完了通知表示\n「登録完了: Nチャンク, Mトークン」
+
+            Browser --> Developer : 登録完了メッセージ\n+ 一覧画面へ遷移
+        end
+    end
+end
+
+deactivate APIRoutes
+deactivate Browser
+
+@enduml
