@@ -1,0 +1,192 @@
+@startuml PlantUML_Studio_Sequence_LLMUsageMonitor
+'==================================================
+' シーケンス図: LLM使用量監視フロー
+' UC 5-7 LLM使用量を監視する
+' 基準: 業務フロー図 3.9.2.5, 機能一覧表 F-ADM-07, クラス図 v1.8
+' 検証: Context7 MCP - PlantUML Sequence Diagram
+' 設計パターン: DP-001（レジリエンス）
+'
+' クラス図整合性確認:
+'   IUsageLogRepository.getByPeriod(period: DateRange): UsageReport  ✅
+'   IUsageLogRepository.getByModel(modelId, period): UsageLog[]      ✅
+'   IUsageLogRepository.getByUser(userId, period): UsageLog[]        ✅
+'   OpenRouterClient.getCredits(): CreditInfo                        🔍 追加提案
+'==================================================
+
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #FAFAFA
+    BorderColor #666666
+}
+
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #FBC02D
+}
+
+title LLM使用量監視フロー（UC 5-7）
+
+actor Developer as "開発者\n(管理者権限)"
+participant Browser as "ブラウザ\n(Next.js Client)" #E3F2FD
+participant APIRoutes as "API Routes\n(/api/admin/usage)" #FFF3E0
+participant UsageLogRepo as "IUsageLogRepository\n(Supabase実装)" #E8F5E9
+participant OpenRouter as "OpenRouter API" #F3E5F5
+database SupabaseDB as "Supabase DB\n(llm_usage_logs)" #E1F5FE
+
+== 初期読込: ダッシュボード表示 ==
+
+Developer -> Browser : 「使用量監視」をクリック
+activate Browser
+
+Browser -> APIRoutes : GET /api/admin/usage\n?period=30d
+activate APIRoutes
+
+APIRoutes -> APIRoutes : セッション検証\n+ 管理者権限確認
+
+note over APIRoutes
+  **権限チェック（LL-015）**
+  - 認証済みであること
+  - role = 'developer' であること
+end note
+
+alt 未認証 401
+    APIRoutes --> Browser : 401 UNAUTHORIZED
+    Browser --> Developer : ログイン画面へリダイレクト
+
+else 権限なし 403
+    ' LL-001: else分岐はALT開始時点の状態を継承
+    APIRoutes --> Browser : 403 FORBIDDEN\n{ error: "DEVELOPER_REQUIRED" }
+    Browser --> Developer : 「開発者権限が必要です」
+
+else 認証・権限OK
+    ' 並列処理: 内部ログ + OpenRouter残高
+    par 内部ログ取得
+        APIRoutes -> UsageLogRepo : getByPeriod(period)
+        activate UsageLogRepo
+
+        note over UsageLogRepo
+          **クラス図v1.8準拠**
+          getByPeriod(period: DateRange): UsageReport
+        end note
+
+        UsageLogRepo -> SupabaseDB : SELECT SUM(tokens), SUM(cost),\nmodel_id, feature_type, DATE(created_at)\nFROM llm_usage_logs\nWHERE created_at >= ?\nGROUP BY model_id, feature_type, DATE(created_at)
+        activate SupabaseDB
+        SupabaseDB --> UsageLogRepo : usage_logs[]
+        deactivate SupabaseDB
+
+        UsageLogRepo --> APIRoutes : UsageReport\n{ totalTokens, totalCost,\n  byModel[], byFeature[],\n  dailyTrend[] }
+        deactivate UsageLogRepo
+
+    else OpenRouter残高取得
+        APIRoutes -> OpenRouter : GET /api/v1/key\n(Authorization: Bearer API_KEY)
+        activate OpenRouter
+
+        note over OpenRouter
+          **DP-001: レジリエンス設定**
+          - timeout: 10秒
+          - retry: 2回（exponential backoff）
+          - fallback: 残高不明で継続
+        end note
+
+        alt サービス障害/タイムアウト
+            OpenRouter --> APIRoutes : ServiceError / Timeout
+            deactivate OpenRouter
+
+            note right of APIRoutes
+              **フォールバック処理**
+              残高情報=null として
+              ダッシュボード表示は継続
+            end note
+
+            APIRoutes -> APIRoutes : creditInfo = null\n(残高不明フラグ設定)
+
+        else 正常
+            OpenRouter --> APIRoutes : { data: { credits, usage } }
+            deactivate OpenRouter
+        end
+    end
+
+    APIRoutes --> Browser : 200 OK\n{ usageReport, creditInfo }
+    Browser -> Browser : ダッシュボード表示\n- クレジット残高\n- 期間別使用量グラフ\n- モデル別コスト内訳\n- 機能別トークン数
+    Browser --> Developer : 使用量ダッシュボード表示
+end
+
+deactivate APIRoutes
+deactivate Browser
+
+== 詳細フィルタ: 期間・モデル・ユーザー ==
+
+Developer -> Browser : フィルタ条件を変更\n(期間/モデル/ユーザー)
+activate Browser
+
+Browser -> APIRoutes : GET /api/admin/usage\n?period=7d&modelId=xxx&userId=yyy
+activate APIRoutes
+
+APIRoutes -> APIRoutes : セッション検証\n+ 管理者権限確認
+
+alt 未認証/権限なし
+    APIRoutes --> Browser : 401/403
+    Browser --> Developer : エラー表示
+
+else 認証・権限OK
+    APIRoutes -> APIRoutes : フィルタパラメータ解析
+
+    alt モデルフィルタ指定あり
+        APIRoutes -> UsageLogRepo : getByModel(modelId, period)
+        activate UsageLogRepo
+
+        note over UsageLogRepo
+          **クラス図v1.8準拠**
+          getByModel(modelId: String, period: DateRange): UsageLog[]
+        end note
+
+        UsageLogRepo -> SupabaseDB : SELECT * FROM llm_usage_logs\nWHERE model_id = ?\nAND created_at >= ?
+        activate SupabaseDB
+        SupabaseDB --> UsageLogRepo : usage_logs[]
+        deactivate SupabaseDB
+
+        UsageLogRepo --> APIRoutes : UsageLog[]
+        deactivate UsageLogRepo
+
+    else ユーザーフィルタ指定あり
+        APIRoutes -> UsageLogRepo : getByUser(userId, period)
+        activate UsageLogRepo
+
+        note over UsageLogRepo
+          **クラス図v1.8準拠**
+          getByUser(userId: UUID, period: DateRange): UsageLog[]
+        end note
+
+        UsageLogRepo -> SupabaseDB : SELECT * FROM llm_usage_logs\nWHERE user_id = ?\nAND created_at >= ?
+        activate SupabaseDB
+        SupabaseDB --> UsageLogRepo : usage_logs[]
+        deactivate SupabaseDB
+
+        UsageLogRepo --> APIRoutes : UsageLog[]
+        deactivate UsageLogRepo
+
+    else 期間のみ
+        APIRoutes -> UsageLogRepo : getByPeriod(period)
+        activate UsageLogRepo
+
+        UsageLogRepo -> SupabaseDB : SELECT ... FROM llm_usage_logs\nWHERE created_at >= ?
+        activate SupabaseDB
+        SupabaseDB --> UsageLogRepo : usage_logs[]
+        deactivate SupabaseDB
+
+        UsageLogRepo --> APIRoutes : UsageReport
+        deactivate UsageLogRepo
+    end
+
+    APIRoutes --> Browser : 200 OK\n{ filteredData }
+    Browser -> Browser : フィルタ結果表示\n(グラフ/テーブル更新)
+    Browser --> Developer : フィルタ結果表示
+end
+
+deactivate APIRoutes
+deactivate Browser
+
+@enduml
