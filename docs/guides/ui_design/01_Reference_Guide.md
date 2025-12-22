@@ -90,6 +90,7 @@ UI設計図表作成前に必ず確認すること。
 | **知見ベース** | `docs/guides/ui_design/UI_Design_Knowledge_Base.md` | EX-001〜, SD-001〜, TD-001〜, IC-001〜 |
 | **設計パターンチェックリスト** | `docs/guides/ui_design/Design_Pattern_Checklist.md` | UIパターン（アクセシビリティ、ナビゲーション） |
 | **UI設計パターン集** | `docs/guides/ui_design/UI_Design_Patterns.md` | 実装パターン・テンプレート |
+| 知見統合戦略 | `docs/guides/ui_design/03_Knowledge_Strategy.md` | 知見ID体系、追加フロー |
 
 ### 1.2 設計仕様（画面理解）
 
@@ -230,8 +231,11 @@ UI設計図表作成で使用するツール。
 ### ガイドライン
 
 ```
-docs/guides/ui_design/UI_Design_Constitution.md
+docs/guides/ui_design/00_Session_Start.md
+docs/guides/ui_design/01_Reference_Guide.md
 docs/guides/ui_design/02_Authoring_Guide.md
+docs/guides/ui_design/03_Knowledge_Strategy.md
+docs/guides/ui_design/UI_Design_Constitution.md
 docs/guides/ui_design/UI_Design_Knowledge_Base.md
 docs/guides/ui_design/Design_Pattern_Checklist.md
 docs/guides/ui_design/UI_Design_Patterns.md

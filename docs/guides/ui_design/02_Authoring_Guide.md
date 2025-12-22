@@ -353,6 +353,7 @@ docs/evidence/yyyyMMdd_HHmm_ui_design_xxx/
 | **知見ベース** | `docs/guides/ui_design/UI_Design_Knowledge_Base.md` | EX/SD/TD/IC知見 |
 | **セッション開始ガイド** | `docs/guides/ui_design/00_Session_Start.md` | 作業プロセス |
 | **参照ガイド** | `docs/guides/ui_design/01_Reference_Guide.md` | ドキュメントナビ |
+| 知見統合戦略 | `docs/guides/ui_design/03_Knowledge_Strategy.md` | 知見ID体系、追加フロー |
 | **UC図** | `docs/proposals/02_ユースケース図_20251130.md` | 機能要件 |
 | **業務フロー図** | `docs/proposals/03_業務フロー図_20251201.md` | 業務フロー詳細 |
 | **機能一覧表** | `docs/proposals/05_機能一覧表_20251213.md` | UC番号、機能ID |

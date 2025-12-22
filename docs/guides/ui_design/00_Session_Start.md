@@ -262,6 +262,7 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 | **憲法** | `docs/guides/ui_design/UI_Design_Constitution.md` | **TD-015原則、禁止事項、評価基準** | **✅** |
 | Reference Guide | `docs/guides/ui_design/01_Reference_Guide.md` | 画面別参照先 | - |
 | Authoring Guide | `docs/guides/ui_design/02_Authoring_Guide.md` | 作成ガイドライン | - |
+| Knowledge Strategy | `docs/guides/ui_design/03_Knowledge_Strategy.md` | 知見統合戦略 | - |
 | Design Pattern | `docs/guides/ui_design/Design_Pattern_Checklist.md` | UIパターン確認 | - |
 | 知見ベース | `docs/guides/ui_design/UI_Design_Knowledge_Base.md` | EX/SD/TD/IC/CS知見 | - |
 | パターン集 | `docs/guides/ui_design/UI_Design_Patterns.md` | 実装パターン（EP/SP） | - |
