@@ -49,7 +49,7 @@
 ### チェックリスト
 
 - [ ] **DP-001**: 外部API呼び出しにタイムアウトがあるか？
-  - 推奨: 10秒（LLM）、5秒（Embedding）、3秒（Storage）
+  - 推奨: 10秒（LLM）、5秒（Embedding単一）、30秒（Embeddingバッチ）、3秒（Storage）
 - [ ] **DP-001**: 一時的エラー（5xx、429）にリトライ機構があるか？
   - 推奨: 指数バックオフ（1s → 2s → 4s）、最大3回
 - [ ] **DP-001**: 503 Service Unavailable を考慮しているか？
@@ -61,13 +61,13 @@
 
 ```
 外部API呼び出しには必ず以下を考慮する:
-1. タイムアウト設定
+1. タイムアウト設定（処理特性に応じて調整）
 2. リトライ機構（指数バックオフ）
 3. 503 Service Unavailable エラーハンドリング
 4. フォールバック戦略（該当する場合）
 ```
 
-**適用例**:
+**適用例1（503エラー対応）**:
 ```plantuml
 alt 503 Service Unavailable
     ExternalAPI --> Service : 503 SERVICE_UNAVAILABLE
@@ -75,6 +75,24 @@ alt 503 Service Unavailable
     Service -> ExternalAPI : リトライ (最大3回)
 end
 ```
+
+**適用例2（Embeddingバッチ処理 - UC 5-11）**:
+```plantuml
+note over OpenAI
+  **DP-001: レジリエンス設定**
+  - timeout: 30秒（バッチ処理）
+  - retry: 2回（exponential backoff）
+  - 失敗時: 登録中断
+end note
+
+alt OpenAI API障害/タイムアウト
+    OpenAI --> EmbeddingService : ServiceError / Timeout
+    EmbeddingService --> LearningService : EmbeddingError
+    LearningService --> APIRoutes : ServiceException\n("EMBEDDING_FAILED")
+    APIRoutes --> Browser : 503 SERVICE_UNAVAILABLE
+end
+```
+※バッチ処理では通常より長いタイムアウト（30秒）を設定
 
 ---
 
@@ -249,3 +267,4 @@ end
 | 日付 | 内容 |
 |------|------|
 | 2025-12-21 | 初版作成（UC 3-10根本原因分析に基づく） |
+| 2025-12-22 | DP-001: Embeddingバッチ処理タイムアウト（30秒）追加（UC 5-11） |

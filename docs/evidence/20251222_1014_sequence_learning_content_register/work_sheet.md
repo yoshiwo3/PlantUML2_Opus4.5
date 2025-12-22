@@ -81,7 +81,7 @@
 |-----------------|---------|------|
 | 00_raw_notes.md | クラス図差異 | なし（全メソッド定義済み） |
 | - | LL違反 | なし |
-| - | 新DP適用 | DP-001（レジリエンス）- バッチ処理のため30秒timeout |
+| Design_Pattern_Checklist.md | 新DP適用 | DP-001バッチ処理タイムアウト（30秒）実例追加 ✅ |
 
 ---
 
@@ -97,9 +97,10 @@
 ## 次のアクション
 
 - [x] UC 5-11 学習コンテンツ登録 シーケンス図完了
-- [ ] active_context.md 進捗更新
-- [ ] SERENA Memory保存
-- [ ] Git commit
+- [x] active_context.md 進捗更新
+- [x] SERENA Memory保存
+- [x] Git commit
+- [x] 知見反映（Design_Pattern_Checklist.md）
 
 **シーケンス図全14本完成！**
 次の作業として検討:
