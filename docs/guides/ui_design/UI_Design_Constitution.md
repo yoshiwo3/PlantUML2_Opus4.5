@@ -22,6 +22,7 @@ ClaudeCodeが高品質なUI設計図表（ワイヤーフレーム・画面遷�
 | └ [§4.5 対比確認詳細](#45-対比確認詳細v28追加) | **Phase A/B分離・確証バイアス防止** | レビュー時 |
 | [§5 コマンドリファレンス](#5-コマンドリファレンス) | スクリプト実行方法 | 実行時 |
 | [§6 ディレクトリ構成](#6-ディレクトリ構成) | ファイル配置ルール | 作業開始時 |
+| └ [§6.3 命名規則](#63-命名規則v30拡充) | **NN形式、カテゴリ、スネークケース** | ファイル作成時 |
 | └ [§6.4 失敗パターン自動登録](#64-失敗パターン自動登録プロセスv28追加) | **知識継承プロセス** | 問題発見時 |
 | [§7 知見反映プロセス](#7-知見反映プロセス) | **作業完了時の知見記録** | 作業完了時 |
 | [§8 UI設計パターンチェックリスト](#8-ui設計パターンチェックリストv30追加) | **アクセシビリティ、レスポンシブ、ナビゲーション** | 作成時 |
@@ -559,13 +560,110 @@ docs/proposals/
 └── 10_ワイヤーフレーム_yyyyMMdd.md
 ```
 
-### 6.3 命名規則
+### 6.3 命名規則（v3.0拡充）
+
+> **重要**: ファイル命名の一貫性は整合性チェック（3点対比確認）の基盤。ルールに従わない命名は整合性エラーの原因となる。
+
+#### 6.3.1 ワイヤーフレームファイル
+
+| 項目 | 規則 | 説明 |
+|------|------|------|
+| **形式** | `NN_<category>_<screen_name>.excalidraw` | 完全形式 |
+| **簡易形式** | `NN_<screen_name>.excalidraw` | カテゴリ省略可 |
+
+| 要素 | 規則 | 例 |
+|------|------|-----|
+| **NN** | 2桁ゼロ埋め（01〜99） | `01`, `02`, `10` |
+| **category** | 画面カテゴリ（省略可） | `auth`, `main`, `modal`, `admin`, `setting` |
+| **screen_name** | スネークケース（英語小文字） | `login`, `dashboard`, `project_list` |
+
+**例**:
+```
+01_auth_login.excalidraw        # 完全形式
+01_login.excalidraw             # 簡易形式
+02_auth_signup.excalidraw
+03_main_dashboard.excalidraw
+04_main_editor.excalidraw
+05_main_project_list.excalidraw
+06_modal_new_project.excalidraw
+10_admin_user_management.excalidraw
+```
+
+**番号付与ルール**:
+| 方式 | 説明 | 推奨場面 |
+|------|------|---------|
+| **作成順** | 作成した順に連番 | 小規模プロジェクト |
+| **遷移順** | 画面遷移の流れに沿って連番 | 推奨（整合性確認しやすい） |
+| **カテゴリ別** | 01-09: 認証、10-29: メイン、30-39: モーダル、40-49: 管理 | 大規模プロジェクト |
+
+#### 6.3.2 エクスポートファイル（PNG/SVG）
+
+| 用途 | 命名規則 | 例 |
+|------|---------|-----|
+| **レビュー用PNG** | `NN_<screen_name>_review.png` | `01_login_review.png` |
+| **正式版SVG** | `NN_<screen_name>.svg` | `01_login.svg` |
+| **正式版PNG**（必要時） | `NN_<screen_name>.png` | `01_login.png` |
+
+#### 6.3.3 画面遷移図ファイル
+
+| 用途 | 命名規則 | 例 |
+|------|---------|-----|
+| **ソースファイル** | `screen_transition.puml` | - |
+| **レビュー用PNG** | `screen_transition_review.png` | - |
+| **正式版SVG** | `<Project>_ScreenTransition.svg` | `PlantUML_Studio_ScreenTransition.svg` |
+
+#### 6.3.4 遷移図ノードID（PlantUML内）
+
+| 項目 | 規則 | 説明 |
+|------|------|------|
+| **形式** | スネークケース（英語小文字） | ワイヤーフレームのscreen_nameと一致させる |
+| **予約語回避** | PlantUML予約語（state, note等）は使用不可 | `state_edit` → `editor` に変更 |
+
+**例**:
+```plantuml
+state "ログイン画面" as login <<auth>>           ' login = 01_login.excalidraw
+state "ダッシュボード" as dashboard <<main>>     ' dashboard = 03_dashboard.excalidraw
+state "新規作成モーダル" as new_modal <<modal>>  ' new_modal = 06_modal_new_project.excalidraw
+```
+
+#### 6.3.5 Evidenceディレクトリ
 
 | 項目 | 規則 | 例 |
 |------|------|-----|
-| ワイヤーフレーム | `NN_画面名.excalidraw` | `01_login.excalidraw` |
-| 画面遷移図 | `screen_transition.puml` | - |
-| 正式版SVG | `PlantUML_Studio_ScreenTransition.svg` | - |
+| **ディレクトリ名** | `yyyyMMdd_HHmm_ui_design_<scope>` | `20251222_1430_ui_design_auth` |
+| **scope** | 作業範囲（auth, main, all等） | `auth`, `main_screens`, `full` |
+
+**ディレクトリ構成**:
+```
+docs/evidence/20251222_1430_ui_design_auth/
+├── instructions.md
+├── 00_raw_notes.md
+├── work_sheet.md
+├── wireframes/
+│   ├── 01_auth_login.excalidraw
+│   ├── 01_login_review.png
+│   ├── 02_auth_signup.excalidraw
+│   └── 02_signup_review.png
+├── screen_transition.puml
+└── screen_transition_review.png
+```
+
+#### 6.3.6 正式版保存先
+
+| 成果物 | 保存先 | 命名規則 |
+|--------|--------|---------|
+| ワイヤーフレームSVG | `docs/proposals/diagrams/10_wireframe/` | `NN_<screen_name>.svg` |
+| 画面遷移図SVG | `docs/proposals/diagrams/09_screen_transition/` | `<Project>_ScreenTransition.svg` |
+
+#### 6.3.7 命名規則チェックリスト
+
+ファイル作成時に確認：
+
+- [ ] NNが2桁ゼロ埋めになっているか
+- [ ] screen_nameがスネークケース（英語小文字）か
+- [ ] ワイヤーフレームのscreen_nameと遷移図ノードIDが一致しているか
+- [ ] レビュー用ファイルに`_review`サフィックスがあるか
+- [ ] 正式版に`_review`サフィックスがないか
 
 ### 6.4 失敗パターン自動登録プロセス（v2.8追加）
 
@@ -1013,7 +1111,7 @@ TD-015原則に従うための設定：
 
 | 日付 | Ver | 内容 |
 |------|:---:|------|
-| 2025-12-22 | 3.0 | **Phase 3 品質同等化完了**: ① `UI_Design_Knowledge_Base.md`新設（EX/SD/TD/IC知見分離）、② §8 UI設計パターンチェックリスト追加（アクセシビリティ、レスポンシブ、ナビゲーション、フォーム設計：19項目）、③ §9 問題パターン発見統計追加（発生率データ蓄積構造）、④ 付録D統合チェックリスト拡充（42→48項目）、⑤ 付録E知見ベース参照追加 |
+| 2025-12-22 | 3.0 | **Phase 3 品質同等化完了**: ① `UI_Design_Knowledge_Base.md`新設（EX/SD/TD/IC知見分離）、② §8 UI設計パターンチェックリスト追加（アクセシビリティ、レスポンシブ、ナビゲーション、フォーム設計：19項目）、③ §9 問題パターン発見統計追加（発生率データ蓄積構造）、④ 付録D統合チェックリスト拡充（42→48項目）、⑤ 付録E知見ベース参照追加、⑥ **§6.3命名規則を大幅拡充**（NN形式定義、カテゴリ別命名、エクスポート命名、遷移図ノードID規則、Evidenceディレクトリ構成、命名規則チェックリスト追加） |
 | 2025-12-22 | 2.8 | **Phase 2 品質同等化**: ① §3.4 TD-015専用ガイド追加（詳細レベル判定表、Excalidrawアンチパターン、「やりすぎ」自己診断）、② §4.5 対比確認詳細追加（Phase A/B分離、確証バイアス防止、記録テンプレート）、③ §6.4 失敗パターン自動登録プロセス追加（登録フロー、必須記録項目、テンプレート）、④ 付録D統合チェックリスト拡充（36→42項目）、⑤ 目次にv2.8新規セクションを追加 |
 | 2025-12-22 | 2.5 | **Phase 1 品質同等化**: ① §1.3.5 Context7反復照会パターン追加、② §1.3.7 問題予防チェックリスト追加（UC/業務フロー整合性テーブル、画面一覧照合、3点対比確認）、③ 付録D統合チェックリスト拡充（19→36項目）、④ 視覚確認先行原則を各フェーズに追加 |
 | 2025-12-22 | 2.0 | 3フェーズ評価体系、ループ改善フロー、知見反映プロセス追加 |
