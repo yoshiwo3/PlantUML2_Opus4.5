@@ -149,16 +149,18 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 1. 関連ドキュメント確認（UC図、業務フロー図、機能一覧表）
 2. TD-015原則確認
 3. ワイヤーフレーム作成（Excalidraw）
-4. PNG/SVGエクスポート
-5. Phase 1-Aレビュー・採点（90点以上）
-6. 画面遷移図更新（必要時）
-7. Phase 1-Bレビュー・採点（90点以上）
-8. active_context.md更新
-9. SERENA Memory保存
-10. Git commit
+4. 5パスレビュー（AI自己評価）
+5. PNGエクスポート → ユーザーに提示
+6. ユーザーレビュー待ち
+7. [ユーザー編集後] AI厳格評価・採点
+8. [90点達成まで] イテレーションループ
+9. 画面遷移図更新（必要時）
+10. active_context.md更新
+11. SERENA Memory保存
+12. Git commit
 ```
 
-### Step 5: ワイヤーフレーム作成
+### Step 5: AI初期作成
 
 `02_Authoring_Guide.md` のチェックリストに従う：
 
@@ -167,7 +169,15 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 - [ ] UI要素配置（UC/業務フロー図に基づく）
 - [ ] アクセシビリティ考慮（憲法 §8）
 
-### Step 6: 5パスレビュー
+### Step 6: ユーザーレビュー・手直し
+
+1. AIがPNGをユーザーに提示
+2. ユーザーの選択を待つ：
+   - **「OK」** → Step 7へ（90点以上確認後）
+   - **「修正指示」** → AIが修正 → Step 5へ戻る
+   - **「自分で編集」** → ユーザーがObsidian Excalidrawで編集 → 完了通知後Step 7へ
+
+### Step 7: AI厳格評価（ユーザー編集後）
 
 | Pass | 対象 | 確認内容 |
 |:----:|------|---------|
@@ -177,12 +187,18 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 | 4 | 過剰詳細 | 「やりすぎ」チェック（憲法 §3.4） |
 | 5 | 整合性 | 他画面との一貫性 |
 
-### Step 7: 成果物保存
+**評価・採点結果**:
+- **90点以上** → 「合格です。次のステップに進みます」→ Step 8へ
+- **90点未満** → 問題点を詳細報告 → Step 6へ戻る（イテレーションループ）
 
-1. PNG/SVGエクスポート
+> **反復回数**: 無制限（90点達成まで継続）
+
+### Step 8: 成果物保存
+
+1. SVGエクスポート（正式版）
 2. 正式版SVG保存（`docs/proposals/diagrams/10_wireframe/`）
 3. 画面遷移図更新（該当時）
-4. active_context.md更新
+4. active_context.md更新（ワイヤーフレーム欄を✅に）
 5. SERENA Memory保存
 6. Git commit
 
@@ -215,6 +231,8 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 ## 5. 完了条件チェックリスト
 
 - [ ] 5パスレビュー通過
+- [ ] ユーザーレビュー・手直し完了（Step 6）
+- [ ] AI厳格評価 90点以上達成（Step 7 イテレーションループ完了）
 - [ ] Phase 1-A採点 90点以上
 - [ ] SVG正式版保存
 - [ ] 画面遷移図更新（該当時）
@@ -230,5 +248,6 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 
 | 日付 | 内容 |
 |------|------|
+| 2025-12-22 | v1.2: 協調作成プロセス追加（Step 5-8をUser-AIイテレーション対応に更新、完了条件追加）|
 | 2025-12-22 | v1.1: §0必読ファイルに憲法追加、§1.1画面特定ロジック追加、§4に必読列追加 |
 | 2025-12-22 | v1.0: 初版作成 |
