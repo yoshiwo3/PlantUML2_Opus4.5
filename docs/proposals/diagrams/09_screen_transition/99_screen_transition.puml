@@ -1,0 +1,213 @@
+@startuml PlantUML_Studio_Screen_Transition
+'==================================================
+' 画面遷移図: PlantUML Studio
+' 対象: 全画面（認証/メイン/モーダル/管理）
+' 基準: UC図（32UC）、業務フロー図（11フロー）
+' 作成日: 2025-12-22
+' バージョン: 1.0
+'==================================================
+
+!option handwritten true
+
+skinparam state {
+    BackgroundColor #F5F5F5
+    BorderColor #666666
+    FontColor #333333
+    FontSize 12
+}
+
+' カテゴリ別スタイル
+skinparam state<<auth>> {
+    BackgroundColor #FFFDE7
+}
+
+skinparam state<<main>> {
+    BackgroundColor #E3F2FD
+}
+
+skinparam state<<modal>> {
+    BackgroundColor #E8F5E9
+}
+
+skinparam state<<admin>> {
+    BackgroundColor #FCE4EC
+}
+
+' ========== 開始点 ==========
+[*] --> login : 初回アクセス\n(未認証)
+
+' ========== 認証画面群 ==========
+state "認証画面群" as auth_group {
+    state "ログイン画面" as login <<auth>>
+    login : UC 1-1
+    login : OAuth/メール認証
+
+    state "新規登録画面" as signup <<auth>>
+    signup : UC 1-1
+    signup : アカウント作成
+
+    state "パスワードリセット" as reset <<auth>>
+    reset : UC 1-1
+    reset : メール送信
+
+    ' 認証画面内遷移
+    login --> signup : 新規登録リンク
+    login --> reset : パスワード忘れ
+    signup --> login : ログインリンク
+    reset --> login : 戻る
+}
+
+' ========== メイン画面群 ==========
+state "メイン画面群" as main_group {
+    state "ダッシュボード" as dashboard <<main>>
+    dashboard : UC 2-1
+    dashboard : プロジェクト一覧表示
+    dashboard : 最近の図表表示
+
+    state "プロジェクト詳細" as project_detail <<main>>
+    project_detail : UC 2-2, 2-3, 2-4
+    project_detail : 図表一覧
+    project_detail : プロジェクト設定
+
+    state "エディタ画面" as editor <<main>>
+    editor : UC 3-1〜3-6
+    editor : PlantUML/Excalidraw
+    editor : リアルタイムプレビュー
+    editor : AI支援 (UC 4-1, 4-2)
+
+    ' メイン画面内遷移
+    dashboard --> project_detail : プロジェクト選択
+    project_detail --> editor : 図表選択/新規作成
+    project_detail --> dashboard : 戻る
+    editor --> project_detail : 戻る
+}
+
+' ========== モーダル群 ==========
+state "モーダル群" as modal_group {
+    state "新規プロジェクト作成" as new_project <<modal>>
+    new_project : UC 2-1
+    new_project : 名前入力
+
+    state "プロジェクト編集" as edit_project <<modal>>
+    edit_project : UC 2-3
+    edit_project : 名前/説明変更
+
+    state "プロジェクト削除確認" as delete_project <<modal>>
+    delete_project : UC 2-4
+    delete_project : 確認ダイアログ
+
+    state "新規図表作成" as new_diagram <<modal>>
+    new_diagram : UC 3-1
+    new_diagram : タイプ選択
+
+    state "テンプレート選択" as template <<modal>>
+    template : UC 3-2
+    template : カテゴリ別表示
+
+    state "エクスポート設定" as export <<modal>>
+    export : UC 3-6
+    export : フォーマット選択
+    export : オプション設定
+
+    state "図表削除確認" as delete_diagram <<modal>>
+    delete_diagram : UC 3-9
+    delete_diagram : 確認ダイアログ
+
+    state "AIチャット" as ai_chat <<modal>>
+    ai_chat : UC 4-2
+    ai_chat : 会話履歴表示
+}
+
+' ========== 管理画面群（MVP） ==========
+state "管理画面群" as admin_group {
+    state "管理ダッシュボード" as admin_dashboard <<admin>>
+    admin_dashboard : 管理者専用
+    admin_dashboard : 概要表示
+
+    state "ユーザー管理" as user_mgmt <<admin>>
+    user_mgmt : UC 5-1
+    user_mgmt : ユーザー一覧/編集
+
+    state "LLMモデル管理" as llm_mgmt <<admin>>
+    llm_mgmt : UC 5-2〜5-5
+    llm_mgmt : モデル登録/設定
+
+    state "使用量監視" as usage_monitor <<admin>>
+    usage_monitor : UC 5-7, 5-8
+    usage_monitor : LLM使用量表示
+
+    state "学習コンテンツ管理" as learning_mgmt <<admin>>
+    learning_mgmt : UC 5-11, 5-12
+    learning_mgmt : コンテンツ登録/編集
+
+    ' 管理画面内遷移
+    admin_dashboard --> user_mgmt : ユーザー管理
+    admin_dashboard --> llm_mgmt : LLM管理
+    admin_dashboard --> usage_monitor : 使用量
+    admin_dashboard --> learning_mgmt : 学習コンテンツ
+    user_mgmt --> admin_dashboard : 戻る
+    llm_mgmt --> admin_dashboard : 戻る
+    usage_monitor --> admin_dashboard : 戻る
+    learning_mgmt --> admin_dashboard : 戻る
+}
+
+' ========== グループ間遷移 ==========
+
+' 認証 → メイン
+login --> dashboard : ログイン成功
+
+' メイン → モーダル（開く）
+dashboard --> new_project : 新規プロジェクト
+dashboard --> edit_project : プロジェクト編集
+dashboard --> delete_project : プロジェクト削除
+project_detail --> new_diagram : 新規図表
+project_detail --> delete_diagram : 図表削除
+editor --> template : テンプレート挿入
+editor --> export : エクスポート
+editor --> ai_chat : AIチャット開く
+
+' モーダル → メイン（閉じる/完了）
+new_project --> dashboard : 作成完了/キャンセル
+edit_project --> dashboard : 保存/キャンセル
+delete_project --> dashboard : 削除/キャンセル
+new_diagram --> editor : 作成完了
+template --> editor : 選択/キャンセル
+export --> editor : エクスポート完了/キャンセル
+delete_diagram --> project_detail : 削除/キャンセル
+ai_chat --> editor : 閉じる
+
+' メイン → 管理（管理者のみ）
+dashboard --> admin_dashboard : 管理画面\n(管理者権限)
+
+' 管理 → メイン
+admin_dashboard --> dashboard : 戻る
+
+' ========== ログアウト ==========
+dashboard --> [*] : ログアウト
+editor --> [*] : ログアウト
+admin_dashboard --> [*] : ログアウト
+
+' ========== 注釈 ==========
+note right of login
+  認証方式:
+  - OAuth 2.0 PKCE (Google, GitHub)
+  - メール/パスワード
+  - Supabase Auth SSR
+end note
+
+note bottom of editor
+  エディタ機能:
+  - Monaco Editor (PlantUML)
+  - Excalidraw (ワイヤーフレーム)
+  - リアルタイムプレビュー
+  - AI Question-Start
+  - 自動/手動保存
+end note
+
+note left of admin_dashboard
+  管理者権限必須
+  一般ユーザーは
+  アクセス不可
+end note
+
+@enduml
