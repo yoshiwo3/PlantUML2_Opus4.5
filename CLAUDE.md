@@ -558,6 +558,53 @@ pwsh scripts/validate_plantuml.ps1 -InputPath ".\diagram.puml" -Publish -Diagram
 
 > **シーケンス図作成時**: `active_context.md` と `00_Session_Start.md` を読み、次のUCを確認してからユーザーに作業開始の承認を求めること。
 
+## UI Design Rules
+
+UI設計図表（ワイヤーフレーム、画面遷移図）を作成する際は、**UI設計図表開発憲法**に従うこと。
+
+> **必読**: `docs/guides/ui_design/UI_Design_Constitution.md`
+
+### クイックリファレンス
+
+```
+1. active_context.md で次の画面を特定
+2. 00_Session_Start.md のプロセスに従う
+3. 憲法の禁止事項・TD-015原則を確認
+4. ワイヤーフレーム作成（Excalidraw）
+5. 5パスレビュー（90点以上合格）
+6. 画面遷移図更新（必要時）
+```
+
+### 2成果物方式
+
+| 成果物 | ツール | 形式 | 保存先 |
+|--------|--------|------|--------|
+| ワイヤーフレーム | Excalidraw | .excalidraw → SVG | `docs/proposals/diagrams/10_wireframe/` |
+| 画面遷移図 | PlantUML state | .puml → SVG | `docs/proposals/diagrams/09_screen_transition/` |
+
+### TD-015原則（必須）
+
+| 原則 | 説明 | 禁止事項 |
+|------|------|---------|
+| **低精度（Low-Fidelity）** | 概念レベルの表現 | 高精度モックアップ作成 |
+| **手書き風** | roughness設定、handwritten true | 完璧な直線・曲線 |
+| **グレースケール** | 白黒灰のみ | カラー使用 |
+
+### 関連ドキュメント
+
+| ドキュメント | 内容 |
+|-------------|------|
+| `docs/guides/ui_design/UI_Design_Constitution.md` | **憲法（必読）** - 禁止事項、評価基準、プロセス |
+| `docs/guides/ui_design/00_Session_Start.md` | **UI設計図表作成時の作業プロセス（必読）** |
+| `docs/guides/ui_design/01_Reference_Guide.md` | 画面別参照先ガイド |
+| `docs/guides/ui_design/02_Authoring_Guide.md` | 作成ガイドライン（How-to） |
+| `docs/guides/ui_design/03_Knowledge_Strategy.md` | 知見統合戦略（メタドキュメント） |
+| `docs/guides/ui_design/UI_Design_Knowledge_Base.md` | 知見ベース（EX/SD/TD/IC/CS） |
+| `docs/guides/ui_design/UI_Design_Patterns.md` | UIパターン集（EP/SP） |
+| `docs/guides/ui_design/Design_Pattern_Checklist.md` | UIパターンチェックリスト |
+
+> **UI設計図表作成時**: `active_context.md` と `00_Session_Start.md` を読み、次の画面を確認してからユーザーに作業開始の承認を求めること。
+
 ## Directory Structure
 
 ```

@@ -12,8 +12,11 @@
 | 順序 | ファイル | 目的 |
 |:----:|---------|------|
 | 1 | `CLAUDE.md` | プロジェクトルール、技術仕様、禁止事項 |
-| 2 | `docs/context/active_context.md` | 現在の進捗、次のタスク |
-| 3 | 本ファイル（§1以降） | UI設計図表作成プロセス |
+| 2 | `docs/context/active_context.md` | 現在の進捗、次のタスク（**§UI設計図表 詳細進捗**を確認）|
+| 3 | `docs/guides/ui_design/UI_Design_Constitution.md` | **憲法（必読）** - TD-015原則、禁止事項、評価基準 |
+| 4 | 本ファイル（§1以降） | UI設計図表作成プロセス |
+
+> **重要**: 順序3の憲法を読まずに作業を開始してはならない。TD-015原則違反は即座に不合格となる。
 
 ---
 
@@ -189,14 +192,14 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 
 ### ガイドライン
 
-| ドキュメント | パス | 用途 |
-|-------------|------|------|
-| Reference Guide | `docs/guides/ui_design/01_Reference_Guide.md` | 画面別参照先 |
-| Authoring Guide | `docs/guides/ui_design/02_Authoring_Guide.md` | 作成ガイドライン |
-| Design Pattern | `docs/guides/ui_design/Design_Pattern_Checklist.md` | UIパターン確認 |
-| 知見ベース | `docs/guides/ui_design/UI_Design_Knowledge_Base.md` | EX/SD/TD/IC知見 |
-| パターン集 | `docs/guides/ui_design/UI_Design_Patterns.md` | 実装パターン |
-| 憲法 | `docs/guides/ui_design/UI_Design_Constitution.md` | 禁止事項、評価基準 |
+| ドキュメント | パス | 用途 | 必読 |
+|-------------|------|------|:----:|
+| **憲法** | `docs/guides/ui_design/UI_Design_Constitution.md` | **TD-015原則、禁止事項、評価基準** | **✅** |
+| Reference Guide | `docs/guides/ui_design/01_Reference_Guide.md` | 画面別参照先 | - |
+| Authoring Guide | `docs/guides/ui_design/02_Authoring_Guide.md` | 作成ガイドライン | - |
+| Design Pattern | `docs/guides/ui_design/Design_Pattern_Checklist.md` | UIパターン確認 | - |
+| 知見ベース | `docs/guides/ui_design/UI_Design_Knowledge_Base.md` | EX/SD/TD/IC/CS知見 | - |
+| パターン集 | `docs/guides/ui_design/UI_Design_Patterns.md` | 実装パターン（EP/SP） | - |
 
 ### 設計仕様
 
@@ -227,4 +230,5 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 
 | 日付 | 内容 |
 |------|------|
-| 2025-12-22 | 初版作成 |
+| 2025-12-22 | v1.1: §0必読ファイルに憲法追加、§1.1画面特定ロジック追加、§4に必読列追加 |
+| 2025-12-22 | v1.0: 初版作成 |
