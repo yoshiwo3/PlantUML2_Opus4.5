@@ -124,7 +124,7 @@
 | 4 | ⑫ 外部インターフェース一覧 | - | §11.1-11.4 | 🔴 |
 
 > **シーケンス図作成完了**: MVP 8/8 + Phase 2 6/6 = 14本全完成（2025-12-22）
-> **UI設計図表開発憲法**: `docs/guides/UI_Design_Constitution.md`（v1.0）
+> **UI設計図表開発憲法**: `docs/guides/ui_design/UI_Design_Constitution.md`（v2.0）
 
 ### 管理機能一覧（UC 5-1〜5-13）
 
@@ -172,12 +172,13 @@
 
 ### 2025-12-22
 
-- **UI設計図表開発憲法 v1.0 作成完了** ✅ **← Phase 4準備完了**
+- **UI設計図表開発憲法 v2.0 作成完了** ✅ **← Phase 4準備完了**
+  - **v2.0 強化**: 3フェーズ評価体系、ループ改善フロー、知見反映プロセス追加
   - 2成果物方式の導入（ワイヤーフレーム + 画面遷移図）
   - TD-015原則の統合（低精度、手書き風、グレースケール）
-  - §0〜§6 + 付録A〜C（画面一覧テンプレート、PlantUMLテンプレート、Excalidrawスタイル設定）
-  - 禁止事項10項目、レビュー手順、評価基準（80点以上合格）
-  - 正式版: `docs/guides/UI_Design_Constitution.md`
+  - §0〜§7 + 付録A〜D（テンプレート、チェックリスト）
+  - 禁止事項10項目、5パスレビュー、評価基準（**90点以上合格**）
+  - 正式版: `docs/guides/ui_design/UI_Design_Constitution.md`
   - **次のアクション**: 画面一覧確定 → ワイヤーフレーム作成 → 画面遷移図作成
 
 - **UC 5-11 学習コンテンツ登録 シーケンス図完了** ✅ **← Phase 2最後の1本、シーケンス図全14本完成！**
@@ -787,7 +788,7 @@
 | ドキュメント | 内容 |
 |-------------|------|
 | `docs/guides/PlantUML_Development_Constitution.md` | PlantUML開発憲法 v5.4 |
-| `docs/guides/UI_Design_Constitution.md` | **UI設計図表開発憲法 v1.0**（ワイヤーフレーム・画面遷移図） |
+| `docs/guides/ui_design/UI_Design_Constitution.md` | **UI設計図表開発憲法 v2.0**（3フェーズ評価体系、ループ改善） |
 | `docs/guides/sequence_diagram/01_Reference_Guide.md` | シーケンス図参照ガイド（ナビゲーション） |
 | `docs/guides/sequence_diagram/02_Authoring_Guide.md` | シーケンス図作成ガイド（How-to） |
 | `docs/guides/sequence_diagram/03_Knowledge_Strategy.md` | 知見統合戦略（メタドキュメント） |
