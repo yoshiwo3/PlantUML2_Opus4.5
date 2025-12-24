@@ -350,10 +350,12 @@ docs/evidence/yyyyMMdd_HHmm_ui_design_xxx/
 | ドキュメント | パス | 参照目的 |
 |-------------|------|---------|
 | **UI設計図表開発憲法** | `docs/guides/ui_design/UI_Design_Constitution.md` | 禁止事項、評価基準 |
-| **知見ベース** | `docs/guides/ui_design/UI_Design_Knowledge_Base.md` | EX/SD/TD/IC知見 |
 | **セッション開始ガイド** | `docs/guides/ui_design/00_Session_Start.md` | 作業プロセス |
 | **参照ガイド** | `docs/guides/ui_design/01_Reference_Guide.md` | ドキュメントナビ |
 | 知見統合戦略 | `docs/guides/ui_design/03_Knowledge_Strategy.md` | 知見ID体系、追加フロー |
+| **知見ベース** | `docs/guides/ui_design/UI_Design_Knowledge_Base.md` | EX/SD/TD/IC知見 |
+| **設計パターンチェックリスト** | `docs/guides/ui_design/Design_Pattern_Checklist.md` | UIパターン確認 |
+| **UI設計パターン集** | `docs/guides/ui_design/UI_Design_Patterns.md` | 実装パターン |
 | **UC図** | `docs/proposals/02_ユースケース図_20251130.md` | 機能要件 |
 | **業務フロー図** | `docs/proposals/03_業務フロー図_20251201.md` | 業務フロー詳細 |
 | **機能一覧表** | `docs/proposals/05_機能一覧表_20251213.md` | UC番号、機能ID |

@@ -289,9 +289,12 @@ WCAG 2.1 Level AA準拠の基本要件を確保する。
 | ドキュメント | 内容 |
 |-------------|------|
 | `UI_Design_Constitution.md` | UI設計図表開発憲法（§8 UIパターンチェックリスト） |
+| `00_Session_Start.md` | セッション開始ガイド |
+| `01_Reference_Guide.md` | 参照ガイド |
+| `02_Authoring_Guide.md` | UI設計作成ガイドライン |
+| `03_Knowledge_Strategy.md` | 知見統合戦略 |
 | `UI_Design_Knowledge_Base.md` | 知見ベース（EX/SD/TD/IC） |
 | `UI_Design_Patterns.md` | UI設計パターン集（実装例） |
-| `02_Authoring_Guide.md` | UI設計作成ガイドライン |
 
 ---
 

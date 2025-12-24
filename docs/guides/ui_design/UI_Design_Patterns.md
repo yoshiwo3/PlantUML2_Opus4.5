@@ -444,12 +444,17 @@ settings --> [*] : アカウント削除
 
 ---
 
-## 参照
+## 関連ドキュメント
 
-- **UI設計図表開発憲法**: `docs/guides/ui_design/UI_Design_Constitution.md`
-- **知見ベース**: `docs/guides/ui_design/UI_Design_Knowledge_Base.md`
-- **設計パターンチェックリスト**: `docs/guides/ui_design/Design_Pattern_Checklist.md`
-- **作成ガイドライン**: `docs/guides/ui_design/02_Authoring_Guide.md`
+| ドキュメント | 内容 |
+|-------------|------|
+| `UI_Design_Constitution.md` | UI設計図表開発憲法 |
+| `00_Session_Start.md` | セッション開始ガイド |
+| `01_Reference_Guide.md` | 参照ガイド |
+| `02_Authoring_Guide.md` | 作成ガイドライン |
+| `03_Knowledge_Strategy.md` | 知見統合戦略 |
+| `UI_Design_Knowledge_Base.md` | 知見ベース（EX/SD/TD/IC） |
+| `Design_Pattern_Checklist.md` | 設計パターンチェックリスト |
 
 ---
 
