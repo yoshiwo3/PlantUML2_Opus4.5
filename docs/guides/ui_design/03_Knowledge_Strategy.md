@@ -18,6 +18,8 @@
 | CS-001 | 1 | 1 | ケーススタディ（画面遷移図初回作成）|
 | **合計** | **20** | **5** | 実体験率: 25% |
 
+> **「実体験由来」の定義**: 実際のUI設計図表作成作業中に発見・検証された知見。テンプレートとして事前作成されたものや、理論的推測のみの知見は含まない。SD-006〜007, IC-004〜005, CS-001が該当。
+
 ### 1.2 PlantUML開発憲法との関係
 
 | 項目 | PlantUML開発憲法 | UI設計図表開発憲法 |
@@ -66,16 +68,18 @@ docs/guides/ui_design/  ← サポートドキュメント群
 
 ### 2.2 ファイル構成
 
-| ファイル | 役割 | 行数（目安） |
-|---------|------|:----------:|
-| `UI_Design_Constitution.md` | 憲法本体 | ~1200行 |
-| `UI_Design_Knowledge_Base.md` | 知見ベース | ~250行 |
-| `Design_Pattern_Checklist.md` | UIパターン | ~200行 |
-| `UI_Design_Patterns.md` | 実装パターン | ~300行 |
-| `00_Session_Start.md` | セッション開始 | ~200行 |
-| `01_Reference_Guide.md` | 参照ガイド | ~250行 |
-| `02_Authoring_Guide.md` | 作成ガイド | ~400行 |
+| ファイル | 役割 | 行数（実測） |
+|---------|------|:-----------:|
+| `UI_Design_Constitution.md` | 憲法本体 | ~1232行 |
+| `UI_Design_Knowledge_Base.md` | 知見ベース | ~375行 |
+| `Design_Pattern_Checklist.md` | UIパターン | ~306行 |
+| `UI_Design_Patterns.md` | 実装パターン | ~466行 |
+| `00_Session_Start.md` | セッション開始 | ~305行 |
+| `01_Reference_Guide.md` | 参照ガイド | ~270行 |
+| `02_Authoring_Guide.md` | 作成ガイド | ~371行 |
 | `03_Knowledge_Strategy.md` | 本ファイル | ~250行 |
+
+> **注**: 行数は2025-12-24時点の実測値。更新により変動する。
 
 ---
 

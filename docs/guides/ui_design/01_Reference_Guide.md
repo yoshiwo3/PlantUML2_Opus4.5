@@ -2,7 +2,7 @@
 
 **作成日**: 2025-12-22
 **対象**: ワイヤーフレーム・画面遷移図作成
-**前提**: UI設計図表開発憲法 v3.2
+**前提**: UI設計図表開発憲法 v3.3
 
 ---
 
@@ -196,13 +196,15 @@ UI設計図表作成前に以下を確認すること。
 NN_<category>_<screen_name>.excalidraw
 ```
 
-| 画面 | 予定ファイル名 | 状況 |
-|------|---------------|:----:|
-| ログイン画面 | `01_auth_login.excalidraw` | 🔴 |
-| 新規登録画面 | `02_auth_signup.excalidraw` | 🔴 |
-| ダッシュボード | `03_main_dashboard.excalidraw` | 🔴 |
-| エディタ画面 | `04_main_editor.excalidraw` | 🔴 |
-| プロジェクト一覧 | `05_main_project_list.excalidraw` | 🔴 |
+| 画面 | 予定ファイル名 |
+|------|---------------|
+| ログイン画面 | `01_auth_login.excalidraw` |
+| 新規登録画面 | `02_auth_signup.excalidraw` |
+| ダッシュボード | `03_main_dashboard.excalidraw` |
+| エディタ画面 | `04_main_editor.excalidraw` |
+| プロジェクト一覧 | `05_main_project_list.excalidraw` |
+
+> **進捗確認**: 作成状況は `docs/context/active_context.md` の「UI設計図表 詳細進捗」を参照
 
 ### 4.2 Evidenceディレクトリ
 
