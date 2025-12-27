@@ -266,10 +266,15 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 
 1. SVGエクスポート（正式版）
 2. 正式版SVG保存（`docs/proposals/diagrams/10_wireframe/`）
-3. 画面遷移図更新（該当時）
-4. active_context.md更新（ワイヤーフレーム欄を✅に）
-5. SERENA Memory保存
-6. Git commit
+3. **⚠️ `00_wireframe_index.md` 更新（必須）** ← 進捗サマリー、作成計画、完了済み画面セクション
+4. 画面遷移図更新（該当時）
+5. active_context.md更新（ワイヤーフレーム欄を✅に）
+6. 00_raw_notes.md更新（操作ログ追記）
+7. work_sheet.md更新（成果物記録）
+8. SERENA Memory保存
+9. Git commit
+
+> **⚠️ 更新漏れ防止**: Step 8の1-7は**すべて必須**。特に`00_wireframe_index.md`は一覧管理の要なので漏れなく更新すること。
 
 ---
 
@@ -305,9 +310,10 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 - [ ] AI厳格評価 90点以上達成（Step 7 イテレーションループ完了）
 - [ ] Phase 1-A採点 90点以上
 - [ ] SVG正式版保存
+- [ ] **⚠️ `00_wireframe_index.md` 更新（必須）**
 - [ ] 画面遷移図更新（該当時）
 - [ ] Phase 1-B採点 90点以上（該当時）
-- [ ] Evidence 3点セット完成
+- [ ] Evidence 3点セット完成（00_raw_notes.md, work_sheet.md）
 - [ ] active_context.md更新
 - [ ] SERENA Memory保存
 - [ ] Git commit
@@ -318,6 +324,7 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 
 | 日付 | 内容 |
 |------|------|
+| 2025-12-28 | v1.6: Step 8に`00_wireframe_index.md`更新を必須追加、完了条件チェックリスト強化（更新漏れ防止対策）|
 | 2025-12-27 | v1.5: Step 4.5追加（ワイヤーフレーム一覧確認、EX-005参照）|
 | 2025-12-24 | v1.4: §0.5の憲法バージョン参照をv3.3に更新 |
 | 2025-12-23 | v1.3: §0.5「検証フェーズについて」追加（検証モード、検証レポート、完了条件）|
