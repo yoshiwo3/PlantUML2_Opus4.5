@@ -3,8 +3,10 @@
 ' 画面遷移図: PlantUML Studio
 ' 対象: 全画面（認証/メイン/モーダル/管理）
 ' 基準: UC図（32UC）、業務フロー図（11フロー）
+'       検索機能設計書 v2.0
+'       TD-016（エクスプローラー方式 + リサイザー）
 ' 作成日: 2025-12-22
-' バージョン: 1.2 (学習コンテンツ画面追加)
+' バージョン: 1.6 (エクスプローラー方式)
 '==================================================
 
 skinparam state {
@@ -21,6 +23,10 @@ skinparam state<<auth>> {
 
 skinparam state<<main>> {
     BackgroundColor #E3F2FD
+}
+
+skinparam state<<view>> {
+    BackgroundColor #BBDEFB
 }
 
 skinparam state<<modal>> {
@@ -43,10 +49,35 @@ state "認証画面群" as auth_group {
 
 ' ========== メイン画面群 ==========
 state "メイン画面群" as main_group {
-    state "ダッシュボード" as dashboard <<main>>
-    dashboard : UC 2-1
-    dashboard : プロジェクト一覧表示
-    dashboard : 最近の図表表示
+    state "ホーム" as home <<main>> {
+        state "エクスプローラー\nサイドバー" as sidebar
+        sidebar : 📂 プロジェクト（ツリー）
+        sidebar : 📚 学習コンテンツ
+        sidebar : ⚙️ 設定 / 🚪 ログアウト
+
+        state "オンボーディング" as home_onboarding <<view>>
+        home_onboarding : 初回/PJ 0件時
+        home_onboarding : ようこそ画面
+        home_onboarding : 最初のPJ作成ガイド
+
+        state "プロジェクト・図表" as home_projects <<view>>
+        home_projects : UC 2-1
+        home_projects : プロジェクト一覧
+        home_projects : 最近の図表
+        home_projects : 【グローバル検索: Ctrl+K】
+
+        state "学習コンテンツ" as home_learning <<view>>
+        home_learning : UC 3-10, 3-11
+        home_learning : カテゴリ別一覧
+        home_learning : 専用検索
+        home_learning : コンテンツ詳細
+
+        ' ホーム内ビュー切替（サイドメニュー）
+        sidebar --> home_onboarding
+        sidebar --> home_projects
+        sidebar --> home_learning
+        home_onboarding --> home_projects : 開始/スキップ
+    }
 
     state "プロジェクト詳細" as project_detail <<main>>
     project_detail : UC 2-2, 2-3, 2-4
@@ -59,19 +90,11 @@ state "メイン画面群" as main_group {
     editor : リアルタイムプレビュー
     editor : AI支援 (UC 4-1, 4-2)
 
-    state "学習コンテンツ" as learning_content <<main>>
-    learning_content : UC 3-10, 3-11
-    learning_content : カテゴリ別一覧
-    learning_content : キーワード検索
-    learning_content : コンテンツ詳細表示
-
     ' メイン画面内遷移
-    dashboard --> project_detail : プロジェクト選択
-    dashboard --> learning_content : 学習コンテンツ
+    home_projects --> project_detail : プロジェクト選択
     project_detail --> editor : 図表選択/新規作成
-    project_detail --> dashboard : 戻る
+    project_detail --> home : 戻る
     editor --> project_detail : 戻る
-    learning_content --> dashboard : 戻る
 }
 
 ' ========== モーダル群 ==========
@@ -146,12 +169,13 @@ state "管理画面群" as admin_group {
 ' ========== グループ間遷移 ==========
 
 ' 認証 → メイン
-login --> dashboard : ログイン成功
+login --> home : ログイン成功
 
 ' メイン → モーダル（開く）
-dashboard --> new_project : 新規プロジェクト
-dashboard --> edit_project : プロジェクト編集
-dashboard --> delete_project : プロジェクト削除
+home_projects --> new_project : 新規プロジェクト
+home_projects --> edit_project : プロジェクト編集
+home_projects --> delete_project : プロジェクト削除
+home_onboarding --> new_project : 最初のPJ作成
 project_detail --> new_diagram : 新規図表
 project_detail --> delete_diagram : 図表削除
 editor --> template : テンプレート挿入
@@ -159,9 +183,9 @@ editor --> export : エクスポート
 editor --> ai_chat : AIチャット開く
 
 ' モーダル → メイン（閉じる/完了）
-new_project --> dashboard : 作成完了/キャンセル
-edit_project --> dashboard : 保存/キャンセル
-delete_project --> dashboard : 削除/キャンセル
+new_project --> home_projects : 作成完了/キャンセル
+edit_project --> home_projects : 保存/キャンセル
+delete_project --> home_projects : 削除/キャンセル
 new_diagram --> editor : 作成完了
 template --> editor : 選択/キャンセル
 export --> editor : エクスポート完了/キャンセル
@@ -169,15 +193,14 @@ delete_diagram --> project_detail : 削除/キャンセル
 ai_chat --> editor : 閉じる
 
 ' メイン → 管理（管理者のみ）
-dashboard --> admin_dashboard : 管理画面\n(管理者権限)
+home --> admin_dashboard : 管理画面\n(管理者権限)
 
 ' 管理 → メイン
-admin_dashboard --> dashboard : 戻る
+admin_dashboard --> home : 戻る
 
 ' ========== ログアウト ==========
-dashboard --> [*] : ログアウト
+home --> [*] : ログアウト
 editor --> [*] : ログアウト
-learning_content --> [*] : ログアウト
 admin_dashboard --> [*] : ログアウト
 
 ' ========== 注釈 ==========
@@ -203,12 +226,19 @@ note left of admin_dashboard
   アクセス不可
 end note
 
-note right of learning_content
-  学習コンテンツ:
-  - PlantUML構文ガイド
-  - テンプレートサンプル
-  - カテゴリ別検索
-  - キーワード検索
+note right of home
+  **ホーム画面構成 (v1.6)**
+  エクスプローラー方式サイドバー
+  （ツリービュー + リサイザー）
+  + メインエリア
+
+  メインエリア3ビュー:
+  1. オンボーディング（初回/PJ 0件）
+  2. プロジェクト・図表（通常）
+  3. 学習コンテンツ（UC 3-10, 3-11）
+
+  グローバル検索: Ctrl+K
+  サイドバー: 200-400px (280px初期)
 end note
 
 @enduml
