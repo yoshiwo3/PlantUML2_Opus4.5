@@ -33,7 +33,7 @@
 
 | 制約 | 説明 |
 |------|------|
-| 憲法の安定性 | UI設計図表開発憲法 v3.2の既存内容は最小限の変更 |
+| 憲法の安定性 | UI設計図表開発憲法 v3.3の既存内容は最小限の変更 |
 | 参照型統合 | 詳細知見は外部ファイルに分離し、憲法からは参照のみ |
 | 拡張性確保 | 新規知見の追加が既存ドキュメントに影響しない構造 |
 
@@ -44,7 +44,7 @@
 ### 2.1 アーキテクチャ
 
 ```
-UI_Design_Constitution.md (v3.2)
+UI_Design_Constitution.md (v3.3)
     │
     ├── §8 UI設計パターンチェックリスト
     │       └── 詳細は Design_Pattern_Checklist.md を参照
@@ -68,18 +68,21 @@ docs/guides/ui_design/  ← サポートドキュメント群
 
 ### 2.2 ファイル構成
 
-| ファイル | 役割 | 行数（実測） |
-|---------|------|:-----------:|
-| `UI_Design_Constitution.md` | 憲法本体 | ~1232行 |
-| `UI_Design_Knowledge_Base.md` | 知見ベース | ~375行 |
-| `Design_Pattern_Checklist.md` | UIパターン | ~306行 |
-| `UI_Design_Patterns.md` | 実装パターン | ~466行 |
-| `00_Session_Start.md` | セッション開始 | ~305行 |
-| `01_Reference_Guide.md` | 参照ガイド | ~270行 |
-| `02_Authoring_Guide.md` | 作成ガイド | ~371行 |
-| `03_Knowledge_Strategy.md` | 本ファイル | ~250行 |
+| ファイル | 役割 | 行数目安 |
+|---------|------|:--------:|
+| `UI_Design_Constitution.md` | 憲法本体 | 1233 |
+| `UI_Design_Knowledge_Base.md` | 知見ベース | 375 |
+| `Design_Pattern_Checklist.md` | UIパターン | 306 |
+| `UI_Design_Patterns.md` | 実装パターン | 492 |
+| `00_Session_Start.md` | セッション開始 | 306 |
+| `01_Reference_Guide.md` | 参照ガイド | 269 |
+| `02_Authoring_Guide.md` | 作成ガイド | 371 |
+| `03_Knowledge_Strategy.md` | 本ファイル | 260 |
 
-> **注**: 行数は2025-12-24時点の実測値。更新により変動する。
+> **行数更新ガイダンス**:
+> - 行数は目安であり、厳密な追跡は不要
+> - 大幅な構造変更（セクション追加/削除）時のみ更新
+> - 更新コマンド: `wc -l docs/guides/ui_design/*.md`
 
 ---
 
@@ -147,7 +150,7 @@ docs/guides/ui_design/  ← サポートドキュメント群
 | 効果 | 説明 |
 |------|------|
 | **知見の永続化** | EX/SD/TD/IC知見がdocs/guidesに正式版として保存 |
-| **憲法の安定性維持** | v3.2の構造を維持しつつ拡張可能 |
+| **憲法の安定性維持** | v3.3の構造を維持しつつ拡張可能 |
 | **参照性の向上** | 必要な時に詳細を参照できる階層構造 |
 | **保守性の向上** | 知見の追加・修正が憲法に影響しない |
 | **品質同等化** | sequence_diagramと同等のサポート体制 |
@@ -223,7 +226,7 @@ docs/guides/ui_design/  ← サポートドキュメント群
 
 | ファイル | 役割 | ステータス |
 |---------|------|:----------:|
-| `UI_Design_Constitution.md` | 憲法本体 | ✅ v3.2 |
+| `UI_Design_Constitution.md` | 憲法本体 | ✅ v3.3 |
 | `UI_Design_Knowledge_Base.md` | 知見ベース | ✅ 作成済 |
 | `Design_Pattern_Checklist.md` | UIパターン | ✅ 作成済 |
 | `UI_Design_Patterns.md` | 実装パターン | ✅ 作成済 |
@@ -248,5 +251,6 @@ docs/guides/ui_design/  ← サポートドキュメント群
 
 | 日付 | 内容 |
 |------|------|
+| 2025-12-24 | v1.2: 憲法参照をv3.3に更新、§2.2行数を実測値に更新、行数更新ガイダンス追加 |
 | 2025-12-22 | v1.1: §6.3品質比較追加、§1.1知見分類更新（実体験率25%明記）|
 | 2025-12-22 | v1.0: 初版作成 |

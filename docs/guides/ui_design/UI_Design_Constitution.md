@@ -408,7 +408,6 @@ Context7確認結果: **重大な構文制限なし**（シーケンス図より
 | 5 | 分岐 | `<<choice>>` | 条件分岐 |
 | 6 | 並行 | `<<fork>>`, `<<join>>` | 並行処理 |
 | 7 | ノート | `note right of State : 内容` | 補足説明 |
-| 8 | 手書き風 | `!option handwritten true` | TD-015対応 |
 
 ### 3.3 既知の制限（発見次第追記）
 
@@ -736,6 +735,15 @@ docs/evidence/20251222_1430_ui_design_auth/
 └── screen_transition_review.png
 ```
 
+**作成コマンド**:
+```powershell
+# Evidence 3点セット自動作成
+pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<scope>
+
+# 例
+pwsh scripts/create_evidence.ps1 20251227_1430_ui_design_dashboard
+```
+
 #### 6.3.6 正式版保存先
 
 | 成果物 | 保存先 | 命名規則 |
@@ -1036,8 +1044,6 @@ mcp__serena__write_memory
 ```plantuml
 @startuml PlantUML_Studio_ScreenTransition
 
-!option handwritten true
-
 title 画面遷移図
 
 skinparam state {
@@ -1222,6 +1228,7 @@ TD-015原則に従うための設定：
 
 | 日付 | Ver | 内容 |
 |------|:---:|------|
+| 2025-12-27 | 3.4 | §6.3.5 Evidence作成コマンド追加（create_evidence.ps1参照）|
 | 2025-12-24 | 3.3 | **品質改善**: ① §8 ID体系をAP-001/RP-001/NP-001/FP-001形式に統一（Design_Pattern_Checklist.mdと整合）、② 色コードを小文字に統一（#e0e0e0等）|
 | 2025-12-23 | 3.2 | **検証フェーズ導入**: ① ステータス「Draft（検証中）」追加、② 検証ステータス表示追加、③ §1.3.7→§1.3.6に番号修正、④ セクションタイトルから(vX.X追加)を削除して簡潔化 |
 | 2025-12-22 | 3.1 | **協調作成プロセス追加**: ① §1.1全体フローに3ステップ（AI初期作成→ユーザーレビュー・手直し→AI厳格評価）追加、② §1.4を「ワイヤーフレーム協調作成（User-AIイテレーション）」に改題、③ §1.4.1協調作成フロー詳細（ASCII図）追加、④ §1.4.2ユーザー編集環境（Obsidian Excalidraw Plugin）追加、⑤ 反復回数無制限（90点達成まで継続）明記 |

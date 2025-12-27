@@ -4,10 +4,8 @@
 ' 対象: 全画面（認証/メイン/モーダル/管理）
 ' 基準: UC図（32UC）、業務フロー図（11フロー）
 ' 作成日: 2025-12-22
-' バージョン: 1.0
+' バージョン: 1.2 (学習コンテンツ画面追加)
 '==================================================
-
-!option handwritten true
 
 skinparam state {
     BackgroundColor #F5F5F5
@@ -40,21 +38,7 @@ skinparam state<<admin>> {
 state "認証画面群" as auth_group {
     state "ログイン画面" as login <<auth>>
     login : UC 1-1
-    login : OAuth/メール認証
-
-    state "新規登録画面" as signup <<auth>>
-    signup : UC 1-1
-    signup : アカウント作成
-
-    state "パスワードリセット" as reset <<auth>>
-    reset : UC 1-1
-    reset : メール送信
-
-    ' 認証画面内遷移
-    login --> signup : 新規登録リンク
-    login --> reset : パスワード忘れ
-    signup --> login : ログインリンク
-    reset --> login : 戻る
+    login : OAuth認証 (GitHub/Google)
 }
 
 ' ========== メイン画面群 ==========
@@ -75,11 +59,19 @@ state "メイン画面群" as main_group {
     editor : リアルタイムプレビュー
     editor : AI支援 (UC 4-1, 4-2)
 
+    state "学習コンテンツ" as learning_content <<main>>
+    learning_content : UC 3-10, 3-11
+    learning_content : カテゴリ別一覧
+    learning_content : キーワード検索
+    learning_content : コンテンツ詳細表示
+
     ' メイン画面内遷移
     dashboard --> project_detail : プロジェクト選択
+    dashboard --> learning_content : 学習コンテンツ
     project_detail --> editor : 図表選択/新規作成
     project_detail --> dashboard : 戻る
     editor --> project_detail : 戻る
+    learning_content --> dashboard : 戻る
 }
 
 ' ========== モーダル群 ==========
@@ -185,14 +177,15 @@ admin_dashboard --> dashboard : 戻る
 ' ========== ログアウト ==========
 dashboard --> [*] : ログアウト
 editor --> [*] : ログアウト
+learning_content --> [*] : ログアウト
 admin_dashboard --> [*] : ログアウト
 
 ' ========== 注釈 ==========
 note right of login
   認証方式:
-  - OAuth 2.0 PKCE (Google, GitHub)
-  - メール/パスワード
+  - OAuth 2.0 PKCE (GitHub, Google)
   - Supabase Auth SSR
+  ※ユーザー登録は管理者が実施 (UC 5-1)
 end note
 
 note bottom of editor
@@ -208,6 +201,14 @@ note left of admin_dashboard
   管理者権限必須
   一般ユーザーは
   アクセス不可
+end note
+
+note right of learning_content
+  学習コンテンツ:
+  - PlantUML構文ガイド
+  - テンプレートサンプル
+  - カテゴリ別検索
+  - キーワード検索
 end note
 
 @enduml

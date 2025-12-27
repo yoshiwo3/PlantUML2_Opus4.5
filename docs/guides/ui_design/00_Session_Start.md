@@ -22,7 +22,7 @@
 
 ## 0.5 検証フェーズについて（重要）
 
-> **⚠️ 現在のステータス**: 憲法v3.2は **Draft（検証中）** です。
+> **⚠️ 現在のステータス**: 憲法v3.3は **Draft（検証中）** です。
 
 ### 検証フェーズとは
 
@@ -209,6 +209,26 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 12. Git commit
 ```
 
+### Step 4.5: ワイヤーフレーム一覧確認
+
+既存ワイヤーフレームがある場合、`00_wireframe_index.md` で一覧確認する。
+
+```markdown
+# index.md の形式（EX-005 Embedded Index Pattern）
+
+## 01. ログイン画面
+![[01_login/default.excalidraw]]
+
+## 02. ダッシュボード
+![[02_dashboard/default.excalidraw]]
+![[02_dashboard/search_active.excalidraw]]
+```
+
+- **閲覧**: `00_wireframe_index.md`（スクロールで全画面確認）
+- **編集**: 個別の `.excalidraw` ファイル
+
+> **詳細**: UI_Design_Knowledge_Base.md §EX-005
+
 ### Step 5: AI初期作成
 
 `02_Authoring_Guide.md` のチェックリストに従う：
@@ -298,6 +318,8 @@ pwsh scripts/create_evidence.ps1 <yyyyMMdd_HHmm>_ui_design_<screen_name>
 
 | 日付 | 内容 |
 |------|------|
+| 2025-12-27 | v1.5: Step 4.5追加（ワイヤーフレーム一覧確認、EX-005参照）|
+| 2025-12-24 | v1.4: §0.5の憲法バージョン参照をv3.3に更新 |
 | 2025-12-23 | v1.3: §0.5「検証フェーズについて」追加（検証モード、検証レポート、完了条件）|
 | 2025-12-22 | v1.2: 協調作成プロセス追加（Step 5-8をUser-AIイテレーション対応に更新、完了条件追加）|
 | 2025-12-22 | v1.1: §0必読ファイルに憲法追加、§1.1画面特定ロジック追加、§4に必読列追加 |

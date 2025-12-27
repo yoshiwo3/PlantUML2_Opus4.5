@@ -298,8 +298,6 @@ TD-015原則（低精度、手書き風、グレースケール）を前提と�
 
 ```plantuml
 @startuml
-!option handwritten true
-
 skinparam state {
     BackgroundColor #F5F5F5
     BorderColor #666666
@@ -330,9 +328,9 @@ skinparam state<<admin>> {
 
 | パラメータ | 推奨値 | 効果 |
 |-----------|--------|------|
-| `!option handwritten` | true | 手書き風（TD-015準拠） |
 | `BackgroundColor` | #F5F5F5 | 薄いグレー背景 |
 | `BorderColor` | #666666 | 中間グレー枠線 |
+| `FontSize` | 14 | 標準フォントサイズ |
 
 ---
 

@@ -81,8 +81,6 @@
 ' 基準: UC図、業務フロー図
 '==================================================
 
-!option handwritten true
-
 skinparam state {
     BackgroundColor #F5F5F5
     BorderColor #666666
@@ -163,6 +161,83 @@ NN_<category>_<screen_name>.svg          # 正式版
 99_screen_transition.puml   # PlantUMLソース
 99_screen_transition.svg    # 正式版
 ```
+
+### 4.4 ファイル構成（EX-005 Embedded Index Pattern）
+
+ワイヤーフレームの閲覧と編集を分離するパターン。
+
+```
+wireframes/
+├── 00_wireframe_index.md      ← 閲覧用（埋め込み一覧）
+├── 01_login/
+│   └── default.excalidraw     ← 編集用（基本状態）
+├── 02_dashboard/
+│   ├── default.excalidraw
+│   └── search_active.excalidraw  ← 編集用（派生状態）
+└── ...
+```
+
+| ファイル | 役割 |
+|---------|------|
+| `00_wireframe_index.md` | 閲覧用（`![[file.excalidraw]]` で埋め込み一覧）|
+| `XX_screen/default.excalidraw` | 編集用（個別ファイル）|
+| `XX_screen/<state>.excalidraw` | 編集用（派生状態）|
+
+> **詳細**: UI_Design_Knowledge_Base.md §EX-005
+
+### 4.5 フォルダ命名規則（番号プレフィックス方式）
+
+ワイヤーフレームのフォルダ名には**番号プレフィックス方式**を採用する。
+
+#### 採用・却下の経緯
+
+| 方式 | 例 | 採否 | 理由 |
+|------|-----|:----:|------|
+| カテゴリ別 | `main/`, `modal/`, `admin/` | ❌ 却下 | ファイラーでの並び順が不定、画面遷移図との対応不明確 |
+| 番号プレフィックス | `01_login/`, `02_dashboard/` | ✅ 採用 | 並び順保証、遷移図との対応明確、新規追加時の番号割当が容易 |
+
+#### 番号割当ルール
+
+| 範囲 | 用途 | 例 |
+|------|------|-----|
+| 00 | インデックス | `00_wireframe_index.md` |
+| 01-09 | 認証画面群 | `01_login/` |
+| 10-19 | メイン画面群 | `10_dashboard/`, `11_editor/` |
+| 20-29 | モーダル群 | `20_project_create/` |
+| 30-39 | 管理画面群 | `30_admin_dashboard/` |
+| 40-49 | 学習コンテンツ群 | `40_learning_content/` |
+
+> **詳細**: 00_raw_notes.md の意思決定#1参照
+
+### 4.6 TD-015準拠 設定値一覧
+
+Excalidrawワイヤーフレームで使用する具体的な設定値。
+
+#### 色設定（グレースケール）
+
+| 用途 | カラーコード | 備考 |
+|------|:-----------:|------|
+| 背景色（画面） | `#ffffff` | 白 |
+| 背景色（薄） | `#f5f5f5` | 薄グレー |
+| 枠線色 | `#1e1e1e` | 黒 |
+| テキスト色 | `#1e1e1e` | 黒 |
+| サブテキスト色 | `#6b7280` | グレー |
+| ボタン背景 | `#e0e0e0` | 中グレー |
+| 非活性要素 | `#9ca3af` | 薄グレー |
+
+#### スタイル設定
+
+| 項目 | 推奨値 | 説明 |
+|------|:------:|------|
+| roughness | 1 | 手書き風（0=直線的、2=粗い） |
+| strokeStyle | solid | 実線 |
+| strokeWidth | 1 | 通常線（外枠は2） |
+| fillStyle | solid | 塗りつぶし |
+| fontFamily | 1 | Hand-drawn |
+| fontSize | 16 | 最小サイズ（これ以下は可読性低下） |
+| opacity | 100 | 不透明 |
+
+> **参照**: UI_Design_Knowledge_Base.md §EX-001〜EX-003
 
 ---
 
@@ -367,4 +442,6 @@ docs/evidence/yyyyMMdd_HHmm_ui_design_xxx/
 
 | 日付 | 内容 |
 |------|------|
+| 2025-12-27 | §4.5追加（フォルダ命名規則 番号プレフィックス方式）、§4.6追加（TD-015準拠設定値一覧）|
+| 2025-12-27 | §4.4追加（ファイル構成 EX-005 Embedded Index Pattern）|
 | 2025-12-22 | 初版作成 |
