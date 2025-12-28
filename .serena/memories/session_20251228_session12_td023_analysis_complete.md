@@ -1,4 +1,4 @@
-# Session 12: TD-023作成 + screen_composition_analysis.md 100点達成
+# Session 12: TD-023作成 + 02_screen_composition_analysis.md 100点達成
 
 **日時**: 2025-12-28 22:00
 **セッション**: Session 12
@@ -23,9 +23,9 @@
 - エディタ画面の基本レイアウトを定義するTDが不在だった
 - TD-023を新規作成して明確化
 
-### 2. screen_composition_analysis.md 9問題対応
+### 2. 02_screen_composition_analysis.md 9問題対応
 
-**ファイル**: `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/screen_composition_analysis.md`
+**ファイル**: `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/02_screen_composition_analysis.md`
 
 **対応した問題**:
 
@@ -81,5 +81,5 @@
 ## 関連ファイル
 
 - `docs/context/technical_decisions.md` - TD-023追加
-- `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/screen_composition_analysis.md` - 9問題対応
+- `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/02_screen_composition_analysis.md` - 9問題対応
 - `docs/context/active_context.md` - Session 12進捗追加

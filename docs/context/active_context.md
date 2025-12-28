@@ -1,6 +1,6 @@
 # 現在の作業コンテキスト（Active Context）
 
-**最終更新**: 2025-12-28（Session 12: TD-023作成、screen_composition_analysis.md 100点達成）
+**最終更新**: 2025-12-28（Session 12: TD-023作成、02_screen_composition_analysis.md 100点達成）
 
 ---
 
@@ -299,7 +299,7 @@
 
 - **#04 エディタ画面 ベストプラクティス分析完了** ✅（Session 12）
   - TD-023作成（エディタ画面基本レイアウト）: 3パネル構成、AIチャット、ヘッダー、レスポンシブブレークポイント定義
-  - screen_composition_analysis.md: 9問題対応完了、**100点達成**
+  - 02_screen_composition_analysis.md: 9問題対応完了、**100点達成**
   - 選択肢A採用: 現行構成（TD-019 3層モーダル）でMVP進行、将来改善事項として記録
   - 分析対象TD: TD-017〜TD-023に統一
   - 次のアクション: #04 エディタ画面ワイヤーフレーム作成

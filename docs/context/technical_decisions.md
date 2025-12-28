@@ -751,7 +751,7 @@ GUIパネル（層1）
 - TD-016（1920×1080基準解像度）
 - TD-018（パネル間同期アーキテクチャ）
 - TD-021（パネルモード切替機構）
-- `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/gui_panel_design_discussion.md`
+- `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/01_gui_panel_design_discussion.md`
 
 ---
 
@@ -864,7 +864,7 @@ PlantUMLのNote機能および関連補助要素を3層操作UI構造（TD-019�
 - TD-018（パネル間同期アーキテクチャ）
 - TD-019（3層操作UI構造）
 - TD-022（APIファースト・マイクロモジュール化方針）
-- `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/gui_panel_design_discussion.md`
+- `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/01_gui_panel_design_discussion.md`
 
 ---
 
@@ -1158,7 +1158,7 @@ class S3Repository implements IDiagramRepository { ... }
 - TD-006（MVPデータ保存設計 - Repository Pattern）
 - TD-019（3層操作UI構造）
 - TD-020（PlantUML Note・補助要素のGUI対応）
-- `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/gui_panel_design_discussion.md`
+- `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/01_gui_panel_design_discussion.md`
 
 ---
 
