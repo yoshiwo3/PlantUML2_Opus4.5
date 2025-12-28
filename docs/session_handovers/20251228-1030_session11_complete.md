@@ -12,9 +12,9 @@
 |--------|:----:|:------:|
 | #09 新規図表作成モーダル | ✅ 完了 | 100/100 |
 | #10 テンプレート選択モーダル | ✅ 完了 | 100/100 |
-| 知見ベース更新 | ✅ v1.14 | EX-012〜014, CS-006〜008 |
+| 知見ベース更新 | ✅ v1.15 | EX-012〜014, CS-006〜008, **Todo作成作法** |
 | SERENA Memory | ✅ 2件 | session11_new_diagram_modal, session11_phase_b_complete |
-| Git コミット | ✅ 1a9d051 | push済み |
+| Git コミット | ✅ bc710f3 | push済み |
 
 ---
 
@@ -48,7 +48,7 @@
 |:------:|-------------|------|
 | **1** | `00_Session_Start.md` v1.11 | 作業プロセス（Todoテンプレート含む）|
 | **2** | `UI_Design_Constitution.md` v3.8 | 禁止事項、評価基準 |
-| **3** | `UI_Design_Knowledge_Base.md` v1.14 | EX-013/014（テンプレートカード/スクロールバー）|
+| **3** | `UI_Design_Knowledge_Base.md` v1.15 | **Todo作成作法**、EX-013/014（テンプレートカード/スクロールバー）|
 | 4 | `00_wireframe_index.md` | 進捗確認、次の画面 |
 
 ### 次の作業ステップ
@@ -100,6 +100,8 @@
 
 ```
 1a9d051 docs: Session 11 完了（#09 + #10 ワイヤーフレーム + 知見ベース更新）
+d9003ba docs: Session 11 完了引継ぎ書作成
+bc710f3 docs: Todo作成作法セクション追加（Knowledge Base v1.15）
 ```
 
 ---
