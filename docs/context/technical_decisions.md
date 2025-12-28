@@ -2388,4 +2388,403 @@ useEffect(() => {
 
 ---
 
-**次のレビュー予定**: 2025-12-29
+## TD-034: v1.1統合保証アーキテクチャ（絶対コミットメント）
+
+**日付**: 2025-12-29
+**状態**: 承認済み（**最優先遵守事項**）
+**スコープ**: MVP全体 + v1.1延期機能7件
+**関連TD**: TD-022（APIファースト・マイクロモジュール化方針）
+
+> ⚠️ **絶対コミットメント**: MVP延期した7機能（TD-017, 024, 025, 026, 028, 029, 031）は、
+> v1.1で**必ず**実装する。MVPはこれらを**容易に組み込める**設計とすることを約束する。
+
+---
+
+### 1. コミットメント宣言
+
+| 約束 | 内容 | 違反時の対応 |
+|------|------|-------------|
+| **v1.1必須実装** | 延期7機能はMVP直後のv1.1で必ず実装 | リリース延期 |
+| **APIファースト** | 全機能はAPI境界を明確に定義してから実装 | PRリジェクト |
+| **マイクロモジュール** | 機能単位で疎結合、後から差し込み可能な設計 | リファクタリング完了まで凍結 |
+| **拡張ポイント事前定義** | v1.1機能用インターフェースをMVP時点で作成 | MVP完了と見なさない |
+
+---
+
+### 2. 約束の根拠（技術的裏付け）
+
+#### 2.1 設計原則の妥当性
+
+| 原則 | 業界実績 | 適用例 |
+|------|---------|--------|
+| **APIファースト** | REST/GraphQL設計標準、OpenAPI仕様 | 全モジュール間通信 |
+| **マイクロモジュール** | Reactコンポーネント設計、Pluginアーキテクチャ | GUIパネル、サービス層 |
+| **Command Pattern** | GoF設計パターン、Redux/Zustand | Undo/Redo、状態管理 |
+| **Strategy Pattern** | GoF設計パターン、DI/IoC | バックアップ、テーマ切替 |
+
+#### 2.2 各機能の組み込み難易度分析
+
+| TD | 機能 | 難易度 | 根拠 | MVP時の必須措置 |
+|:--:|------|:------:|------|-----------------|
+| 017 | GUI動的切り替え | **中** | ReactのDynamic Import + Registry Patternで実現可能 | `IGUIPanelRegistry`定義 |
+| 024 | Undo/Redo | **高** | Command Patternは後付け困難、MVP初日から適用必須 | **全操作をCommand経由に** |
+| 025 | WCAG準拠 | **中** | セマンティックHTMLなら後付け可、div地獄は困難 | セマンティックHTML徹底 |
+| 026 | オンボーディング | **低** | react-joyride等は既存DOMに後付け容易 | 安定したdata-testid付与 |
+| 028 | AIコード適用 | **中** | Monaco Editor APIは整備済み、挿入ロジックは独立実装可 | `ICodeApplicator`定義 |
+| 029 | ローカルバックアップ | **中** | 保存処理が抽象化されていれば追加実装容易 | `IBackupStrategy`定義 |
+| 031 | ダークモード | **低〜中** | CSS変数なら容易、SVGテーマは別問題 | CSS変数でのスタイリング徹底 |
+
+---
+
+### 3. 最大リスク: TD-024 (Undo/Redo) への対処
+
+**これがMVP設計の最重要ポイントである。**
+
+#### 3.1 問題の本質
+
+```typescript
+// ❌ NGパターン（後付け困難）
+function addMessage(message: Message) {
+  state.messages.push(message);  // 直接変更 → Undo不可能
+}
+
+// ✅ OKパターン（後付け容易）
+function addMessage(message: Message) {
+  commandHistory.execute(new AddMessageCommand(message));
+}
+```
+
+#### 3.2 Command Pattern必須化
+
+| 対象 | Command化必須 | 例 |
+|------|:------------:|-----|
+| GUI操作 | ✅ | AddParticipantCommand, EditMessageCommand |
+| Code編集 | ✅ | Monaco Editor APIのカスタムCommand |
+| AI適用 | ✅ | ApplyAISuggestionCommand |
+| 設定変更 | ❌ | テーマ切替等は対象外 |
+
+#### 3.3 実装基盤（MVP時点で作成）
+
+```typescript
+// Command インターフェース
+interface ICommand {
+  readonly id: string;
+  readonly description: string;
+  readonly timestamp: number;
+
+  execute(): void;
+  undo(): void;
+  redo?(): void;  // デフォルトはexecuteを再実行
+}
+
+// Command History インターフェース
+interface ICommandHistory {
+  execute(command: ICommand): void;
+  undo(): void;
+  redo(): void;
+  canUndo(): boolean;
+  canRedo(): boolean;
+  getHistory(): ICommand[];
+  clear(): void;
+}
+
+// MVP実装: 履歴は保持するが、UI上はMonaco内蔵Undoのみ
+// v1.1実装: 統合Undo/RedoボタンをヘッダーにUI追加
+class CommandHistoryImpl implements ICommandHistory {
+  private undoStack: ICommand[] = [];
+  private redoStack: ICommand[] = [];
+  private readonly maxHistory = 100;
+
+  execute(command: ICommand): void {
+    command.execute();
+    this.undoStack.push(command);
+    this.redoStack = [];
+    if (this.undoStack.length > this.maxHistory) {
+      this.undoStack.shift();
+    }
+  }
+
+  undo(): void {
+    const command = this.undoStack.pop();
+    if (command) {
+      command.undo();
+      this.redoStack.push(command);
+    }
+  }
+
+  redo(): void {
+    const command = this.redoStack.pop();
+    if (command) {
+      (command.redo ?? command.execute).call(command);
+      this.undoStack.push(command);
+    }
+  }
+
+  // ... other methods
+}
+```
+
+---
+
+### 4. MVP時点で定義する拡張インターフェース
+
+#### 4.1 インターフェース一覧
+
+| インターフェース | 対応TD | 用途 | MVP実装 | v1.1実装 |
+|-----------------|:------:|------|---------|----------|
+| `IGUIPanelRegistry` | 017 | GUIパネル動的登録 | シーケンス図のみ登録 | クラス図等追加登録 |
+| `ICommandHistory` | 024 | 統合Undo/Redo | 履歴記録のみ | UI + ショートカット |
+| `IAccessibilityService` | 025 | WCAG対応 | 基本実装 | 完全AA準拠 |
+| `IOnboardingProvider` | 026 | チュートリアル | スタブ実装 | react-joyride統合 |
+| `ICodeApplicator` | 028 | AIコード適用 | コピーのみ | 差分プレビュー + 適用 |
+| `IBackupStrategy` | 029 | バックアップ | Supabaseのみ | localStorage追加 |
+| `IThemeProvider` | 031 | テーマ管理 | ライトのみ | ダーク追加 |
+
+#### 4.2 GUIパネルレジストリ（TD-017用）
+
+```typescript
+interface IGUIPanelRegistry {
+  register(diagramType: string, panel: IGUIPanel): void;
+  get(diagramType: string): IGUIPanel | null;
+  list(): string[];
+
+  // v1.1で使用
+  replace(diagramType: string, panel: IGUIPanel): void;
+  unregister(diagramType: string): void;
+}
+
+interface IGUIPanel {
+  readonly type: string;
+  readonly version: string;
+  render(container: HTMLElement, context: EditorContext): void;
+  dispose(): void;
+}
+
+// MVP: シーケンス図のみ
+registry.register('sequence', new SequenceDiagramGUIPanel());
+
+// v1.1: 追加登録
+registry.register('class', new ClassDiagramGUIPanel());
+registry.register('usecase', new UseCaseDiagramGUIPanel());
+```
+
+#### 4.3 コード適用インターフェース（TD-028用）
+
+```typescript
+interface ICodeApplicator {
+  // MVP: コピーのみ
+  copyToClipboard(code: string): Promise<void>;
+
+  // v1.1で追加
+  apply(code: string, options: ApplyOptions): Promise<ApplyResult>;
+  preview(code: string): DiffResult;
+}
+
+interface ApplyOptions {
+  mode: 'append' | 'insert' | 'replace';
+  position?: 'cursor' | 'end' | 'start';
+  confirmBeforeApply?: boolean;
+}
+
+interface ApplyResult {
+  success: boolean;
+  appliedCode: string;
+  undoCommand: ICommand;  // Undo連携
+}
+```
+
+#### 4.4 バックアップ戦略インターフェース（TD-029用）
+
+```typescript
+interface IBackupStrategy {
+  save(key: string, data: string): Promise<void>;
+  load(key: string): Promise<string | null>;
+  delete(key: string): Promise<void>;
+  list(): Promise<BackupEntry[]>;
+  getCapacity(): Promise<BackupCapacity>;
+}
+
+// MVP: Supabase保存のみ（バックアップ戦略は未使用）
+// v1.1: localStorageバックアップ追加
+class LocalStorageBackupStrategy implements IBackupStrategy { ... }
+```
+
+#### 4.5 テーマプロバイダー（TD-031用）
+
+```typescript
+interface IThemeProvider {
+  readonly currentTheme: Theme;
+  setTheme(theme: Theme): void;
+  toggleTheme(): void;
+  onThemeChange(callback: (theme: Theme) => void): Unsubscribe;
+}
+
+type Theme = 'light' | 'dark' | 'system';
+
+// MVP: ライトモード固定
+class ThemeProviderImpl implements IThemeProvider {
+  get currentTheme(): Theme { return 'light'; }
+  setTheme(theme: Theme): void { /* no-op in MVP */ }
+  // ...
+}
+
+// v1.1: 完全実装
+class ThemeProviderV2 implements IThemeProvider {
+  // localStorage + prefers-color-scheme対応
+}
+```
+
+---
+
+### 5. CSS変数によるスタイリング（TD-031準備）
+
+#### 5.1 MVP時点で定義する変数
+
+```css
+:root {
+  /* カラーパレット（ライトモード） */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F5F5F5;
+  --color-bg-tertiary: #E0E0E0;
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-text-muted: #999999;
+  --color-accent: #0066CC;
+  --color-accent-hover: #0055AA;
+  --color-error: #CC0000;
+  --color-success: #00AA00;
+  --color-warning: #FFAA00;
+
+  /* スペーシング */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* ボーダー */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-color: #E0E0E0;
+}
+
+/* v1.1で追加 */
+[data-theme="dark"] {
+  --color-bg-primary: #1E1E1E;
+  --color-bg-secondary: #252526;
+  --color-bg-tertiary: #333333;
+  --color-text-primary: #CCCCCC;
+  --color-text-secondary: #AAAAAA;
+  --color-text-muted: #888888;
+  --color-accent: #4DA6FF;
+  --color-accent-hover: #66B3FF;
+  /* ... */
+}
+```
+
+#### 5.2 スタイリングルール（MVP必須）
+
+| ルール | 説明 | 違反例 |
+|--------|------|--------|
+| **変数使用必須** | 色・スペーシングはCSS変数を使用 | `color: #333;` |
+| **ハードコード禁止** | 直接値の記述は禁止 | `margin: 16px;` |
+| **Tailwind変数経由** | Tailwind使用時もCSS変数を参照 | `bg-white` → `bg-[var(--color-bg-primary)]` |
+
+---
+
+### 6. セマンティックHTML要件（TD-025準備）
+
+#### 6.1 必須要素
+
+| 要素 | 用途 | ARIA属性 |
+|------|------|---------|
+| `<header>` | ページヘッダー | `role="banner"` |
+| `<main>` | メインコンテンツ | `role="main"` |
+| `<nav>` | ナビゲーション | `role="navigation"` |
+| `<button>` | クリック可能要素 | `aria-label`, `aria-pressed` |
+| `<dialog>` | モーダル | `aria-modal="true"`, `aria-labelledby` |
+
+#### 6.2 禁止事項
+
+```html
+<!-- ❌ 禁止 -->
+<div onclick="handleClick()">クリック</div>
+<span class="button">保存</span>
+
+<!-- ✅ 必須 -->
+<button type="button" onClick={handleClick} aria-label="保存">
+  保存
+</button>
+```
+
+---
+
+### 7. 検証基準（PRレビューチェックリスト）
+
+#### 7.1 v1.1組み込み可能性チェック
+
+| # | チェック項目 | 対象TD | 必須 |
+|:-:|-------------|:------:|:----:|
+| 1 | 状態変更はCommand経由か | 024 | ✅ |
+| 2 | GUIパネルはRegistry登録か | 017 | ✅ |
+| 3 | 色はCSS変数使用か | 031 | ✅ |
+| 4 | セマンティックHTML使用か | 025 | ✅ |
+| 5 | 拡張ポイントにインターフェース定義があるか | 全体 | ✅ |
+| 6 | data-testid付与済みか | 026 | ⚠️ |
+
+#### 7.2 レビューフロー
+
+```
+PR作成 → 自動チェック（Lint/Type） → v1.1チェックリスト確認 → レビュー → マージ
+                                              ↓
+                                        1項目でも❌ → 修正要求
+```
+
+---
+
+### 8. リスク管理
+
+#### 8.1 特定されたリスク
+
+| リスク | 確率 | 影響度 | 緩和策 |
+|--------|:----:|:------:|--------|
+| 時間圧力によるショートカット | 高 | 高 | PRチェックリスト必須化 |
+| Command Pattern理解不足 | 中 | 高 | サンプルコード提供、ペアプロ |
+| CSS変数の使用忘れ | 中 | 中 | ESLint/Stylelintルール追加 |
+| div地獄の発生 | 低 | 高 | コンポーネントテンプレート提供 |
+
+#### 8.2 対応不能な場合
+
+**万が一、MVPがv1.1統合困難な設計になった場合**:
+
+1. リリース前にリファクタリングを実施
+2. リファクタリング完了までリリース延期
+3. **「動くがv1.1困難なMVP」はリリースしない**
+
+---
+
+### 9. 関連TD
+
+| TD | タイトル | 関係 |
+|:--:|---------|------|
+| TD-022 | APIファースト・マイクロモジュール化方針 | 基盤原則 |
+| TD-017 | GUIパネル動的切り替え | v1.1延期機能 |
+| TD-024 | Undo/Redo | v1.1延期機能（最高リスク）|
+| TD-025 | WCAG準拠 | v1.1延期機能 |
+| TD-026 | オンボーディング | v1.1延期機能 |
+| TD-028 | AIコード適用 | v1.1延期機能 |
+| TD-029 | ローカルバックアップ | v1.1延期機能 |
+| TD-031 | ダークモード | v1.1延期機能 |
+
+---
+
+### 10. 承認履歴
+
+| 日時 | 承認者 | 内容 |
+|------|--------|------|
+| 2025-12-29 | ユーザー | v1.1統合保証を絶対条件として承認 |
+| 2025-12-29 | AI (Claude Opus 4.5) | 技術的実現可能性を確認、コミットメント |
+
+---
+
+**次のレビュー予定**: 2025-12-30（MVP開発開始前の最終確認）
