@@ -1,7 +1,7 @@
 # エディタ画面構成 ベストプラクティス分析
 
 **作成日時**: 2025-12-28 18:00
-**最終更新**: 2025-12-29（Session 13 Phase 7 - TD-028エラー修正機能詳細設計）
+**最終更新**: 2025-12-29（Session 13 Phase 8 - 階層的憲法システム追加）
 **対象**: #04 エディタ画面
 **分析対象TD**: TD-017〜TD-033（エディタ画面関連）
 **重要更新**: **5機能をv1.1延期** - TD-024, 025, 026, 029, 031（TD-017, 028はMVP復帰）
@@ -1593,6 +1593,7 @@ function extractPlantUMLCode(response: string): string | null {
 |------|------|
 | 2025-12-29 | Section 12 新規作成（Session 13 Phase 6: TD-028詳細設計） |
 | 2025-12-29 | Section 12.12 追加（エラー修正機能 詳細設計）|
+| 2025-12-29 | Section 12.13 追加（階層的憲法システム）|
 
 ---
 
@@ -1931,6 +1932,776 @@ async function handleSyntaxError(
 | **適用方式** | 自動適用 | AI応答から自動抽出・自動setValue()（通常適用と同一技術）|
 | **回数制限** | 警告 | **5回目**に警告メッセージ |
 | **回数制限** | 上限 | 6回目以降は再生成ボタン非活性化 |
+
+---
+
+### 12.13 階層的憲法システム（Session 13 Phase 8）
+
+> **作成日**: 2025-12-29
+> **対象**: AIへのプロンプト生成アーキテクチャ
+> **目的**: LLM・図表タイプごとに最適化された依頼文を動的に生成
+
+#### 12.13.1 問題提起
+
+**現状の問題（ハードコードされたプロンプト）**:
+
+| 問題 | 影響 |
+|------|------|
+| LLMごとに生成品質が異なる | Claude/GPT/Gemini/Llamaで出力傾向が違う |
+| PlantUML構文エラーが頻発 | 図表タイプごとに既知の制限がある |
+| プロンプト修正 = コード修正 | デプロイが必要、改善サイクルが遅い |
+| A/Bテストが困難 | プロンプト効果測定ができない |
+| 組み合わせ爆発 | 5 LLM × 10 図表 = 50パターンの個別対応が困難 |
+
+**根本原因**:
+- AIへの依頼文がソースコードにハードコードされている
+- LLMの「癖」や図表の「既知制限」が体系化されていない
+- 運用で得た知見をプロンプトに反映する仕組みがない
+
+#### 12.13.2 解決策：階層的憲法システム
+
+**コンセプト**:
+- **憲法（Constitution）**: AIが守るべきルール・制約を外部ファイルで定義
+- **階層構造**: 共通→LLM固有→図表固有→組み合わせ固有の4層で継承
+- **動的マージ**: 実行時に適切な憲法を組み合わせてプロンプトを生成
+- **即時反映**: YAMLファイル更新のみでデプロイ不要
+
+**アーキテクチャ概要**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    階層的憲法システム                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Layer 1: 基底憲法（Base Constitution）                   │   │
+│  │ ・全LLM・全図表共通ルール                                │   │
+│  │ ・@startuml必須、出力形式、基本禁止事項                  │   │
+│  └────────────────────────┬────────────────────────────────┘   │
+│                           │                                     │
+│           ┌───────────────┴───────────────┐                     │
+│           ▼                               ▼                     │
+│  ┌─────────────────┐             ┌─────────────────┐           │
+│  │ Layer 2: LLM層  │             │ Layer 3: 図表層 │           │
+│  │ ・claude.yaml   │             │ ・sequence.yaml │           │
+│  │ ・gpt4.yaml     │             │ ・class.yaml    │           │
+│  │ ・gemini.yaml   │             │ ・activity.yaml │           │
+│  │ ・llama.yaml    │             │ ・usecase.yaml  │           │
+│  └────────┬────────┘             └────────┬────────┘           │
+│           │                               │                     │
+│           └───────────────┬───────────────┘                     │
+│                           ▼                                     │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Layer 4: 組み合わせ層（Combined）                        │   │
+│  │ ・claude_activity.yaml（特定組み合わせの問題対応）       │   │
+│  │ ・gpt4_sequence.yaml                                     │   │
+│  │ ・必要な場合のみ作成（全組み合わせは不要）               │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### 12.13.3 ディレクトリ構成
+
+```
+src/
+├── ai/
+│   ├── prompt/
+│   │   ├── IPromptBuilder.ts           # プロンプトビルダーIF
+│   │   ├── PromptBuilderFactory.ts     # ファクトリ
+│   │   ├── builders/
+│   │   │   ├── ApplyPromptBuilder.ts   # コード適用用
+│   │   │   ├── ErrorFixPromptBuilder.ts # エラー修正用
+│   │   │   └── GeneratePromptBuilder.ts # 新規生成用
+│   │   └── templates/
+│   │       ├── apply.template.ts
+│   │       ├── error_fix.template.ts
+│   │       └── generate.template.ts
+│   │
+│   ├── constitution/
+│   │   ├── IConstitutionProvider.ts    # 憲法プロバイダーIF
+│   │   ├── IConstitutionResolver.ts    # 憲法解決IF
+│   │   ├── HierarchicalResolver.ts     # 階層的解決実装
+│   │   ├── providers/
+│   │   │   ├── FileConstitutionProvider.ts    # ファイルベース
+│   │   │   └── SupabaseConstitutionProvider.ts # DB版（v1.1）
+│   │   └── schemas/
+│   │       ├── base.yaml               # 基底憲法
+│   │       ├── llm/
+│   │       │   ├── claude.yaml
+│   │       │   ├── gpt4.yaml
+│   │       │   ├── gemini.yaml
+│   │       │   └── llama.yaml
+│   │       ├── diagram/
+│   │       │   ├── sequence.yaml
+│   │       │   ├── class.yaml
+│   │       │   ├── activity.yaml
+│   │       │   ├── usecase.yaml
+│   │       │   ├── state.yaml
+│   │       │   └── component.yaml
+│   │       └── combined/
+│   │           ├── claude_activity.yaml
+│   │           └── gpt4_sequence.yaml
+│   │
+│   └── AIService.ts                    # 依存性注入で統合
+```
+
+#### 12.13.4 各層の責務
+
+| 層 | ファイル | 責務 | 内容例 |
+|:--:|---------|------|--------|
+| **Layer 1** | `base.yaml` | 全共通ルール | @startuml必須、単一ブロック出力、説明文禁止 |
+| **Layer 2** | `llm/*.yaml` | LLMの癖対応 | Claude:説明抑制、GPT:冗長防止、Gemini:特定構文回避 |
+| **Layer 3** | `diagram/*.yaml` | 図表固有構文 | Activity:if内遷移禁止、Sequence:activate対応 |
+| **Layer 4** | `combined/*.yaml` | 特定問題対応 | Claude+Activity:partition内if回避 |
+
+**ファイル数の現実**:
+- Layer 1: 1ファイル
+- Layer 2: 4〜5ファイル（主要LLM）
+- Layer 3: 6〜10ファイル（主要図表）
+- Layer 4: 必要時のみ（0〜10ファイル）
+
+**合計: 約15〜25ファイル**（50パターンではなく）
+
+#### 12.13.5 憲法ファイル仕様
+
+**共通スキーマ**:
+
+```typescript
+interface Constitution {
+  version: string;
+  type: 'base' | 'llm' | 'diagram' | 'combined';
+  extends?: string | string[];
+  target?: string;                    // LLM名 or 図表名
+  target_llm?: string;                // combined用
+  target_diagram?: string;            // combined用
+
+  // ルール定義
+  requirements?: string[];            // 必須ルール
+  prohibitions?: string[];            // 禁止事項
+  recommendations?: string[];         // 推奨事項
+
+  // 追加ルール（継承時）
+  additional_requirements?: string[];
+  additional_prohibitions?: string[];
+  additional_recommendations?: string[];
+
+  // 出力形式
+  output_format?: {
+    wrapper?: string;                 // コードラッパー
+    single_block?: boolean;           // 単一ブロック強制
+    no_explanation?: boolean;         // 説明文禁止
+    max_lines?: number;               // 最大行数
+  };
+
+  // 既知の問題（運用知見）
+  known_issues?: {
+    id: string;
+    description: string;
+    workaround: string;
+  }[];
+
+  // メタ情報
+  notes?: string[];
+  updated_at?: string;
+  updated_by?: string;
+}
+```
+
+#### 12.13.6 憲法ファイル実例
+
+**base.yaml（Layer 1: 基底憲法）**:
+
+```yaml
+version: "1.0.0"
+type: "base"
+updated_at: "2025-12-29"
+
+# 全LLM・全図表に適用される基本ルール
+requirements:
+  - "必ず @startuml で開始し @enduml で終了する"
+  - "コードブロックは1つのみ出力する"
+  - "説明文や前置きは出力しない、コードのみ"
+  - "指示された出力形式を厳守する"
+
+prohibitions:
+  - "複数の @startuml〜@enduml ブロックを出力しない"
+  - "「以下のコードを...」等の前置きを出力しない"
+  - "コード後の解説や補足を出力しない"
+  - "未完成のコード（...や省略記号）を出力しない"
+
+recommendations:
+  - "シンプルで読みやすい構造を心がける"
+  - "不要な装飾（skinparam過多）を避ける"
+
+output_format:
+  single_block: true
+  no_explanation: true
+
+notes:
+  - "この憲法は全てのLLM・図表に継承される"
+  - "Layer 2-4 で上書き・追加可能"
+```
+
+**llm/claude.yaml（Layer 2: Claude固有）**:
+
+```yaml
+version: "1.0.0"
+type: "llm"
+target: "claude"
+extends: "base"
+updated_at: "2025-12-29"
+
+# Claudeの傾向: 丁寧に説明しがち、長文になりがち
+additional_prohibitions:
+  - "コード生成前に「承知しました」「以下に...」等を出力しない"
+  - "コード生成後に「このコードは...」「上記のコードでは...」等を出力しない"
+  - "改善提案や代替案を求められていない限り提示しない"
+
+additional_requirements:
+  - "指示された内容のみを出力する"
+  - "簡潔さを最優先する"
+
+notes:
+  - "Claudeは非常に丁寧だが、コード生成時は簡潔さが重要"
+  - "説明を求められた場合のみ説明を追加する"
+```
+
+**llm/gpt4.yaml（Layer 2: GPT-4固有）**:
+
+```yaml
+version: "1.0.0"
+type: "llm"
+target: "gpt4"
+extends: "base"
+updated_at: "2025-12-29"
+
+# GPT-4の傾向: 創造的だが時に冗長、コメント過多
+additional_prohibitions:
+  - "コード内に過度なコメントを入れない"
+  - "代替案を複数提示しない（1つのベスト案のみ）"
+  - "PlantUMLのskinparamを過度に使用しない"
+
+additional_requirements:
+  - "最もシンプルな実装を選択する"
+  - "コメントは本当に必要な場合のみ"
+
+notes:
+  - "GPT-4は創造的だが、シンプルさを明示的に指示する必要がある"
+```
+
+**diagram/sequence.yaml（Layer 3: シーケンス図固有）**:
+
+```yaml
+version: "1.0.0"
+type: "diagram"
+target: "sequence"
+extends: "base"
+updated_at: "2025-12-29"
+
+additional_requirements:
+  - "participant宣言は使用順に先頭で行う"
+  - "activate/deactivateは必ずペアで使用する"
+  - "長いメッセージはnoteで補足する"
+
+additional_prohibitions:
+  - "note bottom of 構文を使用しない（note over を使用）"
+  - "activate後にdeactivateなしで終了しない"
+  - "未宣言のparticipantを使用しない"
+
+additional_recommendations:
+  - "複雑なフローはalt/opt/loopで構造化する"
+  - "参加者が多い場合はbox groupingを検討する"
+
+known_issues:
+  - id: "SEQ-001"
+    description: "note bottom of がレンダリングエラーになる"
+    workaround: "note over を使用する"
+  - id: "SEQ-002"
+    description: "activateの入れ子が深いとレイアウト崩れ"
+    workaround: "入れ子は最大3レベルまで"
+```
+
+**diagram/activity.yaml（Layer 3: アクティビティ図固有）**:
+
+```yaml
+version: "1.0.0"
+type: "diagram"
+target: "activity"
+extends: "base"
+updated_at: "2025-12-29"
+
+additional_requirements:
+  - "endif後に1行アクションを入れてからスイムレーン遷移する"
+  - "複雑な分岐はnoteで説明を補足する"
+  - "開始点(@startuml直後)と終了点(stop/end)を明確にする"
+
+additional_prohibitions:
+  - "if/elseif/else 内でスイムレーン（|lane|）遷移しない"
+  - "fork/join 内でスイムレーン遷移しない"
+  - "switch/case 内でスイムレーン遷移しない"
+  - "while内でスイムレーン遷移しない"
+
+known_issues:
+  - id: "ACT-001"
+    description: "if内スイムレーン遷移でレンダリングエラー"
+    workaround: "if全体を1スイムレーン内に収め、noteで詳細を説明"
+  - id: "ACT-002"
+    description: "fork内スイムレーン遷移でレンダリングエラー"
+    workaround: "fork全体を1スイムレーン内に収める"
+  - id: "ACT-003"
+    description: "endif直後のスイムレーン遷移でエラー"
+    workaround: "endif後に1行アクション（例: :処理完了;）を入れてから遷移"
+
+notes:
+  - "アクティビティ図はPlantUMLの既知制限が多い"
+  - "スイムレーン使用時は特に注意が必要"
+```
+
+**combined/claude_activity.yaml（Layer 4: Claude×Activity固有）**:
+
+```yaml
+version: "1.0.0"
+type: "combined"
+target_llm: "claude"
+target_diagram: "activity"
+extends:
+  - "llm/claude"
+  - "diagram/activity"
+updated_at: "2025-12-29"
+
+# Claude + Activity 特有の問題
+additional_prohibitions:
+  - "partition内でのif文使用を避ける"
+  - "複雑なネスト構造（3レベル以上）を避ける"
+
+additional_requirements:
+  - "シンプルなフロー構造を優先する"
+  - "複雑な条件は分割して表現する"
+
+notes:
+  - "Claudeはactivity図で複雑な構造を生成しがち"
+  - "明示的にシンプルさを指示する必要あり"
+  - "partition + if の組み合わせでエラー頻発"
+```
+
+#### 12.13.7 インターフェース定義
+
+```typescript
+// ========================================
+// IConstitutionProvider.ts
+// 憲法ファイルの読み込みを抽象化
+// ========================================
+
+interface IConstitutionProvider {
+  /**
+   * 指定パスの憲法を読み込む
+   * @param path 相対パス（例: "base", "llm/claude", "diagram/sequence"）
+   * @returns 憲法オブジェクト、存在しない場合はnull
+   */
+  load(path: string): Promise<Constitution | null>;
+
+  /**
+   * 利用可能な全憲法のリストを取得
+   */
+  list(): Promise<string[]>;
+
+  /**
+   * 憲法のバージョンを取得
+   */
+  getVersion(path: string): Promise<string | null>;
+}
+
+// ========================================
+// IConstitutionResolver.ts
+// 階層的な憲法解決を抽象化
+// ========================================
+
+interface IConstitutionResolver {
+  /**
+   * LLMと図表タイプから適切な憲法を解決・マージ
+   * @param llm LLMタイプ
+   * @param diagramType 図表タイプ
+   * @returns マージ済み憲法
+   */
+  resolve(llm: LLMType, diagramType: DiagramType): Promise<ResolvedConstitution>;
+}
+
+interface ResolvedConstitution {
+  // マージ後のルール
+  requirements: string[];
+  prohibitions: string[];
+  recommendations: string[];
+  outputFormat: OutputFormat;
+  knownIssues: KnownIssue[];
+
+  // メタ情報
+  resolvedFrom: string[];    // マージ元ファイル一覧
+  resolvedAt: Date;
+}
+
+// ========================================
+// IPromptBuilder.ts
+// プロンプト構築を抽象化
+// ========================================
+
+interface IPromptBuilder {
+  /**
+   * コンテキストからプロンプトを構築
+   * @param context プロンプトコンテキスト
+   * @returns 構築されたプロンプト文字列
+   */
+  build(context: PromptContext): Promise<string>;
+}
+
+interface PromptContext {
+  type: 'apply' | 'error_fix' | 'generate';
+  llm: LLMType;
+  diagramType: DiagramType;
+  userRequest: string;
+  currentCode?: string;
+  targetElements?: SelectedElement[];
+  appliedCode?: string;
+  errorInfo?: ErrorInfo;
+  attemptHistory?: AttemptRecord[];
+}
+
+type LLMType = 'claude' | 'gpt4' | 'gemini' | 'llama' | 'mistral';
+type DiagramType = 'sequence' | 'class' | 'activity' | 'usecase' | 'state' | 'component';
+```
+
+#### 12.13.8 階層的解決実装
+
+```typescript
+// HierarchicalConstitutionResolver.ts
+
+class HierarchicalConstitutionResolver implements IConstitutionResolver {
+  constructor(private provider: IConstitutionProvider) {}
+
+  async resolve(llm: LLMType, diagramType: DiagramType): Promise<ResolvedConstitution> {
+    // 1. 各層の憲法を読み込み（存在しない場合はnull）
+    const base = await this.provider.load('base');
+    const llmSpecific = await this.provider.load(`llm/${llm}`);
+    const diagramSpecific = await this.provider.load(`diagram/${diagramType}`);
+    const combined = await this.provider.load(`combined/${llm}_${diagramType}`);
+
+    // 2. 読み込み結果をログ
+    const resolvedFrom: string[] = [];
+    if (base) resolvedFrom.push('base');
+    if (llmSpecific) resolvedFrom.push(`llm/${llm}`);
+    if (diagramSpecific) resolvedFrom.push(`diagram/${diagramType}`);
+    if (combined) resolvedFrom.push(`combined/${llm}_${diagramType}`);
+
+    // 3. 優先度順にマージ（後勝ち）
+    const merged = this.merge([base, llmSpecific, diagramSpecific, combined]);
+
+    return {
+      ...merged,
+      resolvedFrom,
+      resolvedAt: new Date()
+    };
+  }
+
+  private merge(constitutions: (Constitution | null)[]): Omit<ResolvedConstitution, 'resolvedFrom' | 'resolvedAt'> {
+    const result = {
+      requirements: [] as string[],
+      prohibitions: [] as string[],
+      recommendations: [] as string[],
+      outputFormat: {} as OutputFormat,
+      knownIssues: [] as KnownIssue[]
+    };
+
+    for (const c of constitutions) {
+      if (!c) continue;
+
+      // 配列は結合
+      if (c.requirements) result.requirements.push(...c.requirements);
+      if (c.additional_requirements) result.requirements.push(...c.additional_requirements);
+
+      if (c.prohibitions) result.prohibitions.push(...c.prohibitions);
+      if (c.additional_prohibitions) result.prohibitions.push(...c.additional_prohibitions);
+
+      if (c.recommendations) result.recommendations.push(...c.recommendations);
+      if (c.additional_recommendations) result.recommendations.push(...c.additional_recommendations);
+
+      if (c.known_issues) result.knownIssues.push(...c.known_issues);
+
+      // オブジェクトは上書きマージ
+      if (c.output_format) {
+        result.outputFormat = { ...result.outputFormat, ...c.output_format };
+      }
+    }
+
+    // 重複排除
+    result.requirements = [...new Set(result.requirements)];
+    result.prohibitions = [...new Set(result.prohibitions)];
+    result.recommendations = [...new Set(result.recommendations)];
+
+    return result;
+  }
+}
+```
+
+#### 12.13.9 プロンプトビルダー実装
+
+```typescript
+// ApplyPromptBuilder.ts
+
+class ApplyPromptBuilder implements IPromptBuilder {
+  constructor(
+    private resolver: IConstitutionResolver,
+    private templateEngine: ITemplateEngine
+  ) {}
+
+  async build(context: PromptContext): Promise<string> {
+    // 1. 憲法を解決
+    const constitution = await this.resolver.resolve(context.llm, context.diagramType);
+
+    // 2. テンプレート変数を準備
+    const variables = {
+      userRequest: context.userRequest,
+      targetElements: this.formatTargetElements(context.targetElements),
+      appliedCode: context.appliedCode,
+      currentCode: context.currentCode,
+
+      // 憲法から動的に生成
+      constitutionRules: this.formatConstitutionRules(constitution)
+    };
+
+    // 3. テンプレートを適用
+    return this.templateEngine.render('apply', variables);
+  }
+
+  private formatConstitutionRules(constitution: ResolvedConstitution): string {
+    const sections: string[] = [];
+
+    // 禁止事項
+    if (constitution.prohibitions.length > 0) {
+      sections.push('【禁止事項】');
+      constitution.prohibitions.forEach(p => {
+        sections.push(`- ${p}`);
+      });
+    }
+
+    // 必須ルール
+    if (constitution.requirements.length > 0) {
+      sections.push('');
+      sections.push('【必須ルール】');
+      constitution.requirements.forEach(r => {
+        sections.push(`- ${r}`);
+      });
+    }
+
+    // 既知の問題（該当する場合）
+    if (constitution.knownIssues.length > 0) {
+      sections.push('');
+      sections.push('【既知の制限事項】');
+      constitution.knownIssues.forEach(issue => {
+        sections.push(`- ${issue.description}（回避策: ${issue.workaround}）`);
+      });
+    }
+
+    return sections.join('\n');
+  }
+
+  private formatTargetElements(elements?: SelectedElement[]): string {
+    if (!elements || elements.length === 0) {
+      return '未指定（依頼内容に基づきAIが判断）';
+    }
+    if (elements.length === 1) {
+      return `${elements[0].text}（${elements[0].lineNumber}行目）`;
+    }
+    return elements
+      .map((e, i) => `${i + 1}. ${e.text}（${e.lineNumber}行目）`)
+      .join('\n');
+  }
+}
+```
+
+#### 12.13.10 生成されるプロンプト例
+
+**入力**:
+- LLM: claude
+- DiagramType: activity
+- UserRequest: 「ユーザー認証フローにエラー処理を追加して」
+
+**生成されるプロンプト**:
+
+```
+【コード修正実行】
+
+■ ユーザーの依頼
+「ユーザー認証フローにエラー処理を追加して」
+
+■ 修正対象
+:認証処理;（12行目）
+
+■ 適用コード
+if (認証成功?) then (yes)
+  :ダッシュボードへ;
+else (no)
+  :エラー表示;
+  stop
+endif
+
+■ PlantUML生成ルール
+【禁止事項】
+- 複数の @startuml〜@enduml ブロックを出力しない
+- 「以下のコードを...」等の前置きを出力しない
+- コード後の解説や補足を出力しない
+- if/elseif/else 内でスイムレーン（|lane|）遷移しない
+- fork/join 内でスイムレーン遷移しない
+- partition内でのif文使用を避ける
+
+【必須ルール】
+- 必ず @startuml で開始し @enduml で終了する
+- コードブロックは1つのみ出力する
+- endif後に1行アクションを入れてからスイムレーン遷移する
+- シンプルなフロー構造を優先する
+
+【既知の制限事項】
+- if内スイムレーン遷移でレンダリングエラー（回避策: if全体を1スイムレーン内に収める）
+- endif直後のスイムレーン遷移でエラー（回避策: endif後に1行アクション）
+
+■ 出力形式
+修正後の完全なPlantUMLコード（@startuml〜@enduml）のみ。
+説明文は不要です。
+```
+
+#### 12.13.11 プロンプトビルダーファクトリ
+
+```typescript
+// PromptBuilderFactory.ts
+
+class PromptBuilderFactory {
+  constructor(
+    private resolver: IConstitutionResolver,
+    private templateEngine: ITemplateEngine
+  ) {}
+
+  create(type: PromptContext['type']): IPromptBuilder {
+    switch (type) {
+      case 'apply':
+        return new ApplyPromptBuilder(this.resolver, this.templateEngine);
+      case 'error_fix':
+        return new ErrorFixPromptBuilder(this.resolver, this.templateEngine);
+      case 'generate':
+        return new GeneratePromptBuilder(this.resolver, this.templateEngine);
+      default:
+        throw new Error(`Unknown prompt type: ${type}`);
+    }
+  }
+}
+
+// AIService.ts での使用例
+
+class AIService {
+  constructor(
+    private promptBuilderFactory: PromptBuilderFactory,
+    private llmClient: ILLMClient
+  ) {}
+
+  async applyCode(context: ApplyContext): Promise<string> {
+    // 1. 適切なビルダーを取得
+    const builder = this.promptBuilderFactory.create('apply');
+
+    // 2. プロンプトを構築（憲法が自動的に反映される）
+    const prompt = await builder.build({
+      type: 'apply',
+      llm: context.selectedLLM,
+      diagramType: context.diagramType,
+      userRequest: context.userRequest,
+      targetElements: context.targetElements,
+      appliedCode: context.appliedCode,
+      currentCode: context.currentCode
+    });
+
+    // 3. LLMに送信
+    return this.llmClient.send(prompt);
+  }
+}
+```
+
+#### 12.13.12 運用改善サイクル
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    憲法改善サイクル                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ① エラー発生・品質問題検出                                     │
+│     例: Claude + Activity でif内遷移エラー頻発                  │
+│                                                                 │
+│                    ▼                                            │
+│                                                                 │
+│  ② 原因分析                                                     │
+│     ├─ LLM固有の問題？ → llm/claude.yaml を更新                │
+│     ├─ 図表固有の問題？ → diagram/activity.yaml を更新         │
+│     └─ 組み合わせ固有？ → combined/claude_activity.yaml を作成 │
+│                                                                 │
+│                    ▼                                            │
+│                                                                 │
+│  ③ 憲法ファイル更新                                             │
+│     ・YAMLファイルにルール追加                                  │
+│     ・version更新                                               │
+│     ・known_issuesに問題を記録                                  │
+│                                                                 │
+│                    ▼                                            │
+│                                                                 │
+│  ④ 即時反映                                                     │
+│     ・デプロイ不要                                              │
+│     ・ファイル更新のみで次回リクエストから反映                  │
+│                                                                 │
+│                    ▼                                            │
+│                                                                 │
+│  ⑤ 効果検証                                                     │
+│     ・同じ操作で再現しないことを確認                            │
+│     ・他の機能への影響がないことを確認                          │
+│                                                                 │
+│                    ▼                                            │
+│                                                                 │
+│  ⑥ 知見の蓄積                                                   │
+│     ・憲法ファイルが運用ナレッジベースとして機能                │
+│     ・新規LLM・図表追加時の参考資料に                           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### 12.13.13 MVP vs v1.1 スコープ
+
+| 項目 | MVP | v1.1 |
+|------|:---:|:----:|
+| **Layer 1: 基底憲法** | ✅ | ✅ |
+| **Layer 2: LLM層**（Claude, GPT-4） | ✅ | ✅ |
+| **Layer 3: 図表層**（sequence, class, activity） | ✅ | ✅ |
+| 全LLM対応（Gemini, Llama, Mistral） | ❌ | ✅ |
+| 全図表対応（6種類以上） | ❌ | ✅ |
+| **Layer 4: Combined層** | ❌ | ✅ |
+| **ファイルベースプロバイダー** | ✅ | ✅ |
+| Supabaseプロバイダー（DB管理） | ❌ | ✅ |
+| 管理UI（憲法編集画面） | ❌ | ✅ |
+| A/Bテスト機能 | ❌ | ✅ |
+| 効果測定ダッシュボード | ❌ | ✅ |
+
+**MVP実装範囲**:
+- 基底憲法 + Claude/GPT-4 + sequence/class/activity
+- ファイルベースの憲法読み込み
+- 階層的マージロジック
+- プロンプトビルダー3種類（apply, error_fix, generate）
+
+#### 12.13.14 決定事項サマリー
+
+| カテゴリ | 項目 | 決定内容 |
+|---------|------|---------|
+| **アーキテクチャ** | 構造 | 4層階層構造（Base→LLM→Diagram→Combined） |
+| **アーキテクチャ** | 継承 | 差分定義、マージで最終憲法を解決 |
+| **アーキテクチャ** | 格納形式 | YAML（MVP）、Supabase（v1.1） |
+| **プロンプト** | 構築方式 | ビルダーパターン + ファクトリ |
+| **プロンプト** | 憲法反映 | 動的に挿入（ハードコード禁止） |
+| **運用** | 更新方式 | YAMLファイル更新のみ（デプロイ不要） |
+| **運用** | 知見蓄積 | known_issuesに既知問題を記録 |
+| **スコープ** | MVP | base + 2 LLM + 3 diagram |
+| **スコープ** | v1.1 | 全LLM + 全図表 + Combined + 管理UI |
 
 ---
 
