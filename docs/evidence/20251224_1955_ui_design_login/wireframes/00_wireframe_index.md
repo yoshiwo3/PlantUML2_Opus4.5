@@ -1,7 +1,7 @@
 # ワイヤーフレーム一覧
 
 **作成日**: 2025-12-27
-**最終更新**: 2025-12-30（02_selection_mode完成✅ 93.6点、Session 13 Phase 10）
+**最終更新**: 2025-12-30（03_ai_code_apply完成✅ 98点、Session 13 Phase 11）
 **関連UC**: UC 1-1〜5-13（全32UC）
 **設計方針**: TD-015（Low-Fidelity）+ TD-016（Explorer Style + Resizer）
 **画面遷移図**: v1.6（エクスプローラー方式）
@@ -66,15 +66,15 @@
 | カテゴリ | 完了 | 残り | 進捗率 |
 |---------|:----:|:----:|:------:|
 | 認証画面 | 1 | 0 | 100% |
-| メイン画面 | 2 | 1（8ファイル中2完了） | 67% |
+| メイン画面 | 3 | 1（8ファイル中3完了） | 75% |
 | モーダル | 5 | 3 | 63% |
 | 管理画面 | 0 | 5 | 0% |
-| **合計** | **8** | **9** | **47%** |
+| **合計** | **9** | **8** | **53%** |
 
 **MVP画面**: 8残り / **Phase 2画面**: 1残り（学習コンテンツ管理のみ）
 
 > **#4エディタ画面**: 8ファイル分割構成（P1: 5ファイル、P2: 3ファイル）
-> - 完了: 01_default✅、02_selection_mode✅ / 残り: 03〜08（6ファイル）
+> - 完了: 01_default✅、02_selection_mode✅、03_ai_code_apply✅ / 残り: 04〜08（5ファイル）
 
 ---
 
@@ -97,13 +97,13 @@
 |:----:|:-:|--------|--------|:------:|:----:|
 | 5 | 9 | **新規図表作成** | UC 3-1 | 低 | ✅ 完了 |
 | 6 | 10 | **テンプレート選択** | UC 3-2 | 中 | ✅ 完了 |
-| 7 | 4 | **エディタ画面（8ファイル）** | UC 3-1〜3-6, 4-1, 4-2 | **最高** | 🟡 **2/8完了** |
+| 7 | 4 | **エディタ画面（8ファイル）** | UC 3-1〜3-6, 4-1, 4-2 | **最高** | 🟡 **3/8完了** |
 | 8 | 11 | エクスポート設定 | UC 3-6 | 中 | 🔴 |
 | 9 | 12 | 図表削除確認 | UC 3-9 | 最低 | 🔴 |
 | 10 | 13 | AIチャット | UC 4-2 | 高 | 🔴 |
 
 **Phase B完了時**: 12/17画面（71%）
-> **エディタ画面**: 01_default✅ / 02_selection_mode✅ / 次は03_ai_code_apply
+> **エディタ画面**: 01_default✅ / 02_selection_mode✅ / 03_ai_code_apply✅ / 次は04_error_state
 
 ### Phase C：管理画面（MVP完成）
 
@@ -219,7 +219,7 @@
 |:-:|----------|----------|:------:|:------:|:----:|
 | 1 | 01_default.excalidraw | Mode 1 基本状態 | TD-023, TD-032 | **P1** | ✅ |
 | 2 | 02_selection_mode.excalidraw | 選択モードON | TD-028 §11.3 | **P1** | ✅ 93.6点 |
-| 3 | 03_ai_code_apply.excalidraw | AIコード適用フロー | TD-028 §11.2-11.7 | **P1** | 🔴 |
+| 3 | 03_ai_code_apply.excalidraw | AIコード適用フロー | TD-028 §11.2-11.7 | **P1** | ✅ 98点 |
 | 4 | 04_error_state.excalidraw | エラー通知状態 | TD-028 §11.8 | **P1** | 🔴 |
 | 5 | 05_sequence_modal.excalidraw | 層2統合モーダル | TD-019 v2.0 | **P1** | 🔴 |
 | 6 | 06_gui_only.excalidraw | Mode 2（GUIのみ） | TD-021 | P2 | 🔴 |
@@ -279,7 +279,7 @@ Phase 2（MVP推奨）: 06 → 07 → 08
 04_editor/
 ├── 01_default.excalidraw           # ✅ P1: 基本状態（Mode 1）96点
 ├── 02_selection_mode.excalidraw    # ✅ P1: 選択モードON（93.6点）
-├── 03_ai_code_apply.excalidraw     # 🔴 P1: AIコード適用フロー
+├── 03_ai_code_apply.excalidraw     # ✅ P1: AIコード適用フロー（98点）
 ├── 04_error_state.excalidraw       # 🔴 P1: エラー通知状態
 ├── 05_sequence_modal.excalidraw    # 🔴 P1: 層2統合モーダル
 ├── 06_gui_only.excalidraw          # 🔴 P2: Mode 2（GUIのみ）
@@ -299,6 +299,9 @@ Phase 2（MVP推奨）: 06 → 07 → 08
 
 **02_selection_mode（選択モードON）✅ 93.6点**:
 ![[04_editor/02_selection_mode.excalidraw]]
+
+**03_ai_code_apply（AIコード適用フロー）✅ 98点**:
+![[04_editor/03_ai_code_apply.excalidraw]]
 
 #### ~~05. 学習コンテンツ~~ → ホーム内ビューに統合（v1.5）
 > UC 3-10, 3-11 は「02. ホーム」の学習コンテンツビューとして実装
