@@ -1,4 +1,4 @@
-# ワークシート（完全版 v8.4 - Session 13完了）
+# ワークシート（完全版 v8.6 - Session 13 Phase 10完了）
 
 **作業期間**: 2025-12-24 19:55 〜 2025-12-29（全13セッション）
 **担当**: Claude + User協調作成
@@ -28,7 +28,7 @@
 | **Session 10成果** | #07 PJ編集（100点）、#08 PJ削除確認（100点）、Phase A完了、CS-005対策実施 |
 | **Session 11成果** | **#09（100点）、#10（100点）、Phase B 2/6完了、EX-012〜014/CS-006〜008追加** |
 | **Session 12成果** | **TD-023作成、画面構成分析100点達成、ファイル名プレフィックス修正** |
-| **Session 13成果** | **TD-028エラー修正機能詳細設計、階層的憲法システム設計（§12.12-12.13追加、約1090行）** |
+| **Session 13成果** | **TD-028詳細設計、階層的憲法、01_default/02_selection_mode完成（8ファイル中2完了）** |
 
 ---
 
@@ -997,6 +997,34 @@ interface Constitution {
 
 **成果**: エディタ画面8ファイル中1ファイル完成（12.5%）
 
+#### Phase 10: 02_selection_mode.excalidraw完成
+
+**完了内容**:
+
+| 作業 | 変更内容 |
+|------|---------|
+| トグルスイッチ | GUI/Codeパネル ON状態（黄色#FEF3CD、ノブ右寄せ）|
+| コード選択ハイライト | 黄色背景、**破線枠**（strokeStyle: dashed）|
+| Previewハイライト | 対応メッセージ黄色、太枠（strokeWidth: 2）|
+| 選択クリアボタン | GUIパネル下部に追加 |
+| 操作フロー注釈 | ①②③の番号付き説明をキャンバス外に配置 |
+
+**ユーザー編集内容**:
+- ハイライト位置・サイズの精密調整
+- 破線スタイル（dashed）への変更
+- 番号付き操作フロー注釈の追加（①②③）
+
+**ドキュメント更新**:
+
+| ファイル | 変更内容 |
+|---------|---------|
+| `03_wireframe_division_plan.md` | v1.1→v1.2（02_selection_mode✅ 93.6点）|
+| `00_wireframe_index.md` | 02_selection_mode Obsidianリンク追加 |
+| `active_context.md` | 次作業: 03_ai_code_apply明記 |
+
+**スコア**: 93.6点（合格、軽微なtypoあり）
+**成果**: エディタ画面8ファイル中2ファイル完成（25%）
+
 ---
 
 ### 関連Gitコミット
@@ -1005,7 +1033,8 @@ interface Constitution {
 |---------|------|------|
 | `21bd979` | 2025-12-29 | docs: TD-028 エラー修正機能 詳細設計（Session 13 Phase 7）|
 | `52f7130` | 2025-12-29 | docs: TD-028 階層的憲法システム追加（Session 13 Phase 8）|
-| (pending) | 2025-12-29 | docs: 01_default.excalidraw完成（Session 13 Phase 9）|
+| `b3a5bda` | 2025-12-29 | refactor: 画面構成分析ドキュメント整理（v9.0正式化）|
+| (pending) | 2025-12-30 | docs: 02_selection_mode.excalidraw完成（Session 13 Phase 10）|
 
 ### 技術的決定事項
 
@@ -1035,4 +1064,5 @@ interface Constitution {
 | v7.1 | 2025-12-28 | Session 8完了（128件）、再発防止策4ファイル更新、CS-002追加 |
 | v7.2 | 2025-12-28 | Session 9開始: #06新規PJ作成モーダル作成 |
 | v8.4 | 2025-12-29 | Session 13追加（180件+）、TD-028エラー修正機能詳細設計、階層的憲法システム設計（§12.12-12.13約1090行）|
-| **v8.5** | **2025-12-29** | **Phase 9: 01_default.excalidraw完成、03_wireframe_division_plan.md v1.1更新、00_wireframe_index.md・active_context.md 8ファイル構成反映** |
+| v8.5 | 2025-12-29 | Phase 9: 01_default.excalidraw完成、03_wireframe_division_plan.md v1.1更新 |
+| **v8.6** | **2025-12-30** | **Phase 10: 02_selection_mode.excalidraw完成✅ 93.6点、ユーザー編集反映（破線ハイライト、操作フロー注釈）** |

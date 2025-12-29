@@ -1,7 +1,7 @@
-# 作業メモ（完全版 v8.3 - Session 13 Phase 9完了）
+# 作業メモ（完全版 v8.4 - Session 13 Phase 10完了）
 
 **データソース**: Claude Ops MCP（ファイル変更履歴・Bash履歴）
-**総操作数**: 185件+（ファイル変更125件+ + Bash 35件 + Session 12-13 Phase 9）
+**総操作数**: 190件+（ファイル変更130件+ + Bash 35件 + Session 13 Phase 10）
 **本ドキュメント特徴**: 各操作のdiff詳細、作成ファイル内容、技術仕様を完全記録
 
 ---
@@ -2062,8 +2062,8 @@ known_issues:
 
 | # | ファイル | 状態 | 優先度 | 進捗 |
 |:-:|----------|------|:------:|:----:|
-| 1 | 01_default | Mode 1 基本状態 | P1 | ✅ |
-| 2 | 02_selection_mode | 選択モードON | P1 | 🔴 |
+| 1 | 01_default | Mode 1 基本状態 | P1 | ✅ 96点 |
+| 2 | 02_selection_mode | 選択モードON | P1 | ✅ 93.6点 |
 | 3 | 03_ai_chat_expanded | AIチャット展開 | P1 | 🔴 |
 | 4 | 04_validation_error | 構文エラー表示 | P1 | 🔴 |
 | 5 | 05_excalidraw_mode | Excalidrawモード | P1 | 🔴 |
@@ -2071,4 +2071,34 @@ known_issues:
 | 7 | 07_template_applied | テンプレート適用直後 | P2 | 🔴 |
 | 8 | 08_version_history | バージョン履歴パネル | P2 | 🔴 |
 
-**進捗: 1/8 完了（12.5%）**
+**進捗: 2/8 完了（25%）**
+
+### Phase 10: 02_selection_mode.excalidraw完成
+
+**ワイヤーフレーム変更**:
+
+| 要素 | 変更内容 |
+|------|---------|
+| トグルスイッチ（GUI/Code） | ON状態: 黄色#FEF3CD、ノブ右寄せ |
+| コード選択ハイライト | 黄色背景、**破線枠**（dashed） |
+| Previewハイライト | 対応メッセージ黄色、太枠（strokeWidth: 2） |
+| 選択クリアボタン | GUIパネル下部に追加 |
+| 操作フロー注釈 | ①②③番号付き説明（キャンバス外配置） |
+
+**ユーザー編集**:
+- ハイライト位置・サイズの精密調整
+- 破線スタイル（dashed）への変更
+- 番号付き操作フロー注釈の追加
+
+**ドキュメント更新**:
+
+| # | ファイル | 変更内容 |
+|:-:|---------|---------|
+| 173 | `02_selection_mode.excalidraw` | 選択モードON状態 作成 |
+| 174 | `03_wireframe_division_plan.md` | v1.1→v1.2: 02_selection_mode✅ 93.6点 |
+| 175 | `00_wireframe_index.md` | 02_selection_mode Obsidianリンク追加 |
+| 176 | `active_context.md` | 次作業: 03_ai_code_apply明記 |
+| 177 | `work_sheet.md` | Phase 10追加、v8.6 |
+| 178 | `00_raw_notes.md` | Phase 10追加、v8.4 |
+
+**スコア**: 93.6点（合格）
