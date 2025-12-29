@@ -1,7 +1,7 @@
 # エディタ画面構成 ベストプラクティス分析
 
 **作成日時**: 2025-12-28 18:00
-**最終更新**: 2025-12-29（Session 13 Phase 4 - MVP延期機能明示化）
+**最終更新**: 2025-12-29（Session 13 Phase 7 - TD-028エラー修正機能詳細設計）
 **対象**: #04 エディタ画面
 **分析対象TD**: TD-017〜TD-033（エディタ画面関連）
 **重要更新**: **5機能をv1.1延期** - TD-024, 025, 026, 029, 031（TD-017, 028はMVP復帰）
@@ -1305,10 +1305,12 @@ Session 13 Phase 1の評価結果（88.85点、B評価）において、以下2�
 
 | # | 決定項目 | 決定内容 |
 |:-:|---------|---------|
-| 22 | ボタン表示位置 | AIチャットパネル内 |
+| 22 | ボタン表示位置 | **エラー通知バナー内**（Code/Previewパネル境界）|
 | 23 | ボタンラベル | 「再生成」 |
-| 24 | AIへの送信内容 | エラーメッセージ + エラー周辺コード |
-| 25 | 連続エラー時 | 何度でも再依頼可能 |
+| 24 | AIへの送信内容 | エラーメッセージ + **エラー周辺コード（必須）** + 前回試行履歴 |
+| 25 | 連続エラー時 | **5回目に警告**、6回目以降は再生成ボタン非活性化 |
+
+> **重要**: エラー通知はAIチャット欄に表示しない（会話履歴が汚れるため）
 
 ---
 
@@ -1483,31 +1485,14 @@ function extractPlantUMLCode(response: string): string | null {
 
 #### 12.7.2 エラー時の再生成処理
 
+> **詳細仕様**: セクション12.12「エラー修正機能 詳細設計」参照
+
+**簡易概要**:
 ```typescript
-async function handleRegenerate(
-  originalRequest: string,
-  errorMessage: string,
-  errorContext: string
-): Promise<void> {
-  const prompt = `【エラー修正依頼】
-
-■ 元の依頼
-「${originalRequest}」
-
-■ エラー内容
-${errorMessage}
-
-■ エラー周辺のコード
-${errorContext}
-
-■ 指示
-上記のエラーを修正した完全なPlantUMLコード（@startuml〜@enduml）のみを返してください。
-説明文は不要です。`;
-
-  const aiResponse = await sendToAI(prompt);
-  // 以降は通常の適用処理と同じ
-  await processAIResponse(aiResponse);
-}
+// 詳細実装は12.12.9参照
+// エラー周辺コード（± 5行）+ 試行履歴 を含むプロンプトを送信
+// AI応答から自動抽出 → Monaco Editor setValue() で自動適用
+// 5回目に警告、6回目以降は再生成ボタン非活性化
 ```
 
 ---
@@ -1584,7 +1569,9 @@ ${errorContext}
 | **AI回答選択** | 選択方法 | トグルボタン → ドラッグ選択 |
 | **適用処理** | 適用方式 | 確認ダイアログ → AI送信 → 結果適用 |
 | **適用処理** | Undo | Ctrl+Z 1回で全復元 |
-| **エラー処理** | 構文エラー | AIに修正依頼（ワンボタン） |
+| **エラー処理** | 構文エラー | AIに修正依頼（ワンボタン）→ 詳細は12.12参照 |
+| **エラー処理** | 通知場所 | **Previewパネル上部バナー**（AIチャット欄は不使用）|
+| **エラー処理** | 回数制限 | **5回目に警告**、6回目以降は非活性化 |
 | **依頼文** | フォーマット | 構造化形式（元依頼 + 対象 + 適用コード + 指示） |
 
 ---
@@ -1605,6 +1592,345 @@ ${errorContext}
 | 日時 | 内容 |
 |------|------|
 | 2025-12-29 | Section 12 新規作成（Session 13 Phase 6: TD-028詳細設計） |
+| 2025-12-29 | Section 12.12 追加（エラー修正機能 詳細設計）|
+
+---
+
+### 12.12 エラー修正機能 詳細設計（Session 13 Phase 7）
+
+> **作成日**: 2025-12-29
+> **対象**: AIコード適用時の構文エラー処理
+
+#### 12.12.1 エラー発生時の画面状態
+
+**画面構成（エラー発生後）**:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ヘッダー                                    [GUI+Code] [GUI] [Code]         │
+├────────┬─────────────┬──────────────────────────────────────────────────────┤
+│ GUI    │ Code        │ Preview                                              │
+│ Panel  │ Panel       │ Panel                                                │
+│        │             │                                                      │
+│        │  12│ ★黄色  │  ┌──────────────────────────────────────────────┐   │
+│        │  ハイライト │  │ ⚠️ 構文エラー（12行目）                     │   │
+│        │             │  │ Expected 'as' keyword                       │   │
+│        │             │  │            [再生成] [閉じる]                 │   │
+│        │             │  └──────────────────────────────────────────────┘   │
+│        │             │                                                      │
+├────────┴─────────────┴──────────────────────────────────────────────────────┤
+│ AIチャットパネル（エラー通知なし = クリーンな会話履歴維持）                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 12.12.2 エラー通知方式
+
+| 要素 | 実装 | 理由 |
+|------|------|------|
+| **Monaco Editor ハイライト** | 黄色背景（TD-017準拠）| エラー箇所を視覚的に明示 |
+| **インラインバナー** | Preview上部に表示 | ワークフロー中断を避ける |
+| **AIチャット欄** | **使用しない** | 会話履歴の汚染を防止 |
+| **モーダル** | **使用しない** | 作業フローの中断を防止 |
+
+#### 12.12.3 エラー通知バナー仕様
+
+| 項目 | 仕様 |
+|------|------|
+| **表示位置** | Previewパネル上端（Code/Preview境界付近）|
+| **背景色** | オレンジ系警告色（#FFF3CD または類似）|
+| **テキスト色** | 濃いオレンジ/茶色（#856404）|
+| **アイコン** | ⚠️ 警告アイコン |
+| **内容** | エラー種別（行番号）+ エラーメッセージ |
+| **ボタン** | 「再生成」「閉じる」|
+| **自動消去** | なし（ユーザー操作まで表示継続）|
+| **サイズ** | 高さ約60px、幅はPreviewパネル幅に追従 |
+
+**バナーHTML構造例**:
+```html
+<div class="error-banner">
+  <span class="error-icon">⚠️</span>
+  <div class="error-content">
+    <span class="error-title">構文エラー（12行目）</span>
+    <span class="error-message">Expected 'as' keyword</span>
+  </div>
+  <div class="error-actions">
+    <button class="btn-regenerate">再生成</button>
+    <button class="btn-close">閉じる</button>
+  </div>
+</div>
+```
+
+#### 12.12.4 AIへの送信内容（エラー修正依頼）
+
+| 項目 | 内容 | 必須 |
+|------|------|:----:|
+| **元の依頼** | ユーザーの最初の修正依頼 | ✅ |
+| **エラーメッセージ** | PlantUMLバリデーションエラー | ✅ |
+| **エラー行番号** | 構文エラーの発生行 | ✅ |
+| **エラー周辺コード** | エラー行 ± 5行（計11行）| ✅ |
+| **完全コード** | @startuml〜@enduml全体 | ✅ |
+| **前回試行履歴** | 過去の修正試行とエラー内容 | ✅ |
+
+**なぜエラー周辺コードが必要か**:
+- AIの会話履歴はコンテキストウィンドウの制限で失われる可能性
+- 周辺コンテキストがあると、AIがエラー原因をより正確に特定できる
+- 特に長いPlantUMLコードの場合、エラー箇所のみでは文脈不足
+
+#### 12.12.5 自動適用の技術的仕組み
+
+**「自動適用」とは**:
+エラー再生成後、ユーザーが範囲選択や「適用」ボタンを押さずとも、
+システムがAI応答からコードを抽出し自動でCode panelに反映する仕組み。
+
+**技術的には通常適用と同一**:
+
+```
+【通常適用フロー】
+ユーザー → AI回答から範囲選択 → 「適用」クリック
+  → システムがAIに修正依頼送信
+  → AI応答受信
+  → @startuml〜@enduml抽出（正規表現）
+  → Monaco Editor setValue()
+  → 構文検証 → エラーあり → エラー処理へ
+
+【エラー再生成フロー（自動適用）】
+ユーザー → 「再生成」クリック
+  → システムがAIにエラー修正依頼送信
+  → AI応答受信
+  → @startuml〜@enduml抽出（正規表現）★
+  → Monaco Editor setValue()           ★ ← 自動適用（ユーザー操作不要）
+  → 構文検証
+    → エラーなし → 完了、バナー消去
+    → エラーあり → エラー処理ループ（試行回数+1）
+```
+
+**「自動」の意味**:
+- 通常適用：ユーザーがAI回答からコード範囲選択 → 「適用」クリック必要
+- エラー再生成：**ユーザー操作不要**、システムが自動でコード抽出・適用
+
+#### 12.12.6 回数制限と警告
+
+| 試行回数 | システム動作 |
+|:--------:|-------------|
+| 1〜4回目 | 通常のエラー再生成処理（バナー表示 → 再生成 → 自動適用）|
+| **5回目** | **警告メッセージ表示** + 再生成ボタン有効 + 手動修正推奨メッセージ |
+| 6回目以降 | 再生成ボタン**非活性化**、手動修正のみ可能 |
+
+**5回目警告時のバナー**:
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│ ⚠️ エラー修正の試行回数が上限に達しました（5/5）                         │
+│ AIによる自動修正が困難なエラーの可能性があります。                       │
+│ 手動でコードを修正することをお勧めします。                               │
+│                                    [最後の再生成] [閉じる]               │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+**6回目以降のバナー**:
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│ ❌ 自動修正の上限（5回）を超えました                                     │
+│ 手動でコードを修正してください。                                         │
+│                                                      [閉じる]            │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 12.12.7 エラー修正依頼プロンプト
+
+```typescript
+interface ErrorFixRequest {
+  originalRequest: string;     // 元のユーザー依頼
+  errorMessage: string;        // エラーメッセージ
+  errorLineNumber: number;     // エラー行番号
+  surroundingCode: string;     // エラー行 ± 5行
+  fullCode: string;            // 完全な@startuml〜@enduml
+  attemptHistory: AttemptRecord[]; // 過去の試行履歴
+}
+
+interface AttemptRecord {
+  attemptNumber: number;
+  errorMessage: string;
+  appliedFix: string;  // 試行した修正内容（概要）
+}
+
+function buildErrorFixPrompt(request: ErrorFixRequest): string {
+  // 試行履歴のフォーマット
+  let historyText = '';
+  if (request.attemptHistory.length > 0) {
+    historyText = '\n■ 過去の修正試行\n';
+    historyText += request.attemptHistory
+      .map(a => `  ${a.attemptNumber}回目: ${a.errorMessage}`)
+      .join('\n');
+    historyText += '\n';
+  }
+
+  return `【エラー修正依頼】
+
+■ 元の依頼
+「${request.originalRequest}」
+
+■ 発生したエラー
+${request.errorMessage}
+（${request.errorLineNumber}行目）
+
+■ エラー周辺のコード
+\`\`\`plantuml
+${request.surroundingCode}
+\`\`\`
+${historyText}
+■ 完全なコード
+\`\`\`plantuml
+${request.fullCode}
+\`\`\`
+
+■ 指示
+上記のエラーを修正した完全なPlantUMLコード（@startuml〜@enduml）のみを返してください。
+説明文は不要です。`;
+}
+```
+
+#### 12.12.8 周辺コード抽出関数
+
+```typescript
+function extractSurroundingCode(
+  fullCode: string,
+  errorLine: number,
+  contextLines: number = 5
+): string {
+  const lines = fullCode.split('\n');
+  const startLine = Math.max(0, errorLine - contextLines - 1);
+  const endLine = Math.min(lines.length, errorLine + contextLines);
+
+  return lines
+    .slice(startLine, endLine)
+    .map((line, idx) => {
+      const lineNum = startLine + idx + 1;
+      const marker = lineNum === errorLine ? '>>> ' : '    ';
+      return `${marker}${lineNum}| ${line}`;
+    })
+    .join('\n');
+}
+
+// 使用例:
+// エラー行: 12
+// 出力:
+//      7| participant Alice
+//      8| participant Bob
+//      9|
+//     10| Alice -> Bob: Hello
+//     11| activate Bob
+// >>> 12| Bob -> Alice
+//     13| deactivate Bob
+//     14|
+//     15| @enduml
+```
+
+#### 12.12.9 エラー処理フロー（完全版）
+
+```typescript
+let attemptCount = 0;
+const MAX_ATTEMPTS = 5;
+const attemptHistory: AttemptRecord[] = [];
+
+async function handleSyntaxError(
+  originalRequest: string,
+  errorMessage: string,
+  errorLine: number,
+  fullCode: string
+): Promise<void> {
+  attemptCount++;
+
+  // 1. 上限チェック
+  if (attemptCount > MAX_ATTEMPTS) {
+    showFinalErrorBanner();
+    return;
+  }
+
+  // 2. 5回目警告チェック
+  if (attemptCount === MAX_ATTEMPTS) {
+    showWarningBanner();
+    // ボタンは有効のまま継続
+  }
+
+  // 3. バナー表示
+  showErrorBanner({
+    message: errorMessage,
+    line: errorLine,
+    attemptCount: attemptCount,
+    maxAttempts: MAX_ATTEMPTS,
+    onRegenerate: async () => {
+      // 4. 周辺コード抽出
+      const surroundingCode = extractSurroundingCode(fullCode, errorLine);
+
+      // 5. プロンプト構築
+      const prompt = buildErrorFixPrompt({
+        originalRequest,
+        errorMessage,
+        errorLineNumber: errorLine,
+        surroundingCode,
+        fullCode,
+        attemptHistory
+      });
+
+      // 6. AIに送信
+      const aiResponse = await sendToAI(prompt);
+
+      // 7. コード抽出
+      const fixedCode = extractPlantUMLCode(aiResponse);
+      if (!fixedCode) {
+        showErrorBanner({ message: 'AIから有効なコードが返されませんでした', ... });
+        return;
+      }
+
+      // 8. 試行履歴に記録
+      attemptHistory.push({
+        attemptNumber: attemptCount,
+        errorMessage: errorMessage,
+        appliedFix: `AI修正適用（${new Date().toLocaleTimeString()}）`
+      });
+
+      // 9. 自動適用（Monaco Editor更新）
+      monacoEditor.setValue(fixedCode);
+
+      // 10. 再検証
+      const validationResult = await validatePlantUML(fixedCode);
+      if (validationResult.isValid) {
+        // 成功 → バナー消去、カウンターリセット
+        hideErrorBanner();
+        attemptCount = 0;
+        attemptHistory.length = 0;
+        showSuccess('エラーが修正されました');
+      } else {
+        // 再度エラー → 再帰的に処理
+        await handleSyntaxError(
+          originalRequest,
+          validationResult.errorMessage,
+          validationResult.errorLine,
+          fixedCode
+        );
+      }
+    },
+    onClose: () => {
+      hideErrorBanner();
+      // カウンターはリセットしない（ユーザーが手動修正する可能性）
+    }
+  });
+}
+```
+
+#### 12.12.10 決定事項サマリー
+
+| カテゴリ | 項目 | 決定内容 |
+|---------|------|---------|
+| **通知方式** | エラー表示 | Previewパネル上部のインラインバナー |
+| **通知方式** | AIチャット | **使用しない**（会話履歴汚染防止）|
+| **通知方式** | モーダル | **使用しない**（フロー中断防止）|
+| **通知方式** | Monaco | 黄色背景ハイライト（TD-017準拠）|
+| **送信内容** | エラー周辺コード | **必須**（± 5行 = 計11行）|
+| **送信内容** | 試行履歴 | **必須**（AIが同じ修正を繰り返さないため）|
+| **適用方式** | 自動適用 | AI応答から自動抽出・自動setValue()（通常適用と同一技術）|
+| **回数制限** | 警告 | **5回目**に警告メッセージ |
+| **回数制限** | 上限 | 6回目以降は再生成ボタン非活性化 |
 
 ---
 
