@@ -542,6 +542,199 @@ const GUIPanel = guiPanelComponents[diagramType] || GenericCodeEditor;
 - シーケンス図GUI: ✅ 必須（最も使用頻度が高い）
 - その他: Phase 2以降で順次対応
 
+---
+
+### TD-017 システム動作仕様（2025-12-29 Session 13 Phase 5追加）
+
+#### 1. GUIパネル切り替えトリガー（決定: C案）
+
+| トリガー | 動作 |
+|---------|------|
+| **自動検出** | `@startuml`/`@enduml`種別からGUIタイプを判定 |
+| **手動オーバーライド** | GUIパネル上部のドロップダウンでユーザーが選択可能 |
+
+```typescript
+// Registry Pattern実装
+interface IGUIPanelRegistry {
+  register(diagramType: string, component: React.ComponentType): void;
+  getPanel(diagramType: string): React.ComponentType | null;
+  detectType(code: string): string;  // @startuml種別を自動検出
+}
+
+// MVP登録
+registry.register('sequence', SequenceDiagramGUIPanel);
+registry.register('default', GenericGUIPanel);
+```
+
+#### 2. GUI未対応図表の扱い（決定: A案）
+
+| 図表タイプ | GUIパネル | パネル構成 |
+|-----------|----------|-----------|
+| **sequence** | SequenceDiagramGUIPanel | GUI + Code + Preview（3パネル）|
+| **その他** | **非表示** | Code + Preview（2パネル）|
+
+```
+シーケンス図の場合:
+┌────────┬────────────┬────────────┐
+│  GUI   │    Code    │  Preview   │
+│ 300px  │   650px    │   962px    │
+└────────┴────────────┴────────────┘
+
+その他の図表（クラス図、アクティビティ図等）:
+┌───────────────────┬────────────────────┐
+│       Code        │      Preview       │
+│      ~900px       │      ~1000px       │
+└───────────────────┴────────────────────┘
+```
+
+#### 3. GUI↔Code同期タイミング（決定: A案）
+
+| 方向 | debounce | 動作 |
+|------|:--------:|------|
+| **GUI → Code** | 300ms | GUI操作後、即時にCodeパネルに反映 |
+| **Code → GUI** | 500ms | Code編集後、即時にGUIパネルに反映 |
+
+```typescript
+// 同期エンジン
+interface ISyncEngine {
+  // GUI → Code
+  onGUIChange(change: GUIChange): void;  // debounce 300ms
+
+  // Code → GUI
+  onCodeChange(code: string): void;  // debounce 500ms
+
+  // 競合解決（同時編集時）
+  resolutionStrategy: 'last-write-wins';
+}
+```
+
+#### 4. Codeパース失敗時のGUI動作（決定: E+案）
+
+**エラー許容モード + Codeエラー箇所ハイライト**
+
+| 状態 | 動作 |
+|------|------|
+| **GUI表示** | 最終有効状態を維持（編集可能） |
+| **GUI操作** | 許可（→Codeに反映、エラー解消の可能性あり）|
+| **Code→GUI** | 停止（エラー解消まで） |
+| **GUI→Code** | 継続 |
+
+**UI表示**:
+```
+┌─────────────────────────────────────────────────────┐
+│ ⚠️ コードにエラーがあります - GUI同期を一時停止中    │
+│                              [エラーを見る] [再同期] │
+└─────────────────────────────────────────────────────┘
+```
+
+**Codeパネルのエラー表示（黄色背景）**:
+```typescript
+// Monaco Editor Decorations API
+editor.deltaDecorations([], [{
+  range: new monaco.Range(errorLine, 1, errorLine, 1),
+  options: {
+    isWholeLine: true,
+    className: 'error-line-highlight',  // background: #fff3cd (黄色)
+    glyphMarginClassName: 'error-glyph' // ⚠️ アイコン
+  }
+}]);
+
+// Monaco Editor Model Markers（波線 + ホバーメッセージ）
+monaco.editor.setModelMarkers(model, 'plantuml', [{
+  startLineNumber: errorLine,
+  startColumn: 1,
+  endLineNumber: errorLine,
+  endColumn: 100,
+  message: 'PlantUML構文エラー: ' + errorMessage,
+  severity: monaco.MarkerSeverity.Warning  // 黄色波線
+}]);
+```
+
+**エラー検出方法**:
+| 方法 | 実装 |
+|------|------|
+| **PlantUMLレンダリング結果** | Preview生成失敗時、エラーメッセージから行番号を抽出 |
+| **エラーメッセージ形式** | `Error line N: ...` をパースして行番号取得 |
+
+#### 技術的方法論: Monaco Editorエラーハイライト
+
+**1. 使用API（確立済み技術）**:
+
+| API | 目的 | Monaco公式ドキュメント |
+|-----|------|----------------------|
+| **Decorations API** | 行背景色・グリフマージン | `editor.deltaDecorations()` |
+| **Model Markers** | 波線・ホバーメッセージ | `monaco.editor.setModelMarkers()` |
+
+**2. CSS定義**:
+```css
+/* 黄色背景（エラー行ハイライト） */
+.error-line-highlight {
+  background-color: #fff3cd !important;  /* Bootstrap warning色 */
+  border-left: 3px solid #ffc107;
+}
+
+/* グリフマージンアイコン */
+.error-glyph {
+  background: url('data:image/svg+xml,...') center no-repeat;  /* ⚠️ アイコン */
+}
+```
+
+**3. エラー検出フロー**:
+```
+[Code変更]
+    ↓
+[PlantUMLレンダリング実行]
+    ↓
+┌───────────────────────────────────┐
+│ 成功？                            │
+├─── Yes ──→ エラー表示クリア        │
+│            decorations = []        │
+│            markers = []            │
+│                                   │
+└─── No ───→ エラーパース            │
+             ↓                       │
+     エラーメッセージから行番号抽出    │
+     例: "Error line 4: ..."         │
+             ↓                       │
+     Decorations + Markers適用       │
+└───────────────────────────────────┘
+```
+
+**4. PlantUMLエラーメッセージパーサー**:
+```typescript
+interface PlantUMLError {
+  line: number;
+  column?: number;
+  message: string;
+}
+
+function parsePlantUMLError(errorOutput: string): PlantUMLError[] {
+  const errors: PlantUMLError[] = [];
+  const regex = /Error line (\d+)(?: column (\d+))?: (.+)/gi;
+  let match;
+
+  while ((match = regex.exec(errorOutput)) !== null) {
+    errors.push({
+      line: parseInt(match[1], 10),
+      column: match[2] ? parseInt(match[2], 10) : undefined,
+      message: match[3].trim()
+    });
+  }
+
+  return errors;
+}
+```
+
+**5. 実装信頼性**:
+
+| 項目 | 評価 |
+|------|------|
+| **Monaco API安定性** | ✅ VSCode同一基盤、長期サポート |
+| **PlantUMLエラー形式** | ✅ 安定したフォーマット（10年以上の実績） |
+| **ブラウザ互換性** | ✅ Monaco対応ブラウザで動作保証 |
+
+---
+
 **関連ドキュメント**:
 - `docs/evidence/20251224_1955_ui_design_login/wireframes/04_editor/`
 - TD-015（ワイヤーフレーム方針）
