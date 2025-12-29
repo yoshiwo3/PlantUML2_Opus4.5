@@ -1,7 +1,7 @@
-# 作業メモ（完全版 v8.1 - Session 11完了）
+# 作業メモ（完全版 v8.2 - Session 13完了）
 
 **データソース**: Claude Ops MCP（ファイル変更履歴・Bash履歴）
-**総操作数**: 150件+α（ファイル変更100件+ + Bash 31件 + Session 9-11）
+**総操作数**: 180件+（ファイル変更120件+ + Bash 35件 + Session 12-13）
 **本ドキュメント特徴**: 各操作のdiff詳細、作成ファイル内容、技術仕様を完全記録
 
 ---
@@ -1817,3 +1817,222 @@ Session 11で発見・対策した問題:
 | CS-006/CS-007根本対策 | ✅ 実施済み |
 | 知見ベース更新 | EX-012〜014、CS-008追加 |
 | 進捗 | 8/17画面（47%）|
+
+---
+
+## 2025-12-29（Session 13）20+操作 - TD-028エラー修正機能 + 階層的憲法システム
+
+### Session 13 概要
+
+| 項目 | 内容 |
+|------|------|
+| **目的** | TD-028 AIコード適用機能のエラー修正機能詳細設計 + 階層的憲法システム設計 |
+| **主要成果** | §12.12（約320行）、§12.13（約770行）追加 |
+| **コミット** | `21bd979`, `52f7130` |
+| **対象ファイル** | `02_screen_composition_analysis.md` |
+
+### Phase 6: ユーザー指摘4点への対応
+
+**ユーザー指摘内容**:
+
+| # | 指摘 | 対応 |
+|:-:|------|------|
+| 1 | 「エラー周辺コード → 送信必要」 | ±5行のコンテキストコードを必須化 |
+| 2 | 「自動適用の技術的仕組みを説明して」 | Monaco Editor setValue()フロー明記 |
+| 3 | 「回数制限は5回目に警告」 | 3回→5回に変更、6回目以降無効化 |
+| 4 | 「エラー通知はAIチャット欄やめたい」 | インラインバナー（Previewパネル上部）に変更 |
+
+**対応diff詳細（§12.5.3更新）**:
+
+```diff
+-| 4 | **エラーハンドリング** | エラー発生時はエラーメッセージをAIに送信し、再生成を依頼。自動適用 |
++| 4 | **エラーハンドリング** | エラー発生時はエラーメッセージ＋エラー周辺コードをAIに送信し、再生成を依頼。インラインバナーで通知、自動適用（Monaco setValue()）|
+```
+
+### Phase 7: エラー修正機能 詳細設計（§12.12追加）
+
+**追加内容（約320行）**:
+
+| セクション | 内容 |
+|-----------|------|
+| 12.12.1 エラー修正フローの全体像 | フローチャート図（ASCII） |
+| 12.12.2 エラー情報収集仕様 | エラー行番号、メッセージ、周辺コード±5行 |
+| 12.12.3 AI修正リクエスト仕様 | プロンプト構造、コンテキスト情報 |
+| 12.12.4 エラーバナーUI仕様 | Previewパネル上部、#FEF3CD背景 |
+| 12.12.5 自動適用メカニズム | 正規表現抽出 → Monaco setValue() |
+| 12.12.6 試行回数管理 | 5回目警告、6回目以降無効化 |
+| 12.12.7 Monaco Editor連携 | 黄色ハイライト、エラー行ジャンプ |
+
+**自動適用フロー（技術詳細）**:
+
+```
+【エラー再生成フロー（自動適用）】
+ユーザー → 「再生成」クリック
+  → システムがAIにエラー修正依頼送信
+    - エラーメッセージ
+    - エラー行番号
+    - 周辺コード（エラー行±5行）
+    - 現在のコード全体（参考用）
+  → AI応答受信
+  → @startuml〜@enduml抽出（正規表現）
+  → Monaco Editor setValue()           ★ ← 自動適用（ユーザー操作不要）
+  → 構文検証
+    → エラーなし → 完了、バナー消去、Monaco黄色ハイライト解除
+    → エラーあり → エラー処理ループ（試行回数+1）
+      → 5回目: 警告モーダル表示
+      → 6回目以降: 再生成ボタン無効化
+```
+
+**エラーバナーUI仕様**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ ⚠️ 構文エラー: Line 15 - Unexpected token "→"                   │
+│                                          [再生成 (残り5回)] [×] │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+- 配置: Previewパネル上部（固定、スクロール非追従）
+- 背景色: #FEF3CD（警告黄色）
+- 枠線: #856404
+- 高さ: 48px固定
+
+**却下した選択肢**:
+
+| 選択肢 | 却下理由 |
+|--------|---------|
+| AIチャット欄にエラー表示 | チャット欄が汚れる（ユーザー指摘） |
+| モーダルでエラー表示 | ワークフロー中断、煩わしい |
+| トースト通知 | 一時的で見逃しやすい |
+
+### Phase 8: 階層的憲法システム（§12.13追加）
+
+**ユーザー指摘**:
+> "AIにコード生成、コード修正を依頼する文章のロジックですが、ハードコートしないでください"
+> "憲法システムは対象のLLMごと、図表ごとに作成する必要がありますよね"
+
+**追加内容（約770行）**:
+
+| セクション | 内容 |
+|-----------|------|
+| 12.13.1 設計背景 | ハードコードプロンプトの問題点 |
+| 12.13.2 4層階層構造 | Base → LLM → Diagram → Combined |
+| 12.13.3 LLM固有憲法 | Claude, GPT-4, Gemini等の特性 |
+| 12.13.4 図表タイプ固有憲法 | シーケンス図、クラス図等の制約 |
+| 12.13.5 憲法スキーマ定義 | YAML構造、TypeScript型定義 |
+| 12.13.6 憲法プロバイダー | IConstitutionProvider インターフェース |
+| 12.13.7 憲法リゾルバー | 4層マージロジック |
+| 12.13.8 プロンプトビルダー | IPromptBuilder、Factory Pattern |
+| 12.13.9 既知問題追跡 | PlantUMLレンダリング制限記録 |
+| 12.13.10 拡張ポイント | 新LLM/図表タイプ追加方法 |
+
+**4層階層構造**:
+
+```
+Layer 1: Base Constitution（共通ルール）
+   ↓ 継承
+Layer 2: LLM-Specific Constitution（Claude, GPT-4, Gemini...）
+   ↓ 継承
+Layer 3: Diagram-Specific Constitution（Sequence, Class, Activity...）
+   ↓ 継承
+Layer 4: Combined Constitution（特定LLM×特定図表タイプ）
+```
+
+**組み合わせ爆発の回避**:
+
+```
+従来方式: 5 LLM × 10 図表タイプ = 50 個別ファイル（冗長）
+
+階層方式:
+  - Base: 1ファイル
+  - LLM層: 5ファイル（Claude, GPT-4, Gemini, Llama, Mistral）
+  - Diagram層: 10ファイル
+  - Combined層: 必要なもののみ（例: claude_sequence.yaml）
+  → 合計約20ファイル（60%削減）
+```
+
+**憲法スキーマ（TypeScript）**:
+
+```typescript
+interface Constitution {
+  version: string;
+  type: 'base' | 'llm' | 'diagram' | 'combined';
+  extends?: string | string[];
+  requirements?: string[];
+  prohibitions?: string[];
+  recommendations?: string[];
+  additional_requirements?: string[];  // 上位に追加
+  additional_prohibitions?: string[];  // 上位に追加
+  output_format?: {
+    single_block?: boolean;
+    no_explanation?: boolean;
+    markers?: { start: string; end: string };
+  };
+  known_issues?: {
+    id: string;
+    description: string;
+    workaround: string;
+  }[];
+}
+```
+
+**プロンプトビルダー（Factory Pattern）**:
+
+```typescript
+interface IPromptBuilder {
+  buildGenerationPrompt(request: GenerationRequest): string;
+  buildErrorFixPrompt(error: ErrorInfo, context: CodeContext): string;
+  buildValidationPrompt(code: string): string;
+}
+
+class PromptBuilderFactory {
+  static create(llm: LLMType, diagramType: DiagramType): IPromptBuilder {
+    const constitution = resolver.resolve(llm, diagramType);
+    return new ConstitutionBasedPromptBuilder(constitution);
+  }
+}
+```
+
+**既知問題追跡（例）**:
+
+```yaml
+# diagram/sequence.yaml
+known_issues:
+  - id: SEQ-001
+    description: "if/fork/switch内でスイムレーン遷移するコードを生成"
+    workaround: "制御構文は単一スイムレーン内に収め、noteで詳細説明"
+  - id: SEQ-002
+    description: "note bottom of 構文は使用不可"
+    workaround: "note over を使用"
+```
+
+### Session 13 操作ログ
+
+| # | 操作 | ファイル | 詳細 |
+|:-:|------|---------|------|
+| 161 | Edit | `02_screen_composition_analysis.md` | §12.5.3 エラーハンドリング要約更新 |
+| 162 | Edit | `02_screen_composition_analysis.md` | §12.12 エラー修正機能 詳細設計追加（約320行） |
+| 163 | Bash | `git add && commit` | `21bd979` TD-028 エラー修正機能 詳細設計 |
+| 164 | Edit | `02_screen_composition_analysis.md` | §12.13 階層的憲法システム追加（約770行） |
+| 165 | Bash | `git add && commit` | `52f7130` TD-028 階層的憲法システム追加 |
+| 166 | Edit | `work_sheet.md` | Session 13 追加、v8.4 |
+| 167 | Edit | `00_raw_notes.md` | Session 13 追加、v8.2 |
+
+### Session 13 最終成果
+
+| 成果物 | 状態 |
+|--------|:----:|
+| §12.12 エラー修正機能 詳細設計 | ✅ 完了（約320行） |
+| §12.13 階層的憲法システム | ✅ 完了（約770行） |
+| コミット | ✅ 2件（`21bd979`, `52f7130`） |
+| ユーザー指摘4点 | ✅ 全対応 |
+| 02_screen_composition_analysis.md | v13.0（2800行+） |
+
+### 獲得知見
+
+| ID | 内容 |
+|:--:|------|
+| CS-009 | ユーザー指摘は具体的な技術実装まで深掘りして対応すべき（「自動適用」→ Monaco setValue()フロー） |
+| CS-010 | エラー通知UIはワークフロー中断を避ける設計が重要（モーダル却下→インラインバナー採用） |
+| CS-011 | プロンプト管理はデプロイ不要で改善可能な外部ファイル方式が望ましい（YAML憲法） |
+| CS-012 | 組み合わせ爆発は階層継承で回避（50→約20ファイル、60%削減） |
