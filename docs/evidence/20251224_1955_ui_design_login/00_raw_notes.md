@@ -1,7 +1,7 @@
-# 作業メモ（完全版 v8.6 - Session 13 Phase 11完了）
+# 作業メモ（完全版 v8.7 - Session 14 Phase 12完了）
 
 **データソース**: Claude Ops MCP（ファイル変更履歴・Bash履歴）
-**総操作数**: 200件+（ファイル変更140件+ + Bash 35件 + Session 13 Phase 11）
+**総操作数**: 210件+（ファイル変更150件+ + Bash 35件 + Session 14 Phase 12）
 **本ドキュメント特徴**: 各操作のdiff詳細、作成ファイル内容、技術仕様を完全記録
 
 ---
@@ -2217,3 +2217,76 @@ known_issues:
 |:-:|---------|---------|
 | 187 | `work_sheet.md` | Phase 11追加、CS-009追加、v8.8 |
 | 188 | `00_raw_notes.md` | Phase 11追加、v8.6 |
+
+---
+
+## 2025-12-30（Session 14）Phase 12: 04_error_state + 05_sequence_modal完成
+
+### Session 14 概要
+
+| 項目 | 内容 |
+|------|------|
+| **目的** | 04_error_state.excalidraw + 05_sequence_modal.excalidraw 完成、P1 5/5完了 |
+| **主要成果** | 2ファイル完成（98点、100点）、TD-028 §11.8アーキテクチャ修正 |
+| **対象ファイル** | `04_editor/04_error_state.excalidraw`, `04_editor/05_sequence_modal.excalidraw`, 仕様書2件 |
+
+### Phase 12: 04_error_state.excalidraw完成
+
+**実施日時**: 2025-12-30
+**作業内容**: TD-028 §11.8エラー通知状態ワイヤーフレーム作成
+
+**タイムライン**:
+
+| # | 操作 | ファイル | 詳細 |
+|:-:|------|---------|------|
+| 189 | Write | `04_error_state.excalidraw` | 01_defaultベースで作成 |
+| 190 | Edit | `00_wireframe_index.md` | 04_error_state追加、Obsidianリンク追加 |
+| 191 | Edit | `03_wireframe_division_plan.md` | セクション3.4修正（アーキテクチャ修正） |
+| 192 | Edit | `02_screen_composition_analysis.md` | TD-028 §11.8修正（PreviewはJAR出力のみ） |
+| 193 | Edit | `active_context.md` | Session 14進捗反映 |
+
+**アーキテクチャ修正（重要）**:
+
+ユーザー指摘により、以下の誤った仕様を修正：
+
+| 誤り | 正しい仕様 |
+|------|------------|
+| Previewパネルに[再生成][閉じる]ボタン配置 | PreviewパネルはJAR出力表示のみ、カスタムUI配置不可 |
+| エラーバナーをPreviewパネル上部に追加 | JARが自動生成したエラー画像をそのまま表示 |
+| 再生成ボタンを新規追加 | AIチャットパネル右上の既存ボタンを使用 |
+
+**修正対象ドキュメント**:
+- `03_wireframe_division_plan.md` セクション3.4
+- `02_screen_composition_analysis.md` TD-028 §11.8
+
+**スコア**: 98点（合格）
+
+### Phase 12: 05_sequence_modal.excalidraw完成
+
+**実施日時**: 2025-12-30
+**作業内容**: TD-019 v2.0、TD-020 v2.0準拠の層2統合モーダル作成
+
+**スコア**: 100点（合格）
+
+### Session 14 最終成果
+
+| 成果物 | 状態 | スコア |
+|--------|:----:|:------:|
+| 04_error_state.excalidraw | ✅ 完了 | 98点 |
+| 05_sequence_modal.excalidraw | ✅ 完了 | 100点 |
+| TD-028 §11.8アーキテクチャ修正 | ✅ 完了 | - |
+| P1（MVP必須）5/5 | ✅ **完了** | - |
+
+### 獲得知見
+
+| ID | 内容 |
+|:--:|------|
+| CS-013 | PreviewパネルはPlantUML JAR出力を表示する領域であり、カスタムUIコントロールは配置不可 |
+| CS-014 | 仕様書レビュー時はアーキテクチャ制約（レンダリングエンジンの特性）を確認すべき |
+
+### Evidence更新（Phase 12）
+
+| # | ファイル | 変更内容 |
+|:-:|---------|---------|
+| 194 | `work_sheet.md` | Session 14追加、v8.9 |
+| 195 | `00_raw_notes.md` | Session 14追加、v8.7 |

@@ -1,7 +1,7 @@
 # ワイヤーフレーム一覧
 
 **作成日**: 2025-12-27
-**最終更新**: 2025-12-30（03_ai_code_apply完成✅ 98点、Session 13 Phase 11）
+**最終更新**: 2025-12-30（04_error_state完成✅ 98点、Session 14）
 **関連UC**: UC 1-1〜5-13（全32UC）
 **設計方針**: TD-015（Low-Fidelity）+ TD-016（Explorer Style + Resizer）
 **画面遷移図**: v1.6（エクスプローラー方式）
@@ -66,15 +66,15 @@
 | カテゴリ | 完了 | 残り | 進捗率 |
 |---------|:----:|:----:|:------:|
 | 認証画面 | 1 | 0 | 100% |
-| メイン画面 | 3 | 1（8ファイル中3完了） | 75% |
+| メイン画面 | 4 | 1（8ファイル中5完了） | 80% |
 | モーダル | 5 | 3 | 63% |
 | 管理画面 | 0 | 5 | 0% |
-| **合計** | **9** | **8** | **53%** |
+| **合計** | **11** | **6** | **65%** |
 
-**MVP画面**: 8残り / **Phase 2画面**: 1残り（学習コンテンツ管理のみ）
+**MVP画面**: 6残り / **Phase 2画面**: 1残り（学習コンテンツ管理のみ）
 
 > **#4エディタ画面**: 8ファイル分割構成（P1: 5ファイル、P2: 3ファイル）
-> - 完了: 01_default✅、02_selection_mode✅、03_ai_code_apply✅ / 残り: 04〜08（5ファイル）
+> - 完了: 01_default✅、02_selection_mode✅、03_ai_code_apply✅、04_error_state✅、05_sequence_modal✅ / 残り: 06〜08（3ファイル）
 
 ---
 
@@ -97,13 +97,13 @@
 |:----:|:-:|--------|--------|:------:|:----:|
 | 5 | 9 | **新規図表作成** | UC 3-1 | 低 | ✅ 完了 |
 | 6 | 10 | **テンプレート選択** | UC 3-2 | 中 | ✅ 完了 |
-| 7 | 4 | **エディタ画面（8ファイル）** | UC 3-1〜3-6, 4-1, 4-2 | **最高** | 🟡 **3/8完了** |
+| 7 | 4 | **エディタ画面（8ファイル）** | UC 3-1〜3-6, 4-1, 4-2 | **最高** | 🟡 **5/8完了** |
 | 8 | 11 | エクスポート設定 | UC 3-6 | 中 | 🔴 |
 | 9 | 12 | 図表削除確認 | UC 3-9 | 最低 | 🔴 |
 | 10 | 13 | AIチャット | UC 4-2 | 高 | 🔴 |
 
 **Phase B完了時**: 12/17画面（71%）
-> **エディタ画面**: 01_default✅ / 02_selection_mode✅ / 03_ai_code_apply✅ / 次は04_error_state
+> **エディタ画面**: 01_default✅ / 02_selection_mode✅ / 03_ai_code_apply✅ / 04_error_state✅ / 05_sequence_modal✅ / 次は06_gui_only
 
 ### Phase C：管理画面（MVP完成）
 
@@ -211,7 +211,7 @@
 > **分割理由**: TD-028（AIコード適用フロー）の複雑性により、単一ファイルでは表現不可能
 > - 7ステップの対象コード指定・適用フロー
 > - 選択モードON/OFF、3パネル連動ハイライト
-> - エラー通知バナー、再生成ボタン
+> - エラー表示（JARが自動生成）、再生成はAIパネル既存ボタン
 > - 層2統合モーダル（900×700px）
 
 **8ファイル構成（Phase 1: P1 / Phase 2: P2）**:
@@ -220,8 +220,8 @@
 | 1 | 01_default.excalidraw | Mode 1 基本状態 | TD-023, TD-032 | **P1** | ✅ |
 | 2 | 02_selection_mode.excalidraw | 選択モードON | TD-028 §11.3 | **P1** | ✅ 93.6点 |
 | 3 | 03_ai_code_apply.excalidraw | AIコード適用フロー | TD-028 §11.2-11.7 | **P1** | ✅ 98点 |
-| 4 | 04_error_state.excalidraw | エラー通知状態 | TD-028 §11.8 | **P1** | 🔴 |
-| 5 | 05_sequence_modal.excalidraw | 層2統合モーダル | TD-019 v2.0 | **P1** | 🔴 |
+| 4 | 04_error_state.excalidraw | エラー通知状態 | TD-028 §11.8 | **P1** | ✅ 98点 |
+| 5 | 05_sequence_modal.excalidraw | 層2統合モーダル | TD-019 v2.0, TD-020 v2.0 | **P1** | ✅ 100点 |
 | 6 | 06_gui_only.excalidraw | Mode 2（GUIのみ） | TD-021 | P2 | 🔴 |
 | 7 | 07_code_only.excalidraw | Mode 3（Codeのみ） | TD-021 | P2 | 🔴 |
 | 8 | 08_ai_chat_collapsed.excalidraw | AIチャット折りたたみ | TD-032 | P2 | 🔴 |
@@ -280,14 +280,15 @@ Phase 2（MVP推奨）: 06 → 07 → 08
 ├── 01_default.excalidraw           # ✅ P1: 基本状態（Mode 1）96点
 ├── 02_selection_mode.excalidraw    # ✅ P1: 選択モードON（93.6点）
 ├── 03_ai_code_apply.excalidraw     # ✅ P1: AIコード適用フロー（98点）
-├── 04_error_state.excalidraw       # 🔴 P1: エラー通知状態
-├── 05_sequence_modal.excalidraw    # 🔴 P1: 層2統合モーダル
+├── 04_error_state.excalidraw       # ✅ P1: エラー通知状態（98点）
+├── 05_sequence_modal.excalidraw    # ✅ P1: 層2統合モーダル（100点）
 ├── 06_gui_only.excalidraw          # 🔴 P2: Mode 2（GUIのみ）
 ├── 07_code_only.excalidraw         # 🔴 P2: Mode 3（Codeのみ）
 ├── 08_ai_chat_collapsed.excalidraw # 🔴 P2: AIチャット折りたたみ
 ├── 01_gui_panel_design_discussion.md   # GUIパネル設計議論
 ├── 02_screen_composition_analysis.md   # 画面構成分析 v10.0
-├── 03_wireframe_division_plan.md       # ★ワイヤーフレーム分割方針書 v1.2
+├── 03_wireframe_division_plan.md       # ワイヤーフレーム分割方針書 v1.2
+├── 06_gui_panel_expansion_strategy.md  # ★GUIパネル拡張戦略書 v1.0（New!）
 └── archive/
     └── default_v3.0_archive.excalidraw # 旧版（アーカイブ）
 ```
@@ -302,6 +303,35 @@ Phase 2（MVP推奨）: 06 → 07 → 08
 
 **03_ai_code_apply（AIコード適用フロー）✅ 98点**:
 ![[04_editor/03_ai_code_apply.excalidraw]]
+
+**04_error_state（エラー通知状態）✅ 98点**:
+**対応TD**: TD-028 §11.8（エラー通知状態）
+**表現する状態**: PlantUML構文エラー発生時
+**構成要素**:
+- Codeパネル: エラー行ハイライト（黄色 #FEF3CD）、ガッターアイコン（赤）
+- Previewパネル: **PlantUML JARが生成したエラー画像を自動表示**（カスタムUI不要）
+- AIチャット: エラー表示なし、**[再生成]ボタン（既存）を使用**
+
+![[04_editor/04_error_state.excalidraw]]
+
+**05_sequence_modal（層2統合モーダル）✅ 100点**:
+**対応TD**: TD-019 v2.0（2層統合モーダル）、TD-020 v2.0（2レベルGUI編集）
+**サイズ**: 900×700px（モーダル）
+**構成要素**:
+- モーダルヘッダー（「シーケンス編集」タイトル + ×閉じるボタン）
+- 参加者管理セクション（チップ形式: [Alice][Bob][Server][+追加]）
+- メッセージ一覧エリア
+  - メッセージカード（ドラッグハンドル[≡] + 削除[×]）
+  - Noteカード（📝アイコン）
+  - フラグメントカード（🔀アイコン + 展開式編集）
+- 展開式インライン編集（種類ドロップダウン、条件入力、内包メッセージ）
+- [+追加 ▼]ドロップダウンボタン
+- フッター（[キャンセル][適用]）
+
+> **TD-019 v2.0**: 入れ子モーダルなし（単一モーダル内で完結）
+> **TD-020 v2.0**: 展開式編集でフラグメント内容を直接編集
+
+![[04_editor/05_sequence_modal.excalidraw]]
 
 #### ~~05. 学習コンテンツ~~ → ホーム内ビューに統合（v1.5）
 > UC 3-10, 3-11 は「02. ホーム」の学習コンテンツビューとして実装
