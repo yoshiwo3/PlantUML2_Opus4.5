@@ -1,7 +1,7 @@
 # ワイヤーフレーム一覧
 
 **作成日**: 2025-12-27
-**最終更新**: 2025-12-30（04_error_state完成✅ 98点、Session 14）
+**最終更新**: 2025-12-31（01_default 07統合✅、06_gui_only作成✅、Session 15）
 **関連UC**: UC 1-1〜5-13（全32UC）
 **設計方針**: TD-015（Low-Fidelity）+ TD-016（Explorer Style + Resizer）
 **画面遷移図**: v1.6（エクスプローラー方式）
@@ -66,7 +66,7 @@
 | カテゴリ | 完了 | 残り | 進捗率 |
 |---------|:----:|:----:|:------:|
 | 認証画面 | 1 | 0 | 100% |
-| メイン画面 | 4 | 1（8ファイル中5完了） | 80% |
+| メイン画面 | 4 | 1（8ファイル中6完了） | 80% |
 | モーダル | 5 | 3 | 63% |
 | 管理画面 | 0 | 5 | 0% |
 | **合計** | **11** | **6** | **65%** |
@@ -74,7 +74,7 @@
 **MVP画面**: 6残り / **Phase 2画面**: 1残り（学習コンテンツ管理のみ）
 
 > **#4エディタ画面**: 8ファイル分割構成（P1: 5ファイル、P2: 3ファイル）
-> - 完了: 01_default✅、02_selection_mode✅、03_ai_code_apply✅、04_error_state✅、05_sequence_modal✅ / 残り: 06〜08（3ファイル）
+> - 完了: 01_default✅（07統合）、02_selection_mode✅、03_ai_code_apply✅、04_error_state✅、05_sequence_modal✅、06_gui_only✅ / 残り: 07〜08（2ファイル）
 
 ---
 
@@ -97,13 +97,13 @@
 |:----:|:-:|--------|--------|:------:|:----:|
 | 5 | 9 | **新規図表作成** | UC 3-1 | 低 | ✅ 完了 |
 | 6 | 10 | **テンプレート選択** | UC 3-2 | 中 | ✅ 完了 |
-| 7 | 4 | **エディタ画面（8ファイル）** | UC 3-1〜3-6, 4-1, 4-2 | **最高** | 🟡 **5/8完了** |
+| 7 | 4 | **エディタ画面（8ファイル）** | UC 3-1〜3-6, 4-1, 4-2 | **最高** | 🟡 **6/8完了** |
 | 8 | 11 | エクスポート設定 | UC 3-6 | 中 | 🔴 |
 | 9 | 12 | 図表削除確認 | UC 3-9 | 最低 | 🔴 |
 | 10 | 13 | AIチャット | UC 4-2 | 高 | 🔴 |
 
 **Phase B完了時**: 12/17画面（71%）
-> **エディタ画面**: 01_default✅ / 02_selection_mode✅ / 03_ai_code_apply✅ / 04_error_state✅ / 05_sequence_modal✅ / 次は06_gui_only
+> **エディタ画面**: 01_default✅（07統合）/ 02_selection_mode✅ / 03_ai_code_apply✅ / 04_error_state✅ / 05_sequence_modal✅ / 06_gui_only✅ / 次は07_code_only
 
 ### Phase C：管理画面（MVP完成）
 
@@ -222,7 +222,7 @@
 | 3 | 03_ai_code_apply.excalidraw | AIコード適用フロー | TD-028 §11.2-11.7 | **P1** | ✅ 98点 |
 | 4 | 04_error_state.excalidraw | エラー通知状態 | TD-028 §11.8 | **P1** | ✅ 98点 |
 | 5 | 05_sequence_modal.excalidraw | 層2統合モーダル | TD-019 v2.0, TD-020 v2.0 | **P1** | ✅ 100点 |
-| 6 | 06_gui_only.excalidraw | Mode 2（GUIのみ） | TD-021 | P2 | 🔴 |
+| 6 | 06_gui_only.excalidraw | Mode 2（GUIのみ） | TD-021 | P2 | ✅ |
 | 7 | 07_code_only.excalidraw | Mode 3（Codeのみ） | TD-021 | P2 | 🔴 |
 | 8 | 08_ai_chat_collapsed.excalidraw | AIチャット折りたたみ | TD-032 | P2 | 🔴 |
 
@@ -282,20 +282,24 @@ Phase 2（MVP推奨）: 06 → 07 → 08
 ├── 03_ai_code_apply.excalidraw     # ✅ P1: AIコード適用フロー（98点）
 ├── 04_error_state.excalidraw       # ✅ P1: エラー通知状態（98点）
 ├── 05_sequence_modal.excalidraw    # ✅ P1: 層2統合モーダル（100点）
-├── 06_gui_only.excalidraw          # 🔴 P2: Mode 2（GUIのみ）
+├── 06_gui_only.excalidraw          # ✅ P2: Mode 2（GUIのみ）
 ├── 07_code_only.excalidraw         # 🔴 P2: Mode 3（Codeのみ）
 ├── 08_ai_chat_collapsed.excalidraw # 🔴 P2: AIチャット折りたたみ
 ├── 01_gui_panel_design_discussion.md   # GUIパネル設計議論
 ├── 02_screen_composition_analysis.md   # 画面構成分析 v10.0
 ├── 03_wireframe_division_plan.md       # ワイヤーフレーム分割方針書 v1.2
-├── 06_gui_panel_expansion_strategy.md  # ★GUIパネル拡張戦略書 v1.0（New!）
+├── 06_gui_panel_expansion_strategy.md  # ★GUIパネル拡張戦略書 v1.0
+├── 07_gui_panel_quick_add.excalidraw   # ★統合ソース（→01_default, 06_gui_only）
+├── 13_wf_integration_procedure_v2.md   # ★WF統合作業手順書 v2.5
 └── archive/
     └── default_v3.0_archive.excalidraw # 旧版（アーカイブ）
 ```
 
 > **Note**: ワイヤーフレームは分割方針に基づき新規作成中。Phase 1（5ファイル）を優先作成。
 
-**01_default（基本状態）✅ 96点**:
+**01_default（基本状態）✅ 96点（07統合済み）**:
+> クイック追加フォーム（From/Type/To選択、メッセージ入力、追加/クリアボタン）を07より統合
+
 ![[04_editor/01_default.excalidraw]]
 
 **02_selection_mode（選択モードON）✅ 93.6点**:
@@ -332,6 +336,16 @@ Phase 2（MVP推奨）: 06 → 07 → 08
 > **TD-020 v2.0**: 展開式編集でフラグメント内容を直接編集
 
 ![[04_editor/05_sequence_modal.excalidraw]]
+
+**06_gui_only（Mode 2 GUIのみ）✅**:
+**対応TD**: TD-021（パネルモード切替機構）
+**表現する状態**: Mode 2（Ctrl+2）、GUIパネル拡張表示（950px）
+**構成要素**:
+- GUIパネル（600px幅）+ Previewパネル
+- クイック追加フォーム（横長レイアウト: From/Type/To横並び）
+- 07_gui_panel_quick_addのMode 2をベースに作成
+
+![[04_editor/06_gui_only.excalidraw]]
 
 #### ~~05. 学習コンテンツ~~ → ホーム内ビューに統合（v1.5）
 > UC 3-10, 3-11 は「02. ホーム」の学習コンテンツビューとして実装
